@@ -1,0 +1,9 @@
+{
+  "preset": "ts-jest",
+  "rootDir": "../../",
+  "testEnvironment": "<rootDir>/src/tests/mongoEnvironment.ts",
+  "setupFilesAfterEnv": [
+    "<rootDir>/src/tests/setupFile.ts",
+    "<rootDir>/src/tests/jestMocks.ts"
+  ]
+}
