@@ -4,7 +4,7 @@ import supertest from "supertest";
 import { app } from "..";
 
 type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
-const routeUrl = "/v1";
+const routeUrl = "/api";
 export const DEFAULT_FIREBASE_ID_FAKE = "test-firebaseId";
 
 class TestHelper {
@@ -78,6 +78,14 @@ class TestHelper {
     if (code) {
       expect(res.body.errorCode).toBe(code);
     }
+  }
+
+  extractApiKeys(organizationFromFactory) {
+    return [
+      undefined,
+      organizationFromFactory["plaintextSecretKey"],
+      organizationFromFactory.keys.publishableApiKey,
+    ];
   }
 }
 

@@ -2515,6 +2515,11 @@
   resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.2.tgz#b74129719fc8d11c01868010082d483b7545591a"
   integrity sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==
 
+"@types/luxon@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.2.0.tgz#99901b4ab29a5fdffc88fff59b3b47fbfbe0557b"
+  integrity sha512-lGmaGFoaXHuOLXFvuju2bfvZRqxAqkHPx9Y9IQdQABrinJJshJwfNCKV+u7rR3kJbiqfTF/NhOkcxxAFrObyaA==
+
 "@types/mime@*":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-3.0.1.tgz#5f8f2bca0a5863cb69bc0b0acd88c96cb1d4ae10"
@@ -6561,10 +6566,10 @@ log-symbols@3.0.0:
   dependencies:
     chalk "^2.4.2"
 
-logtree-types@1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.7.tgz#b532287a34c875f6e510a02aa51ee55b3845b61c"
-  integrity sha512-gW7sNVOzZXbEGXcSJjm2RTfylWiyEoNlvLePNDWblKh3lqGHy+/v/JNjaPYHxrBBGU0huP94y/X8h+uUDNm87w==
+logtree-types@1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.9.tgz#3b4d566a59007f052d10f62bae2c4eb601e6c93f"
+  integrity sha512-v+/0BKYxEvcy5AuKcrvKel9/bRDEwtCEImq08uJdXFLHmmWL/VAEtczDfauqPVOX1OP2nAImZucuwP2qFWxjHQ==
   dependencies:
     lodash "^4.17.20"
     mongodb "^5.1.0"
@@ -6600,6 +6605,11 @@ lru_map@^0.3.3:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/lru_map/-/lru_map-0.3.3.tgz#b5c8351b9464cbd750335a79650a0ec0e56118dd"
   integrity sha512-Pn9cox5CsMYngeDbmChANltQl+5pi6XmTrraMSzhPmMBbmgcxmqWry0U3PGapCU1yB4/LqCcom7qhHZiF/jGfQ==
+
+luxon@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.3.0.tgz#d73ab5b5d2b49a461c47cedbc7e73309b4805b48"
+  integrity sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==
 
 make-dir@^3.0.0, make-dir@^3.0.2, make-dir@^3.1.0:
   version "3.1.0"

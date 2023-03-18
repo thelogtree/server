@@ -12,6 +12,10 @@ const UserSchema = new Schema(
       ref: DatabaseModelNames.Organization,
       required: true,
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

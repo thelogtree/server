@@ -26,3 +26,6 @@ export async function getHashFromPlainTextKey(
 
 export const getErrorMessage = (e: AxiosError) =>
   _.get(e, "response.data", e.message);
+
+export const wrapWords = (words: string) =>
+  words.split(" ").join("-").split("/").join("-");

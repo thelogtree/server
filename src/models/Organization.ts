@@ -12,7 +12,7 @@ const KeysSchema = new Schema(
 
 const OrganizationSchema = new Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, trim: true },
     keys: { type: KeysSchema, required: true },
   },
   { timestamps: true }

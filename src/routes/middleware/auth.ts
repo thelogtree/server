@@ -53,7 +53,7 @@ const requiredApiKey = async (
   const publishableApiKey = req.headers["x-logtree-key"]?.toString() || "";
   const plaintextSecretKey = req.headers["authorization"]?.toString() || "";
   const organization: OrganizationDocument | null = await Organization.findOne({
-    publishableApiKey,
+    "keys.publishableApiKey": publishableApiKey,
   })
     .lean()
     .exec();

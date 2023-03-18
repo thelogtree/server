@@ -23,5 +23,10 @@ router.post(
   auth.requiredOrgMember,
   OrganizationController.generateSecretKey
 );
+router.post(
+  "/:id/generate-invite-link",
+  auth.requiredOrgMember,
+  OrganizationController.generateInviteLink
+);
 
 export default router;

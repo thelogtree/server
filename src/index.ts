@@ -9,7 +9,7 @@ import routes from "./routes";
 import { config } from "./utils/config";
 import { exceptionHandler } from "./utils/exceptionHandler";
 import { startMongo } from "./utils/mongoConfig";
-import { attachUserDocument } from "./utils/routeWrapper";
+import { attachUserDocument } from "./utils/attachUserDocumentToRoute";
 import { rateLimiterP3 } from "./utils/rateLimiters";
 
 const SERVER_MSG = `This is the Logtree server.`;
@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(attachUserDocument);
 app.use(rateLimiterP3);
 app.get("/", (_, res) => res.send(SERVER_MSG));
-app.use("/v1", routes);
+app.use("/api", routes);
 app.use(exceptionHandler); // must be last middleware func
 
 const setupServer = async () => {

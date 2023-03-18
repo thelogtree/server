@@ -18,4 +18,9 @@ export const OrganizationController = {
     );
     res.send({ plaintextSecretKey });
   },
+  generateInviteLink: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const url = await OrganizationService.generateInviteLink(organization);
+    res.send({ url });
+  },
 };

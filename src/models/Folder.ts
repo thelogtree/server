@@ -5,13 +5,13 @@ import { FolderDocument } from "logtree-types";
 
 const FolderSchema = new Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, trim: true },
     organizationId: {
       type: ObjectId,
       ref: DatabaseModelNames.Organization,
       required: true,
     },
-    parentFolder: {
+    parentFolderId: {
       type: ObjectId,
       ref: DatabaseModelNames.Folder,
       default: null,
@@ -22,6 +22,7 @@ const FolderSchema = new Schema(
 
 FolderSchema.index({ organizationId: 1 });
 FolderSchema.index({ parentFolder: 1 });
+FolderSchema.index({ organizationId: 1, name: 1 }, { unique: true });
 
 interface FolderModel extends Model<FolderDocument> {}
 

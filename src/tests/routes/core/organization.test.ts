@@ -1,5 +1,5 @@
-import { TestHelper } from "../TestHelper";
-import { UserFactory } from "../factories/UserFactory";
+import { TestHelper } from "../../TestHelper";
+import { UserFactory } from "../../factories/UserFactory";
 
 const routeUrl = "/organization";
 

@@ -1,8 +1,10 @@
 import { OrganizationDocument } from "logtree-types";
+import { DateTime } from "luxon";
+import { OrgInvitation } from "src/models/OrgInvitation";
 import { Organization } from "src/models/Organization";
 import { config } from "src/utils/config";
 import { ApiError } from "src/utils/errors";
-import { getHashFromPlainTextKey } from "src/utils/helpers";
+import { getHashFromPlainTextKey, wrapWords } from "src/utils/helpers";
 import { uuid } from "uuidv4";
 
 export const OrganizationService = {
@@ -13,8 +15,10 @@ export const OrganizationService = {
     }
 
     const publishableApiKey = uuid();
+    const slug = wrapWords(name);
     return Organization.create({
       name,
+      slug,
       keys: {
         publishableApiKey,
       },
@@ -34,4 +38,14 @@ export const OrganizationService = {
     ).exec();
     return plaintextSecretKey;
   },
+  generateInviteLink: async (organization: OrganizationDocument) => {
+    // expires in 24 hours or when it gets used
+    const inviteUrl = await OrgInvitation.create({
+      organizationId: organization._id,
+      expiresAt: DateTime.now().plus({ days: 1 }),
+      isOneTimeUse: true,
+    });
+
+    return `${config.baseUrl}/${organization.slug}/invite/${inviteUrl}`;
+  }
 };
