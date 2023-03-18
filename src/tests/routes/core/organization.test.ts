@@ -1,54 +1,12 @@
+import { OrganizationFactory } from "src/tests/factories/OrganizationFactory";
 import { TestHelper } from "../../TestHelper";
 import { UserFactory } from "../../factories/UserFactory";
+import bcrypt from "bcrypt";
+import { config } from "src/utils/config";
+import { OrgInvitation } from "src/models/OrgInvitation";
+import { Organization } from "src/models/Organization";
 
 const routeUrl = "/organization";
-
-// describe("FailsAuthIfNotTeamMember", () => {
-//   it("correctly fails auth if the user is not a team member of this card issuer", async () => {
-//     const user = await BusinessUserFactory.create();
-//     const res = await TestHelper.sendRequest(
-//       routeUrl + "/team",
-//       "GET",
-//       {},
-//       {},
-//       user.firebaseId
-//     );
-//     TestHelper.expectError(res, "Need a registered user to make this request");
-//   });
-//   it("correctly fails auth if there is no user making a request", async () => {
-//     const res = await TestHelper.sendRequest(routeUrl + "/team", "GET", {}, {});
-//     TestHelper.expectError(res, "Need a registered user to make this request");
-//   });
-// });
-
-// describe("FailsAuthIfIncorrectApiCredentials", () => {
-//   it("correctly fails auth if the api key is incorrect", async () => {
-//     const cardIssuer = await CardIssuerFactory.create();
-//     const res = await TestHelper.sendRequest(
-//       routeUrl + "/cardholder",
-//       "POST",
-//       {},
-//       {},
-//       undefined,
-//       cardIssuer.plaintextSecretKey,
-//       cardIssuer.publishableApiKey + "a"
-//     );
-//     TestHelper.expectError(res, AUTH_API_CREDS_ERROR_MSG);
-//   });
-//   it("correctly fails auth if the secret key is incorrect", async () => {
-//     const cardIssuer = await CardIssuerFactory.create();
-//     const res = await TestHelper.sendRequest(
-//       routeUrl + "/cardholder",
-//       "POST",
-//       {},
-//       {},
-//       undefined,
-//       cardIssuer.plaintextSecretKey + "a",
-//       cardIssuer.publishableApiKey
-//     );
-//     TestHelper.expectError(res, AUTH_API_CREDS_ERROR_MSG);
-//   });
-// });
 
 describe("GetMe", () => {
   it("correctly gets me (the user making the request)", async () => {
@@ -63,5 +21,58 @@ describe("GetMe", () => {
     TestHelper.expectSuccess(res);
     const returnedUser = res.body;
     expect(returnedUser._id.toString()).toBe(user._id.toString());
+  });
+});
+
+describe("GenerateSecretKey", () => {
+  it("correctly generates a new secret key", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/secret-key`,
+      "POST",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { plaintextSecretKey } = res.body;
+    expect(plaintextSecretKey).toBeTruthy();
+
+    const updatedOrganization = await Organization.findById(organization._id);
+
+    const matchesEncryptedVersion = await bcrypt.compare(
+      plaintextSecretKey,
+      updatedOrganization!.keys.encryptedSecretKey!
+    );
+    expect(matchesEncryptedVersion).toBeTruthy();
+  });
+});
+
+describe("GenerateInviteLink", () => {
+  it("correctly generates an invite link to the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/invite-link`,
+      "POST",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { url } = res.body;
+
+    const invite = await OrgInvitation.findOne({
+      organizationId: organization._id,
+    });
+    const allOrgInvitesNum = await OrgInvitation.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allOrgInvitesNum).toBe(1);
+
+    expect(url).toBe(
+      `${config.baseUrl}/${organization.slug}/invite/${invite?._id.toString()}`
+    );
   });
 });

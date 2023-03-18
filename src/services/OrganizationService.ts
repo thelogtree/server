@@ -26,7 +26,7 @@ export const OrganizationService = {
   },
   generateSecretKey: async (organization: OrganizationDocument) => {
     const plaintextSecretKey = uuid();
-    const encryptedSecretKey = getHashFromPlainTextKey(
+    const encryptedSecretKey = await getHashFromPlainTextKey(
       plaintextSecretKey,
       config.encryption.saltRounds
     );
@@ -40,12 +40,14 @@ export const OrganizationService = {
   },
   generateInviteLink: async (organization: OrganizationDocument) => {
     // expires in 24 hours or when it gets used
-    const inviteUrl = await OrgInvitation.create({
+    const invite = await OrgInvitation.create({
       organizationId: organization._id,
       expiresAt: DateTime.now().plus({ days: 1 }),
       isOneTimeUse: true,
     });
 
-    return `${config.baseUrl}/${organization.slug}/invite/${inviteUrl}`;
-  }
+    return `${config.baseUrl}/${
+      organization.slug
+    }/invite/${invite._id.toString()}`;
+  },
 };

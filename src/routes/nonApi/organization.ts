@@ -24,7 +24,7 @@ router.post(
   OrganizationController.generateSecretKey
 );
 router.post(
-  "/:id/generate-invite-link",
+  "/:id/invite-link",
   auth.requiredOrgMember,
   OrganizationController.generateInviteLink
 );
