@@ -2,6 +2,7 @@ import { ApiError } from "src/utils/errors";
 import _ from "lodash";
 import { OrganizationDocument } from "logtree-types";
 import { Folder } from "src/models/Folder";
+import { Log } from "src/models/Log";
 
 export const FolderService = {
   validateFolderPath: (folderPath: string) => {
@@ -47,6 +48,7 @@ export const FolderService = {
     folderPath: string
   ): Promise<string> => {
     const splitPaths = folderPath.split("/");
+    const lastPath = _.last(splitPaths);
 
     // build or fetch the folder path that was specified
     let lastFolderId: string | null = null;
@@ -59,6 +61,19 @@ export const FolderService = {
         lastFolderId,
         path
       );
+
+      // make sure we aren't opening up new subfolders inside folders that already have a log in them
+      // (i.e. a folder cannot have both logs and subfolder(s). it can only have one of those.)
+      if (lastPath !== path) {
+        const existingLogInFolder = await Log.exists({
+          folderId: lastFolderId,
+        });
+        if (existingLogInFolder) {
+          throw new ApiError(
+            "You cannot create subfolders inside of a folder that already has at least 1 log."
+          );
+        }
+      }
     }
 
     if (!lastFolderId) {
