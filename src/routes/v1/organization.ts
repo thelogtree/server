@@ -2,6 +2,8 @@ import expressRouter from "express-promise-router";
 import { OrganizationController } from "src/controllers/OrganizationController";
 
 import auth from "../middleware/auth";
+import { validateRequestAgainstSchemas } from "../middleware/helpers";
+import { OrganizationSchemas } from "../middleware/schemas/organization";
 
 const router = expressRouter();
 
@@ -15,5 +17,11 @@ const router = expressRouter();
 // );
 
 router.get("/me", auth.requiredUser, OrganizationController.getMe);
+
+router.post(
+  "/:id/secret-key",
+  auth.requiredOrgMember,
+  OrganizationController.generateSecretKey
+);
 
 export default router;

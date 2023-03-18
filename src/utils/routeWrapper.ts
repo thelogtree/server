@@ -21,7 +21,7 @@ export const attachUserDocument = async (
           ? authHeaderArr[1]
           : (await validateUserId(authHeaderArr[1])).uid;
       if (firebaseId && firebaseId !== DEFAULT_FIREBASE_ID_FAKE) {
-        const userDoc = await User.findOne({ firebaseId }).lean();
+        const userDoc = await User.findOne({ firebaseId }).lean().exec();
         if (userDoc) {
           req.user = userDoc;
           req.token = authHeaderArr[1];

@@ -40,5 +40,7 @@ export const config = {
     fromEmail: "andy@logtree.co",
     apiKey: process.env.SENDGRID_API_KEY || "",
   },
-  encryptionKey: process.env.ENCRYPTION_KEY || "testkey",
+  encryption: {
+    saltRounds: 10,
+  },
 };

@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 export const OrganizationSchemas = {
-  // getDoesAccountWithEmailExistQuery: Joi.object({
-  //   email: Joi.string().required(),
-  // }),
+  createOrganization: Joi.object({
+    name: Joi.string().required(),
+  }),
 };

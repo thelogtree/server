@@ -4,13 +4,13 @@ import { Organization } from "src/models/Organization";
 import { getHashFromPlainTextKey } from "src/utils/helpers";
 import _ from "lodash";
 import { OrganizationDocument } from "logtree-types";
+import { config } from "src/utils/config";
 
 const getDefaultFields = async () => ({
   name: faker.name.lastName(),
   keys: {
     publishableApiKey: faker.datatype.uuid(),
     encryptedSecretKey: null,
-    saltRounds: 10,
   },
 });
 
@@ -23,7 +23,7 @@ export const OrganizationFactory = {
     ) as any;
     const encryptedSecretKey = await getHashFromPlainTextKey(
       plaintextSecretKey,
-      organization.keys.saltRounds
+      config.encryption.saltRounds
     );
     organization.keys.encryptedSecretKey = encryptedSecretKey;
     await (organization as any).save();

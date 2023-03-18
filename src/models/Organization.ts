@@ -1,4 +1,4 @@
-import { OrganizationDocument, OrgInvitationDocument } from "logtree-types";
+import { OrganizationDocument } from "logtree-types";
 import { Model, model, Schema } from "mongoose";
 import { DatabaseModelNames } from "src/utils/databaseModelNames";
 
@@ -6,7 +6,6 @@ const KeysSchema = new Schema(
   {
     publishableApiKey: { type: String, required: true },
     encryptedSecretKey: { type: String, default: null },
-    saltRounds: { type: Number, default: 10 },
   },
   { timestamps: false, _id: false }
 );
@@ -21,6 +20,7 @@ const OrganizationSchema = new Schema(
 
 OrganizationSchema.index({ name: 1 }, { unique: true });
 OrganizationSchema.index({ "keys.publishableApiKey": 1 }, { unique: true });
+OrganizationSchema.index({ "keys.encryptedSecretKey": 1 }, { unique: true });
 
 interface OrganizationModel extends Model<OrganizationDocument> {}
 

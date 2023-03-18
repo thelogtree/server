@@ -54,7 +54,9 @@ const requiredApiKey = async (
   const plaintextSecretKey = req.headers["authorization"]?.toString() || "";
   const organization: OrganizationDocument | null = await Organization.findOne({
     publishableApiKey,
-  }).lean();
+  })
+    .lean()
+    .exec();
   if (organization && organization.keys.encryptedSecretKey) {
     const isCorrect = await bcrypt.compare(
       plaintextSecretKey,
