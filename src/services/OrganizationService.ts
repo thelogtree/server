@@ -1,5 +1,6 @@
 import { OrganizationDocument } from "logtree-types";
 import { DateTime } from "luxon";
+import { ObjectId } from "mongodb";
 import { OrgInvitation } from "src/models/OrgInvitation";
 import { Organization } from "src/models/Organization";
 import { config } from "src/utils/config";
@@ -24,30 +25,33 @@ export const OrganizationService = {
       },
     });
   },
-  generateSecretKey: async (organization: OrganizationDocument) => {
+  generateSecretKey: async (organizationId: ObjectId) => {
     const plaintextSecretKey = uuid();
     const encryptedSecretKey = await getHashFromPlainTextKey(
       plaintextSecretKey,
       config.encryption.saltRounds
     );
     await Organization.updateOne(
-      { _id: organization._id },
+      { _id: organizationId },
       {
         "keys.encryptedSecretKey": encryptedSecretKey,
       }
     ).exec();
     return plaintextSecretKey;
   },
-  generateInviteLink: async (organization: OrganizationDocument) => {
+  generateInviteLink: async (
+    organizationId: ObjectId,
+    organizationSlug: string
+  ) => {
     // expires in 24 hours or when it gets used
     const invite = await OrgInvitation.create({
-      organizationId: organization._id,
+      organizationId: organizationId,
       expiresAt: DateTime.now().plus({ days: 1 }),
       isOneTimeUse: true,
     });
 
-    return `${config.baseUrl}/${
-      organization.slug
-    }/invite/${invite._id.toString()}`;
+    return `${
+      config.baseUrl
+    }/${organizationSlug}/invite/${invite._id.toString()}`;
   },
 };

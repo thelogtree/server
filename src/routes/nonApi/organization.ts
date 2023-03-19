@@ -17,6 +17,11 @@ const router = expressRouter();
 // );
 
 router.get("/me", auth.requiredUser, OrganizationController.getMe);
+router.get(
+  "/:id/folders",
+  auth.requiredOrgMember,
+  OrganizationController.getFolders
+);
 
 router.post(
   "/:id/secret-key",

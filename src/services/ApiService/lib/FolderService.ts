@@ -1,8 +1,15 @@
-import { ApiError } from "src/utils/errors";
 import _ from "lodash";
-import { OrganizationDocument } from "logtree-types";
+import { FolderDocument } from "logtree-types";
+import { ObjectId } from "mongodb";
 import { Folder } from "src/models/Folder";
 import { Log } from "src/models/Log";
+import { ApiError } from "src/utils/errors";
+
+type TreeRepresentation = {
+  _id: string | ObjectId;
+  name: string;
+  children: any[];
+};
 
 export const FolderService = {
   validateFolderPath: (folderPath: string) => {
@@ -17,6 +24,37 @@ export const FolderService = {
         "Please provide a valid folderPath string (e.g. /transactions)."
       );
     }
+  },
+  buildFolderTree(
+    allFolders: (FolderDocument & any)[],
+    parentFolderId: string | null
+  ): TreeRepresentation[] {
+    let tree: any[] = [];
+    for (let folder of allFolders) {
+      if (folder.parentFolderId?.toString() === parentFolderId?.toString()) {
+        let children = FolderService.buildFolderTree(
+          allFolders,
+          folder._id.toString()
+        );
+        if (children.length) {
+          folder.children = children;
+        } else {
+          folder.children = [];
+        }
+        tree.push(_.pick(folder, ["_id", "name", "children"]));
+      }
+    }
+    return tree;
+  },
+  getFolders: async (
+    organizationId: ObjectId
+  ): Promise<TreeRepresentation[]> => {
+    // returns a matrix-like representation of the folders for this organization
+    const allFoldersInOrg = await Folder.find({ organizationId })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+    return FolderService.buildFolderTree(allFoldersInOrg, null);
   },
   findOrCreateNewFolderId: async (
     organizationId: string,
