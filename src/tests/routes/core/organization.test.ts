@@ -213,3 +213,45 @@ describe("GetLogs", () => {
     expect(logs[0]._id.toString()).toBe(log1._id.toString());
   });
 });
+
+describe("SearchForLogs", () => {
+  it("correctly searches for logs and returns results", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "test",
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "hello blahtestm yo.",
+    });
+    const folderDecoy = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folderDecoy._id,
+      content: "test hi",
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/search`,
+      "POST",
+      { folderId: folder.id, query: "test" },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(2);
+    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log2._id.toString());
+    expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+});

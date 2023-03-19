@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 
@@ -23,7 +24,7 @@ export const LogService = {
       folderId,
     });
   },
-  getLogs: async (
+  getLogs: (
     organizationId: string | ObjectId,
     folderId: string | ObjectId,
     start: number = 0,
@@ -39,6 +40,24 @@ export const LogService = {
       .sort({ createdAt: -1 })
       .skip(start)
       .limit(maxLogsToRetrieve)
+      .lean()
+      .exec() as Promise<SimplifiedLog[]>,
+  searchForLogs: async (
+    organizationId: string | ObjectId,
+    folderId: string | ObjectId,
+    query: string
+  ): Promise<SimplifiedLog[]> =>
+    Log.find(
+      {
+        organizationId,
+        folderId,
+        content: { $regex: `.*${query}.*`, $options: "i" },
+        createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
+      },
+      { content: 1, _id: 1, createdAt: 1 }
+    )
+      .sort({ createdAt: -1 })
+      .limit(1000)
       .lean()
       .exec() as Promise<SimplifiedLog[]>,
 };

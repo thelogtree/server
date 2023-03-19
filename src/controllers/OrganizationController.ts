@@ -25,6 +25,16 @@ export const OrganizationController = {
     );
     res.send({ logs });
   },
+  searchForLogs: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const { folderId, query } = req.body;
+    const logs = await LogService.searchForLogs(
+      organization._id,
+      folderId as string,
+      query as string
+    );
+    res.send({ logs });
+  },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;
     const organization = await OrganizationService.createOrganization(name);

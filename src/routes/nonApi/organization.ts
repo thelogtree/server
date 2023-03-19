@@ -41,5 +41,13 @@ router.post(
   auth.requiredOrgMember,
   OrganizationController.generateInviteLink
 );
+router.post(
+  "/:id/search",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.searchForLogs,
+  }),
+  OrganizationController.searchForLogs
+);
 
 export default router;
