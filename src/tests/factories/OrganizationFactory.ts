@@ -7,7 +7,8 @@ import { OrganizationDocument } from "logtree-types";
 import { config } from "src/utils/config";
 
 const getDefaultFields = async () => ({
-  name: faker.name.lastName(),
+  name: faker.datatype.uuid(),
+  slug: faker.datatype.uuid(),
   keys: {
     publishableApiKey: faker.datatype.uuid(),
     encryptedSecretKey: null,

@@ -1,6 +1,13 @@
+import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
+
+export type SimplifiedLog = {
+  _id: ObjectId | string;
+  content: string;
+  createdAt: Date;
+};
 
 export const LogService = {
   createLog: (organizationId: string, folderId: string, content: string) => {
@@ -16,4 +23,22 @@ export const LogService = {
       folderId,
     });
   },
+  getLogs: async (
+    organizationId: string | ObjectId,
+    folderId: string | ObjectId,
+    start: number = 0,
+    maxLogsToRetrieve: number = 100
+  ): Promise<SimplifiedLog[]> =>
+    Log.find(
+      {
+        organizationId,
+        folderId,
+      },
+      { content: 1, _id: 1, createdAt: 1 }
+    )
+      .sort({ createdAt: -1 })
+      .skip(start)
+      .limit(maxLogsToRetrieve)
+      .lean()
+      .exec() as Promise<SimplifiedLog[]>,
 };

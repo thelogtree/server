@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { OrganizationDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
+import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
 
 export const OrganizationController = {
@@ -13,6 +14,16 @@ export const OrganizationController = {
     const organization = req["organization"];
     const folders = await FolderService.getFolders(organization._id);
     res.send({ folders });
+  },
+  getLogs: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const { folderId, start } = req.query;
+    const logs = await LogService.getLogs(
+      organization._id,
+      folderId as string,
+      Number(start || 0)
+    );
+    res.send({ logs });
   },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;

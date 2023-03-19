@@ -6,6 +6,7 @@ import { config } from "src/utils/config";
 import { OrgInvitation } from "src/models/OrgInvitation";
 import { Organization } from "src/models/Organization";
 import { FolderFactory } from "src/tests/factories/FolderFactory";
+import { LogFactory } from "src/tests/factories/LogFactory";
 
 const routeUrl = "/organization";
 
@@ -136,5 +137,79 @@ describe("GetFolders", () => {
     TestHelper.expectSuccess(res);
     const { folders } = res.body;
     expect(folders.length).toBe(0);
+  });
+});
+
+describe("GetLogs", () => {
+  it("correctly gets the logs for a specific folder", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const folderDecoy = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folderDecoy._id,
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/logs`,
+      "GET",
+      {},
+      { folderId: folder.id },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(2);
+    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log2._id.toString());
+    expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+  it("correctly gets the logs with a start pagination", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const folderDecoy = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folderDecoy._id,
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/logs`,
+      "GET",
+      {},
+      { folderId: folder.id, start: 1 },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(1);
+    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log1._id.toString());
   });
 });

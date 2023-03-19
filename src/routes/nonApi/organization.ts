@@ -22,6 +22,14 @@ router.get(
   auth.requiredOrgMember,
   OrganizationController.getFolders
 );
+router.get(
+  "/:id/logs",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getLogs,
+  }),
+  OrganizationController.getLogs
+);
 
 router.post(
   "/:id/secret-key",

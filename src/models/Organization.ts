@@ -13,12 +13,14 @@ const KeysSchema = new Schema(
 const OrganizationSchema = new Schema(
   {
     name: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, trim: true },
     keys: { type: KeysSchema, required: true },
   },
   { timestamps: true }
 );
 
 OrganizationSchema.index({ name: 1 }, { unique: true });
+OrganizationSchema.index({ slug: 1 }, { unique: true });
 OrganizationSchema.index({ "keys.publishableApiKey": 1 }, { unique: true });
 OrganizationSchema.index({ "keys.encryptedSecretKey": 1 }, { unique: true });
 
