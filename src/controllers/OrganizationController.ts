@@ -37,8 +37,9 @@ export const OrganizationController = {
   },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;
-    const organization = await OrganizationService.createOrganization(name);
-    res.send(organization);
+    const { organization, firstInvitationUrl } =
+      await OrganizationService.createOrganization(name);
+    res.send({ organization, firstInvitationUrl });
   },
   generateSecretKey: async (req: Request, res: Response) => {
     const organization = req["organization"];
@@ -54,5 +55,16 @@ export const OrganizationController = {
       organization.slug
     );
     res.send({ url });
+  },
+  createNewUser: async (req: Request, res: Response) => {
+    const organizationId = req.params.id;
+    const { invitationId, email, password } = req.body;
+    const user = await OrganizationService.createNewUser(
+      organizationId,
+      invitationId,
+      email,
+      password
+    );
+    res.send(user);
   },
 };

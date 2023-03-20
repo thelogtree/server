@@ -12,6 +12,11 @@ const UserSchema = new Schema(
       ref: DatabaseModelNames.Organization,
       required: true,
     },
+    invitationId: {
+      type: ObjectId,
+      ref: DatabaseModelNames.OrgInvitation,
+      required: true,
+    },
     isAdmin: {
       type: Boolean,
       default: false,
@@ -20,8 +25,11 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-UserSchema.index({ email: 1 });
+UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ firebaseId: 1 }, { unique: true });
+UserSchema.index({ organizationId: 1 });
+UserSchema.index({ organizationId: 1, invitationId: 1 });
+UserSchema.index({ invitationId: 1 }, { unique: true });
 
 interface UserModel extends Model<UserDocument> {}
 

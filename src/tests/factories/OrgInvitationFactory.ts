@@ -1,5 +1,5 @@
 import merge from "lodash/merge";
-import { OrganizationDocument } from "logtree-types";
+import { OrgInvitationDocument, OrganizationDocument } from "logtree-types";
 import moment from "moment";
 import { OrgInvitation } from "src/models/OrgInvitation";
 

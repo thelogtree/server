@@ -13,4 +13,9 @@ export const OrganizationSchemas = {
     folderId: Joi.string().custom(objectId).required(),
     query: Joi.string().required(),
   }),
+  createNewUser: Joi.object({
+    invitationId: Joi.string().custom(objectId).required(),
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+  }),
 };

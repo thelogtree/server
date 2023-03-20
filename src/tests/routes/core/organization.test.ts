@@ -7,6 +7,9 @@ import { OrgInvitation } from "src/models/OrgInvitation";
 import { Organization } from "src/models/Organization";
 import { FolderFactory } from "src/tests/factories/FolderFactory";
 import { LogFactory } from "src/tests/factories/LogFactory";
+import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
+import faker from "faker";
+import { DateTime } from "luxon";
 
 const routeUrl = "/organization";
 
@@ -82,7 +85,7 @@ describe("GenerateInviteLink", () => {
 describe("GetFolders", () => {
   it("correctly gets the folder array representation for an organization", async () => {
     const organization = await OrganizationFactory.create();
-    const folderTop1 = await FolderFactory.create({
+    await FolderFactory.create({
       organizationId: organization._id,
       parentFolderId: null,
     });
@@ -91,7 +94,7 @@ describe("GetFolders", () => {
       parentFolderId: null,
     });
     await FolderFactory.create(); // decoy
-    const subfolder1 = await FolderFactory.create({
+    await FolderFactory.create({
       organizationId: organization._id,
       parentFolderId: folderTop2._id,
     });
@@ -253,5 +256,127 @@ describe("SearchForLogs", () => {
     expect(Object.keys(logs[0]).length).toBe(3);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+});
+
+describe("CreateUser", () => {
+  it("correctly creates a new user from an invitation", async () => {
+    const organization = await OrganizationFactory.create();
+    const orgInvitation = await OrgInvitationFactory.create({
+      organizationId: organization._id,
+      isOneTimeUse: true,
+    });
+    const email = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user`,
+      "POST",
+      { invitationId: orgInvitation._id, email, password: "password" },
+      {}
+    );
+    TestHelper.expectSuccess(res);
+    const user = res.body;
+    expect(user.email).toBe(email);
+    expect(user.firebaseId).toBeTruthy();
+    expect(user.organizationId.toString()).toBe(organization.id);
+    expect(user.invitationId.toString()).toBe(orgInvitation.id);
+    expect(user.isAdmin).toBeFalsy();
+  });
+  it("correctly creates a new user from an invitation that can be used multiple times", async () => {
+    const organization = await OrganizationFactory.create();
+    const orgInvitation = await OrgInvitationFactory.create({
+      organizationId: organization._id,
+      isOneTimeUse: false,
+    });
+    await UserFactory.create({
+      organizationId: organization._id,
+      invitationId: orgInvitation._id,
+    });
+    const email = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user`,
+      "POST",
+      { invitationId: orgInvitation._id, email, password: "password" },
+      {}
+    );
+    TestHelper.expectSuccess(res);
+    const user = res.body;
+    expect(user.email).toBe(email);
+    expect(user.firebaseId).toBeTruthy();
+    expect(user.organizationId.toString()).toBe(organization.id);
+    expect(user.invitationId.toString()).toBe(orgInvitation.id);
+    expect(user.isAdmin).toBeFalsy();
+  });
+  it("fails to create a new user from an invitation that has expired", async () => {
+    const organization = await OrganizationFactory.create();
+    const orgInvitation = await OrgInvitationFactory.create({
+      organizationId: organization._id,
+      expiresAt: DateTime.now().minus({ minutes: 2 }),
+    });
+    const email = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user`,
+      "POST",
+      { invitationId: orgInvitation._id, email, password: "password" },
+      {}
+    );
+    TestHelper.expectError(
+      res,
+      "This invite has expired. Please ask a team member for a new invite link."
+    );
+  });
+  it("fails to create a new user from an invitation that doesn't exist", async () => {
+    const organization = await OrganizationFactory.create();
+    const orgInvitation = await OrgInvitationFactory.create();
+    const email = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user`,
+      "POST",
+      { invitationId: orgInvitation._id, email, password: "password" },
+      {}
+    );
+    TestHelper.expectError(
+      res,
+      "This invite has expired. Please ask a team member for a new invite link."
+    );
+  });
+  it("fails to create a new user from a one-time invitation that has already been used", async () => {
+    const organization = await OrganizationFactory.create();
+    const orgInvitation = await OrgInvitationFactory.create({
+      organizationId: organization._id,
+      isOneTimeUse: true,
+    });
+    await UserFactory.create({
+      organizationId: organization._id,
+      invitationId: orgInvitation._id,
+    });
+    const email = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user`,
+      "POST",
+      { invitationId: orgInvitation._id, email, password: "password" },
+      {}
+    );
+    TestHelper.expectError(
+      res,
+      "This invite has already been used. Please ask a team member for a new invite link."
+    );
+  });
+  it("fails to create a new user because there is already a user with this email", async () => {
+    const organization = await OrganizationFactory.create();
+    const orgInvitation = await OrgInvitationFactory.create({
+      organizationId: organization._id,
+    });
+    const email = faker.datatype.uuid();
+    await UserFactory.create({ email });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user`,
+      "POST",
+      { invitationId: orgInvitation._id, email, password: "password" },
+      {}
+    );
+    TestHelper.expectError(
+      res,
+      "You already have an account under this email. Please contact support."
+    );
   });
 });

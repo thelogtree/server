@@ -6566,10 +6566,10 @@ log-symbols@3.0.0:
   dependencies:
     chalk "^2.4.2"
 
-logtree-types@1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.9.tgz#3b4d566a59007f052d10f62bae2c4eb601e6c93f"
-  integrity sha512-v+/0BKYxEvcy5AuKcrvKel9/bRDEwtCEImq08uJdXFLHmmWL/VAEtczDfauqPVOX1OP2nAImZucuwP2qFWxjHQ==
+logtree-types@1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.10.tgz#7077da01542e75793422d92f61738fe52026614f"
+  integrity sha512-+ab2JhG+rR0mdvLTt+1HHBqPMeNedShzB5TlgI9pXRRUAHxJGigQ+05BDdAhCwkya/7J9UsAyJIRooyNEl24QA==
   dependencies:
     lodash "^4.17.20"
     mongodb "^5.1.0"

@@ -32,6 +32,13 @@ router.get(
 );
 
 router.post(
+  "/:id/user",
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createNewUser,
+  }),
+  OrganizationController.createNewUser
+);
+router.post(
   "/:id/secret-key",
   auth.requiredOrgMember,
   OrganizationController.generateSecretKey
