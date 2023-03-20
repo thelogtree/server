@@ -4,6 +4,7 @@ import { OrganizationController } from "src/controllers/OrganizationController";
 import auth from "../middleware/auth";
 import { validateRequestAgainstSchemas } from "../middleware/helpers";
 import { OrganizationSchemas } from "../middleware/schemas/organization";
+import { rateLimiterP1 } from "src/utils/rateLimiters";
 
 const router = expressRouter();
 
@@ -33,6 +34,7 @@ router.get(
 
 router.post(
   "/:id/user",
+  rateLimiterP1,
   validateRequestAgainstSchemas({
     bodySchema: OrganizationSchemas.createNewUser,
   }),
