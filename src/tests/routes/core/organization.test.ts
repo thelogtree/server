@@ -29,6 +29,23 @@ describe("GetMe", () => {
   });
 });
 
+describe("GetOrganization", () => {
+  it("correctly gets the organization of the user making the request (given organization id)", async () => {
+    const user = await UserFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId}`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const organization = res.body;
+    expect(organization._id.toString()).toBe(user.organizationId.toString());
+    expect(organization.slug).toBeTruthy();
+  });
+});
+
 describe("GenerateSecretKey", () => {
   it("correctly generates a new secret key", async () => {
     const organization = await OrganizationFactory.create();

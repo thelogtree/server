@@ -19,6 +19,11 @@ const router = expressRouter();
 
 router.get("/me", auth.requiredUser, OrganizationController.getMe);
 router.get(
+  "/:id",
+  auth.requiredOrgMember,
+  OrganizationController.getOrganization
+);
+router.get(
   "/:id/folders",
   auth.requiredOrgMember,
   OrganizationController.getFolders

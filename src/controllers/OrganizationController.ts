@@ -10,6 +10,10 @@ export const OrganizationController = {
     const user = req["user"];
     res.send(user);
   },
+  getOrganization: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    res.send(organization);
+  },
   getFolders: async (req: Request, res: Response) => {
     const organization = req["organization"];
     const folders = await FolderService.getFolders(organization._id);
