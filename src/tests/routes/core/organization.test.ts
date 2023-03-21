@@ -77,7 +77,7 @@ describe("GenerateInviteLink", () => {
     expect(allOrgInvitesNum).toBe(1);
 
     expect(url).toBe(
-      `${config.baseUrl}/${organization.slug}/invite/${invite?._id.toString()}`
+      `${config.baseUrl}/invite/${organization.slug}/${invite?._id.toString()}`
     );
   });
 });

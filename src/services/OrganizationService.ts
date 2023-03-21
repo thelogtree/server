@@ -66,7 +66,7 @@ export const OrganizationService = {
 
     return `${
       config.baseUrl
-    }/${organizationSlug}/invite/${invite._id.toString()}`;
+    }/invite/${organizationSlug}/${invite._id.toString()}`;
   },
   createNewUser: async (
     organizationId: string | ObjectId,
