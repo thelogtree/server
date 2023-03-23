@@ -29,6 +29,45 @@ describe("GetMe", () => {
   });
 });
 
+describe("GetInvitationInfo", () => {
+  it("correctly gets the invitation info", async () => {
+    const organization = await OrganizationFactory.create();
+    const invite = await OrgInvitationFactory.create({
+      organizationId: organization._id,
+    });
+    await UserFactory.create({ organizationId: organization._id });
+    await UserFactory.create({ organizationId: organization._id });
+    await UserFactory.create();
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + "/invitation",
+      "GET",
+      {},
+      { invitationId: invite._id.toString(), orgSlug: organization.slug }
+    );
+    TestHelper.expectSuccess(res);
+    const { organizationName, numMembers, organizationId } = res.body;
+    expect(organizationId.toString()).toBe(organization._id.toString());
+    expect(organizationName).toBe(organization.name);
+    expect(numMembers).toBe(2);
+  });
+  it("fails to get the invitation info for an invitation that doesn't exist", async () => {
+    const organization = await OrganizationFactory.create();
+    const invite = await OrgInvitationFactory.create();
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + "/invitation",
+      "GET",
+      {},
+      { invitationId: invite._id.toString(), orgSlug: organization.slug }
+    );
+    TestHelper.expectError(
+      res,
+      "The invitation and organization do not match."
+    );
+  });
+});
+
 describe("GetOrganization", () => {
   it("correctly gets the organization of the user making the request (given organization id)", async () => {
     const user = await UserFactory.create();

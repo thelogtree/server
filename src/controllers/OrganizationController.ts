@@ -71,4 +71,13 @@ export const OrganizationController = {
     );
     res.send(user);
   },
+  getInvitationInfo: async (req: Request, res: Response) => {
+    const { invitationId, orgSlug } = req.query;
+    const { organizationName, numMembers, organizationId } =
+      await OrganizationService.getInvitationInfo(
+        orgSlug as string,
+        invitationId as string
+      );
+    res.send({ organizationName, numMembers, organizationId });
+  },
 };

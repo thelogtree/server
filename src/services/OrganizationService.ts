@@ -121,4 +121,30 @@ export const OrganizationService = {
       invitationId: invitation._id,
     });
   },
+  getInvitationInfo: async (orgSlug: string, invitationId: string) => {
+    const invitation = await OrgInvitation.findById(invitationId).lean().exec();
+    const organization = await Organization.findOne({
+      slug: orgSlug,
+    })
+      .lean()
+      .exec();
+    const invitationBelongsToOrg =
+      organization._id.toString() === invitation.organizationId.toString();
+
+    if (!invitationBelongsToOrg) {
+      throw new ApiError("The invitation and organization do not match.");
+    }
+
+    const numMembers = await User.find({
+      organizationId: organization._id,
+    })
+      .countDocuments()
+      .exec();
+
+    return {
+      organizationName: organization.name,
+      numMembers,
+      organizationId: organization._id.toString(),
+    };
+  },
 };

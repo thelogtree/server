@@ -9,6 +9,10 @@ export const OrganizationSchemas = {
     folderId: Joi.string().custom(objectId).required(),
     start: Joi.number(),
   }),
+  getInvitationInfo: Joi.object({
+    invitationId: Joi.string().custom(objectId).required(),
+    orgSlug: Joi.string().required(),
+  }),
   searchForLogs: Joi.object({
     folderId: Joi.string().custom(objectId).required(),
     query: Joi.string().required(),

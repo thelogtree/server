@@ -17,6 +17,13 @@ const router = expressRouter();
 //   OrganizationController.createOrganization
 // );
 
+router.get(
+  "/invitation",
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getInvitationInfo,
+  }),
+  OrganizationController.getInvitationInfo
+);
 router.get("/me", auth.requiredUser, OrganizationController.getMe);
 router.get(
   "/:id",
