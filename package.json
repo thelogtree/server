@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "build/index.js",
   "scripts": {
-    "test": "IS_TEST=truthy NODE_PATH=./ jest --config ./src/tests/jest.config.json --passWithNoTests --maxWorkers=8 --verbose",
+    "test": "IS_TEST=truthy NODE_PATH=./ jest --config ./src/tests/jest.config.json --passWithNoTests --maxWorkers=8 --verbose --silent",
+    "test-loud": "IS_TEST=truthy NODE_PATH=./ jest --config ./src/tests/jest.config.json --passWithNoTests --maxWorkers=8 --verbose",
     "start": "IS_TEST='' IS_DEV='' node -r ./prod-paths.js build/src/index.js",
     "dev": "cross-env IS_TEST='' IS_DEV=truthy NODE_PATH=./ nodemon src/index.ts",
     "build": "rm -rf build && ./node_modules/.bin/tsc"
