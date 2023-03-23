@@ -23,7 +23,7 @@ export const OrganizationService = {
     }
 
     const publishableApiKey = uuid();
-    const slug = wrapWords(name);
+    const slug = wrapWords(name).toLowerCase();
     const organization = await Organization.create({
       name,
       slug,

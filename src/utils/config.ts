@@ -1,7 +1,7 @@
 const PORT = process.env.PORT || 5900;
 
 export const config = {
-  localServerUrl: `http://localhost:${PORT}/v1`,
+  localServerUrl: `http://localhost:${PORT}`,
   baseUrl: "https://logtree.co",
   environment: {
     port: PORT,
