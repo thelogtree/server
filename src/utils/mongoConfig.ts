@@ -8,7 +8,7 @@ export async function startMongo() {
     .then(() => {
       console.log("🍃 Connected to MongoDB");
       console.log(
-        `🏄🏼‍♂️ You can now send requests to ${config.localServerUrl}/{{route_path}}`
+        `🏄🏼‍♂️ You can now send requests to ${config.localServerUrl}/api/{{route_path}}`
       );
     })
     .catch((e) => {
