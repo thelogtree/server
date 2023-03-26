@@ -25,15 +25,15 @@ export const LogService = {
     });
   },
   getLogs: (
-    organizationId: string | ObjectId,
     folderId: string | ObjectId,
     start: number = 0,
-    maxLogsToRetrieve: number = 100
+    maxLogsToRetrieve: number = 100,
+    logsNoNewerThanDate?: Date
   ): Promise<SimplifiedLog[]> =>
     Log.find(
       {
-        organizationId,
         folderId,
+        createdAt: { $lt: logsNoNewerThanDate },
       },
       { content: 1, _id: 1, createdAt: 1 }
     )
@@ -42,6 +42,11 @@ export const LogService = {
       .limit(maxLogsToRetrieve)
       .lean()
       .exec() as Promise<SimplifiedLog[]>,
+  getNumLogsInFolder: (folderId: string, logsNoNewerThanDate?: Date) =>
+    Log.find({ folderId, createdAt: { $lt: logsNoNewerThanDate } })
+      .lean()
+      .countDocuments()
+      .exec(),
   searchForLogs: async (
     organizationId: string | ObjectId,
     folderId: string | ObjectId,

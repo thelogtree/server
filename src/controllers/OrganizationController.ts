@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { OrganizationDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
+import { Log } from "src/models/Log";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
@@ -25,14 +26,19 @@ export const OrganizationController = {
     res.send({ folders });
   },
   getLogs: async (req: Request, res: Response) => {
-    const organization = req["organization"];
-    const { folderId, start } = req.query;
+    const { folderId, start, logsNoNewerThanDate } = req.query;
+    const backupDate = new Date();
     const logs = await LogService.getLogs(
-      organization._id,
       folderId as string,
-      Number(start || 0)
+      Number(start || 0),
+      undefined,
+      (logsNoNewerThanDate as Date | undefined) || backupDate
     );
-    res.send({ logs });
+    const numLogsInTotal = await LogService.getNumLogsInFolder(
+      folderId as string,
+      (logsNoNewerThanDate as Date | undefined) || backupDate
+    );
+    res.send({ logs, numLogsInTotal });
   },
   searchForLogs: async (req: Request, res: Response) => {
     const organization = req["organization"];

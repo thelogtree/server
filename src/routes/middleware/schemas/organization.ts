@@ -8,6 +8,7 @@ export const OrganizationSchemas = {
   getLogs: Joi.object({
     folderId: Joi.string().custom(objectId).required(),
     start: Joi.number(),
+    logsNoNewerThanDate: Joi.date(),
   }),
   getInvitationInfo: Joi.object({
     invitationId: Joi.string().custom(objectId).required(),
