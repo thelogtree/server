@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
+import { Logger } from "src/utils/logger";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -12,6 +13,10 @@ export const OrganizationController = {
   },
   getOrganization: async (req: Request, res: Response) => {
     const organization = req["organization"];
+    await Logger.sendLog(
+      "fetched org " + organization.name,
+      "/organization-fetches"
+    );
     res.send(organization);
   },
   getFolders: async (req: Request, res: Response) => {

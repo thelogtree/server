@@ -8,6 +8,7 @@ import { ApiError } from "src/utils/errors";
 type TreeRepresentation = {
   _id: string | ObjectId;
   name: string;
+  fullPath: string;
   children: any[];
 };
 
@@ -41,7 +42,7 @@ export const FolderService = {
         } else {
           folder.children = [];
         }
-        tree.push(_.pick(folder, ["_id", "name", "children"]));
+        tree.push(_.pick(folder, ["_id", "name", "fullPath", "children"]));
       }
     }
     return tree;
@@ -59,7 +60,8 @@ export const FolderService = {
   findOrCreateNewFolderId: async (
     organizationId: string,
     parentFolderId: string | null,
-    name: string
+    name: string,
+    fullPath: string
   ): Promise<string> => {
     const existingFolder = await Folder.findOne({
       organizationId,
@@ -77,6 +79,7 @@ export const FolderService = {
       name,
       organizationId,
       parentFolderId,
+      fullPath,
     });
 
     return newFolder._id.toString();
@@ -90,14 +93,17 @@ export const FolderService = {
 
     // build or fetch the folder path that was specified
     let lastFolderId: string | null = null;
+    let pathSoFar = "";
     for (const path of splitPaths) {
       if (!path) {
         continue;
       }
+      pathSoFar += `/${path}`;
       lastFolderId = await FolderService.findOrCreateNewFolderId(
         organizationId,
         lastFolderId,
-        path
+        path,
+        pathSoFar
       );
 
       // make sure we aren't opening up new subfolders inside folders that already have a log in them

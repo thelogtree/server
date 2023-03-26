@@ -144,10 +144,14 @@ describe("GetFolders", () => {
     await FolderFactory.create({
       organizationId: organization._id,
       parentFolderId: null,
+      name: "folder-top-1",
+      fullPath: "/folder-top-1",
     });
     const folderTop2 = await FolderFactory.create({
       organizationId: organization._id,
       parentFolderId: null,
+      name: "folder-top-2",
+      fullPath: "/folder-top-2",
     });
     await FolderFactory.create(); // decoy
     await FolderFactory.create({
@@ -162,6 +166,7 @@ describe("GetFolders", () => {
       organizationId: organization._id,
       parentFolderId: subfolder2._id,
     });
+
     const user = await UserFactory.create({ organizationId: organization._id });
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization._id.toString()}/folders`,
@@ -181,6 +186,10 @@ describe("GetFolders", () => {
       deeperSubfolder2._id.toString()
     );
     expect(folders[1].children[1].children[0].children.length).toBe(0);
+    expect(folders[0].name).toBe("folder-top-1");
+    expect(folders[1].name).toBe("folder-top-2");
+    expect(folders[0].fullPath).toBe("/folder-top-1");
+    expect(folders[1].fullPath).toBe("/folder-top-2");
   });
   it("correctly gets the folder array representation for an organization (empty array)", async () => {
     const organization = await OrganizationFactory.create();

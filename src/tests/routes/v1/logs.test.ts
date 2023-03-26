@@ -78,18 +78,23 @@ describe("CreateLog", () => {
       organizationId: organization._id,
     });
     expect(folder1).toBeTruthy();
+    expect(folder1!.fullPath).toBe(`/${folder1Name}`);
     const folder2 = await Folder.findOne({
       name: folder2Name,
       parentFolderId: folder1!._id,
       organizationId: organization._id,
     });
     expect(folder2).toBeTruthy();
+    expect(folder2!.fullPath).toBe(`/${folder1Name}/${folder2Name}`);
     const folder3 = await Folder.findOne({
       name: folder3Name,
       parentFolderId: folder2!._id,
       organizationId: organization._id,
     });
     expect(folder3).toBeTruthy();
+    expect(folder3!.fullPath).toBe(
+      `/${folder1Name}/${folder2Name}/${folder3Name}`
+    );
 
     const allFoldersInOrgNum = await Folder.find({
       organizationId: organization._id,

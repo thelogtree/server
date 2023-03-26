@@ -7,10 +7,12 @@ import { OrganizationFactory } from "./OrganizationFactory";
 
 const getDefaultFields = async () => {
   const organization: OrganizationDocument = await OrganizationFactory.create();
+  const name = faker.datatype.uuid();
   return {
-    name: faker.datatype.uuid(),
+    name,
     parentFolder: null,
     organizationId: organization._id,
+    fullPath: "/" + name,
   };
 };
 

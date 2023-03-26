@@ -16,6 +16,7 @@ const FolderSchema = new Schema(
       ref: DatabaseModelNames.Folder,
       default: null,
     },
+    fullPath: { type: String, required: true },
   },
   { timestamps: true }
 );
