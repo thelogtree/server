@@ -14,10 +14,6 @@ export const OrganizationController = {
   },
   getOrganization: async (req: Request, res: Response) => {
     const organization = req["organization"];
-    await Logger.sendLog(
-      "fetched org " + organization.name,
-      "/organization-fetches"
-    );
     res.send(organization);
   },
   getFolders: async (req: Request, res: Response) => {
