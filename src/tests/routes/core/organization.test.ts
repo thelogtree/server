@@ -522,4 +522,21 @@ describe("DeleteFolderAndEverythingInside", () => {
     const _bottomFolder = await Folder.findById(bottomFolder._id);
     expect(_bottomFolder).toBeNull();
   });
+  it("fails to delete the folder because it belongs to a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const randomFolder = await FolderFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/delete-folder`,
+      "POST",
+      { folderId: randomFolder._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "You cannot delete this folder.");
+    const folderStillExists = await Folder.exists({
+      _id: randomFolder._id,
+    }).exec();
+    expect(folderStillExists).toBeTruthy();
+  });
 });
