@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { OrganizationDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
+import { ApiService } from "src/services/ApiService/ApiService";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";

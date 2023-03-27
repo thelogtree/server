@@ -11,6 +11,7 @@ import { uuid } from "uuidv4";
 import firebase from "../../firebaseConfig";
 import { Folder } from "src/models/Folder";
 import { Log } from "src/models/Log";
+import { ApiService } from "./ApiService/ApiService";
 
 export const OrganizationService = {
   createOrganization: async (
@@ -37,6 +38,12 @@ export const OrganizationService = {
     const firstInvitationUrl = await OrganizationService.generateInviteLink(
       organization._id as string,
       slug
+    );
+
+    await ApiService.createLog(
+      organization!._id.toString(),
+      "/get-started",
+      "This is what a log looks like...head over to the API Dashboard to send your own logs!"
     );
 
     return { organization, firstInvitationUrl };
