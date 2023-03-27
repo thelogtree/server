@@ -62,7 +62,7 @@ export const LogService = {
       { content: 1, _id: 1, createdAt: 1 }
     )
       .sort({ createdAt: -1 })
-      .limit(1000)
+      .limit(300)
       .lean()
       .exec() as Promise<SimplifiedLog[]>,
 };
