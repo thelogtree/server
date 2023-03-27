@@ -34,6 +34,10 @@ export const OrganizationController = {
       folderId as string,
       (logsNoNewerThanDate as Date | undefined) || backupDate
     );
+    await Logger.sendLog(
+      `Successfully queried for ${numLogsInTotal} logs`,
+      "/queries"
+    );
     res.send({ logs, numLogsInTotal });
   },
   searchForLogs: async (req: Request, res: Response) => {
