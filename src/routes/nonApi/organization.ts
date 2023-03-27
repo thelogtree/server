@@ -53,6 +53,14 @@ router.post(
   OrganizationController.createNewUser
 );
 router.post(
+  "/:id/delete-folder",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteFolderAndEverythingInside,
+  }),
+  OrganizationController.deleteFolderAndEverythingInside
+);
+router.post(
   "/:id/secret-key",
   auth.requiredOrgMember,
   OrganizationController.generateSecretKey

@@ -5,10 +5,12 @@ import { OrgInvitation } from "src/models/OrgInvitation";
 import { Organization } from "src/models/Organization";
 import { User } from "src/models/User";
 import { config } from "src/utils/config";
-import { ApiError } from "src/utils/errors";
+import { ApiError, AuthError } from "src/utils/errors";
 import { getHashFromPlainTextKey, wrapWords } from "src/utils/helpers";
 import { uuid } from "uuidv4";
 import firebase from "../../firebaseConfig";
+import { Folder } from "src/models/Folder";
+import { Log } from "src/models/Log";
 
 export const OrganizationService = {
   createOrganization: async (
@@ -146,5 +148,33 @@ export const OrganizationService = {
       numMembers,
       organizationId: organization._id.toString(),
     };
+  },
+  deleteFolderAndEverythingInside: async (
+    organizationId: string,
+    folderId: string
+  ) => {
+    const folderWithinTheOrg = await Folder.findOne({
+      _id: folderId,
+      organizationId,
+    })
+      .lean()
+      .exec();
+    if (!folderWithinTheOrg) {
+      throw new AuthError("You cannot delete this folder.");
+    }
+
+    const allFolders = await Folder.find({ organizationId }).lean().exec();
+    let foldersIdsUnderTheOneToDelete = allFolders
+      .filter((folder) => {
+        const indexOfPath = folder.fullPath.indexOf(
+          folderWithinTheOrg.fullPath
+        );
+        return indexOfPath === 0;
+      })
+      .map((folder) => folder._id);
+    await Log.deleteMany({ folderId: { $in: foldersIdsUnderTheOneToDelete } });
+    await Folder.deleteMany({
+      _id: { $in: foldersIdsUnderTheOneToDelete },
+    });
   },
 };

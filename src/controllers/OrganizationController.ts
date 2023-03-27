@@ -87,4 +87,13 @@ export const OrganizationController = {
       );
     res.send({ organizationName, numMembers, organizationId });
   },
+  deleteFolderAndEverythingInside: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { folderId } = req.body;
+    await OrganizationService.deleteFolderAndEverythingInside(
+      organization._id.toString(),
+      folderId
+    );
+    res.send({});
+  },
 };

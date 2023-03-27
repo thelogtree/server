@@ -11,6 +11,8 @@ import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
 import faker from "faker";
 import { DateTime } from "luxon";
 import moment from "moment";
+import { Log } from "src/models/Log";
+import { Folder } from "src/models/Folder";
 
 const routeUrl = "/organization";
 
@@ -449,5 +451,75 @@ describe("CreateUser", () => {
       res,
       "You already have an account under this email. Please contact support."
     );
+  });
+});
+
+describe("DeleteFolderAndEverythingInside", () => {
+  it("correctly deletes the folder and anything inside", async () => {
+    const organization = await OrganizationFactory.create();
+    const randomFolder1 = await FolderFactory.create(); // decoy
+    const randomFolder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    }); // decoy
+    const topFolder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "top",
+      fullPath: "/top",
+      parentFolderId: null,
+    });
+    const middleFolder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "middle",
+      fullPath: "/top/middle",
+      parentFolderId: topFolder._id,
+    });
+    const bottomFolder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "bottom",
+      fullPath: "/top/middle/bottom",
+      parentFolderId: middleFolder._id,
+    });
+    const logToKeep1 = await LogFactory.create(); // decoy
+    const logToKeep2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: randomFolder2._id,
+    });
+    const logToDelete1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: bottomFolder._id,
+    });
+    const logToDelete2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: bottomFolder._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/delete-folder`,
+      "POST",
+      { folderId: middleFolder._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const _logToKeep1 = await Log.findById(logToKeep1._id);
+    expect(_logToKeep1).toBeTruthy();
+    const _logToKeep2 = await Log.findById(logToKeep2._id);
+    expect(_logToKeep2).toBeTruthy();
+    const _logToDelete1 = await Log.findById(logToDelete1._id);
+    expect(_logToDelete1).toBeNull();
+    const _logToDelete2 = await Log.findById(logToDelete2._id);
+    expect(_logToDelete2).toBeNull();
+
+    const _randomFolder1 = await Folder.findById(randomFolder1._id);
+    expect(_randomFolder1).toBeTruthy();
+    const _randomFolder2 = await Folder.findById(randomFolder2._id);
+    expect(_randomFolder2).toBeTruthy();
+    const _topFolder = await Folder.findById(topFolder._id);
+    expect(_topFolder).toBeTruthy();
+    const _middleFolder = await Folder.findById(middleFolder._id);
+    expect(_middleFolder).toBeNull();
+    const _bottomFolder = await Folder.findById(bottomFolder._id);
+    expect(_bottomFolder).toBeNull();
   });
 });

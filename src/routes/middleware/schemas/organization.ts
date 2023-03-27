@@ -23,4 +23,7 @@ export const OrganizationSchemas = {
     email: Joi.string().required(),
     password: Joi.string().required(),
   }),
+  deleteFolderAndEverythingInside: Joi.object({
+    folderId: Joi.string().custom(objectId).required(),
+  }),
 };
