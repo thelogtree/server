@@ -10,6 +10,7 @@ import { LogFactory } from "src/tests/factories/LogFactory";
 import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
 import faker from "faker";
 import { DateTime } from "luxon";
+import moment from "moment";
 
 const routeUrl = "/organization";
 
@@ -254,7 +255,12 @@ describe("GetLogs", () => {
       organizationId: organization._id,
       folderId: folder._id,
     });
-    const log2 = await LogFactory.create({
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      createdAt: moment().add(1, "hour"),
+    });
+    await LogFactory.create({
       organizationId: organization._id,
       folderId: folder._id,
     });
@@ -271,7 +277,7 @@ describe("GetLogs", () => {
       routeUrl + `/${organization._id.toString()}/logs`,
       "GET",
       {},
-      { folderId: folder.id, start: 1 },
+      { folderId: folder.id, start: 1, logsNoNewerThanDate: new Date() },
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
