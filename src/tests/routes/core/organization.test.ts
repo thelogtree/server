@@ -540,3 +540,28 @@ describe("DeleteFolderAndEverythingInside", () => {
     expect(folderStillExists).toBeTruthy();
   });
 });
+
+describe("GetOrganizationMembers", () => {
+  it("correctly gets the users in an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    await UserFactory.create(); // decoy
+    const user1 = await UserFactory.create({
+      organizationId: organization._id,
+    });
+    const user2 = await UserFactory.create({
+      organizationId: organization._id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/team`,
+      "GET",
+      {},
+      {},
+      user1.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { users } = res.body;
+    expect(users.length).toBe(2);
+    expect(users[0]._id.toString()).toBe(user1.id);
+    expect(users[1]._id.toString()).toBe(user2.id);
+  });
+});

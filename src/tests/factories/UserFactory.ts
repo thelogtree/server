@@ -1,6 +1,10 @@
 import faker from "faker";
 import merge from "lodash/merge";
-import { OrgInvitationDocument, OrganizationDocument } from "logtree-types";
+import {
+  OrgInvitationDocument,
+  OrganizationDocument,
+  orgPermissionLevel,
+} from "logtree-types";
 import { User } from "src/models/User";
 import { OrganizationFactory } from "./OrganizationFactory";
 import { OrgInvitationFactory } from "./OrgInvitationFactory";
@@ -14,6 +18,7 @@ const getDefaultFields = async () => {
     firebaseId: faker.datatype.uuid(),
     organizationId: organization._id,
     invitationId: orgInvitation._id,
+    orgPermissionLevel: orgPermissionLevel.Admin,
   };
 };
 

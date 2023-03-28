@@ -1,7 +1,11 @@
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { prop } from "lodash/fp";
-import { OrganizationDocument, UserDocument } from "logtree-types";
+import {
+  OrganizationDocument,
+  UserDocument,
+  orgPermissionLevel,
+} from "logtree-types";
 import { Organization } from "src/models/Organization";
 import { AuthError, ErrorMessages } from "src/utils/errors";
 
@@ -16,6 +20,25 @@ const requiredOrgMember = async (
   if (
     organization &&
     user?.organizationId.toString() === organization._id.toString()
+  ) {
+    req["organization"] = organization;
+    return next();
+  }
+  throw new AuthError(ErrorMessages.NoPermission);
+};
+
+const requiredOrgAdmin = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  const { id } = req.params; // organization _id
+  const organization = await Organization.findById(id).lean();
+  const user = req["user"] as UserDocument | null;
+  if (
+    organization &&
+    user?.organizationId.toString() === organization._id.toString() &&
+    user.orgPermissionLevel === orgPermissionLevel.Admin
   ) {
     req["organization"] = organization;
     return next();
@@ -72,6 +95,7 @@ const requiredApiKey = async (
 
 export default {
   requiredOrgMember,
+  requiredOrgAdmin,
   requiredApiKey,
   requiredAdminUser,
   requiredUser,

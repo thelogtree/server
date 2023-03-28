@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import { OrganizationDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
-import { Log } from "src/models/Log";
-import { ApiService } from "src/services/ApiService/ApiService";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
@@ -16,6 +14,13 @@ export const OrganizationController = {
   getOrganization: async (req: Request, res: Response) => {
     const organization = req["organization"];
     res.send(organization);
+  },
+  getOrganizationMembers: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const users = await OrganizationService.getOrganizationMembers(
+      organization._id
+    );
+    res.send({ users });
   },
   getFolders: async (req: Request, res: Response) => {
     const organization = req["organization"];

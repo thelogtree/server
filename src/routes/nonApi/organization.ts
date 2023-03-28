@@ -31,6 +31,11 @@ router.get(
   OrganizationController.getOrganization
 );
 router.get(
+  "/:id/team",
+  auth.requiredOrgMember,
+  OrganizationController.getOrganizationMembers
+);
+router.get(
   "/:id/folders",
   auth.requiredOrgMember,
   OrganizationController.getFolders
@@ -54,7 +59,7 @@ router.post(
 );
 router.post(
   "/:id/delete-folder",
-  auth.requiredOrgMember,
+  auth.requiredOrgAdmin,
   validateRequestAgainstSchemas({
     bodySchema: OrganizationSchemas.deleteFolderAndEverythingInside,
   }),
@@ -62,12 +67,12 @@ router.post(
 );
 router.post(
   "/:id/secret-key",
-  auth.requiredOrgMember,
+  auth.requiredOrgAdmin,
   OrganizationController.generateSecretKey
 );
 router.post(
   "/:id/invite-link",
-  auth.requiredOrgMember,
+  auth.requiredOrgAdmin,
   OrganizationController.generateInviteLink
 );
 router.post(

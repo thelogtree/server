@@ -3,6 +3,7 @@ import { ErrorMessages } from "src/utils/errors";
 import { OrganizationFactory } from "../factories/OrganizationFactory";
 import { UserFactory } from "../factories/UserFactory";
 import { TestHelper } from "../TestHelper";
+import { orgPermissionLevel } from "logtree-types";
 
 const routeUrl = "/only-test-routes";
 
@@ -93,6 +94,61 @@ describe("FailsAuthIfNotOrganizationMember", () => {
     });
     const res = await TestHelper.sendRequest(
       routeUrl + `/${org._id.toString()}/required-org-member`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+  });
+});
+
+describe("FailsAuthIfNotOrganizationAdmin", () => {
+  it("fails auth if not an organization admin", async () => {
+    const org = await OrganizationFactory.create();
+    const user = await UserFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${org._id.toString()}/required-org-admin`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, ErrorMessages.NoPermission);
+  });
+  it("fails auth if not an organization admin because the user is a member instead", async () => {
+    const org = await OrganizationFactory.create();
+    const user = await UserFactory.create({
+      organizationId: org._id,
+      orgPermissionLevel: orgPermissionLevel.Member,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${org._id.toString()}/required-org-admin`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, ErrorMessages.NoPermission);
+  });
+  it("fails auth if not an organization admin", async () => {
+    const org = await OrganizationFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${org._id.toString()}/required-org-admin`,
+      "GET",
+      {},
+      {}
+    );
+    TestHelper.expectError(res, ErrorMessages.NoPermission);
+  });
+  it("passes auth as an organization admin", async () => {
+    const org = await OrganizationFactory.create();
+    const user = await UserFactory.create({
+      organizationId: org._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${org._id.toString()}/required-org-admin`,
       "GET",
       {},
       {},

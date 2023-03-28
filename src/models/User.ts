@@ -1,4 +1,4 @@
-import { UserDocument } from "logtree-types";
+import { orgPermissionLevel, UserDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Model, model, Schema } from "mongoose";
 import { DatabaseModelNames } from "src/utils/databaseModelNames";
@@ -20,6 +20,11 @@ const UserSchema = new Schema(
     isAdmin: {
       type: Boolean,
       default: false,
+    },
+    orgPermissionLevel: {
+      type: String,
+      enum: orgPermissionLevel,
+      default: orgPermissionLevel.Member,
     },
   },
   { timestamps: true }

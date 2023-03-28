@@ -1,4 +1,8 @@
-import { OrganizationDocument, UserDocument } from "logtree-types";
+import {
+  OrganizationDocument,
+  UserDocument,
+  orgPermissionLevel,
+} from "logtree-types";
 import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { OrgInvitation } from "src/models/OrgInvitation";
@@ -119,6 +123,10 @@ export const OrganizationService = {
       );
     }
 
+    const isAtLeastOneUserInOrg = await User.exists({ organizationId })
+      .lean()
+      .exec();
+
     const firebaseUser = await firebase.auth().createUser({
       email,
       password,
@@ -128,6 +136,9 @@ export const OrganizationService = {
       email,
       firebaseId: firebaseUser.uid,
       invitationId: invitation._id,
+      orgPermissionLevel: isAtLeastOneUserInOrg
+        ? orgPermissionLevel.Member
+        : orgPermissionLevel.Admin,
     });
   },
   getInvitationInfo: async (orgSlug: string, invitationId: string) => {
@@ -184,4 +195,6 @@ export const OrganizationService = {
       _id: { $in: foldersIdsUnderTheOneToDelete },
     });
   },
+  getOrganizationMembers: (organizationId: string) =>
+    User.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
 };

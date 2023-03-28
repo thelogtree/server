@@ -9,6 +9,11 @@ router.get(
   auth.requiredOrgMember,
   OnlyTestController.autoSuccess
 );
+router.get(
+  "/:id/required-org-admin",
+  auth.requiredOrgAdmin,
+  OnlyTestController.autoSuccess
+);
 router.get("/required-user", auth.requiredUser, OnlyTestController.autoSuccess);
 router.get(
   "/required-api-key",
