@@ -49,6 +49,15 @@ router.get(
   OrganizationController.getLogs
 );
 
+router.put(
+  "/:id/user-permissions",
+  auth.requiredOrgAdmin,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.updateUserPermissions,
+  }),
+  OrganizationController.updateUserPermissions
+);
+
 router.post(
   "/:id/user",
   rateLimiterP1,

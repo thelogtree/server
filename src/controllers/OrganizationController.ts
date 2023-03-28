@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { OrganizationDocument } from "logtree-types";
+import { OrganizationDocument, UserDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
@@ -103,6 +103,19 @@ export const OrganizationController = {
     await OrganizationService.deleteFolderAndEverythingInside(
       organization._id.toString(),
       folderId
+    );
+    res.send({});
+  },
+  updateUserPermissions: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const user: UserDocument = req["user"];
+    const { newPermission, isRemoved, userIdToUpdate } = req.body;
+    await OrganizationService.updateUserPermissions(
+      organization._id.toString(),
+      user._id.toString(),
+      userIdToUpdate,
+      newPermission,
+      isRemoved
     );
     res.send({});
   },

@@ -13,6 +13,9 @@ import { DateTime } from "luxon";
 import moment from "moment";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
+import { orgPermissionLevel } from "logtree-types";
+import { User } from "src/models/User";
+import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
 
 const routeUrl = "/organization";
 
@@ -563,5 +566,130 @@ describe("GetOrganizationMembers", () => {
     expect(users.length).toBe(2);
     expect(users[0]._id.toString()).toBe(user1.id);
     expect(users[1]._id.toString()).toBe(user2.id);
+  });
+});
+
+describe("UpdateUserPermissions", () => {
+  it("correctly updates a user from member to admin", async () => {
+    const organization = await OrganizationFactory.create();
+    const user1 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const user2 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Member,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user-permissions`,
+      "PUT",
+      {
+        userIdToUpdate: user2._id.toString(),
+        newPermission: orgPermissionLevel.Admin,
+      },
+      {},
+      user1.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const updatedUser = await User.findById(user2._id);
+    expect(updatedUser?.orgPermissionLevel).toBe(orgPermissionLevel.Admin);
+  });
+  it("correctly updates a user from admin to member", async () => {
+    const organization = await OrganizationFactory.create();
+    const user1 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const user2 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user-permissions`,
+      "PUT",
+      {
+        userIdToUpdate: user2._id.toString(),
+        newPermission: orgPermissionLevel.Member,
+      },
+      {},
+      user1.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const updatedUser = await User.findById(user2._id);
+    expect(updatedUser?.orgPermissionLevel).toBe(orgPermissionLevel.Member);
+    const userThatMadeRequest = await User.findById(user1._id);
+    expect(userThatMadeRequest?.orgPermissionLevel).toBe(
+      orgPermissionLevel.Admin
+    );
+  });
+  it("correctly removes a user", async () => {
+    const firebaseSpy = jest.spyOn(FirebaseMock, "deleteUser");
+    const organization = await OrganizationFactory.create();
+    const user1 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const user2 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Member,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user-permissions`,
+      "PUT",
+      {
+        userIdToUpdate: user2._id.toString(),
+        isRemoved: true,
+      },
+      {},
+      user1.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const removedUser = await User.findById(user2._id);
+    expect(removedUser).toBeNull();
+    expect(firebaseSpy).toBeCalledTimes(1);
+    expect(firebaseSpy.mock.calls[0][0]).toBe(user2.firebaseId);
+  });
+  it("fails to update the user making the request", async () => {
+    const organization = await OrganizationFactory.create();
+    const user1 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user-permissions`,
+      "PUT",
+      {
+        userIdToUpdate: user1._id.toString(),
+        isRemoved: true,
+      },
+      {},
+      user1.firebaseId
+    );
+    TestHelper.expectError(res, "You cannot update your own permissions.");
+  });
+  it("fails to update a user from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user1 = await UserFactory.create({
+      organizationId: organization._id,
+      orgPermissionLevel: orgPermissionLevel.Admin,
+    });
+    const user2 = await UserFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/user-permissions`,
+      "PUT",
+      {
+        userIdToUpdate: user2._id.toString(),
+        isRemoved: true,
+      },
+      {},
+      user1.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "You cannot update the permissions of a user outside your organization."
+    );
   });
 });

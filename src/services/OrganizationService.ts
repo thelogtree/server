@@ -197,4 +197,30 @@ export const OrganizationService = {
   },
   getOrganizationMembers: (organizationId: string) =>
     User.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
+  updateUserPermissions: async (
+    organizationId: string,
+    userIdMakingRequest: string,
+    userIdToUpdate: string,
+    newPermission?: orgPermissionLevel,
+    isRemoved?: boolean
+  ) => {
+    if (userIdMakingRequest === userIdToUpdate) {
+      throw new ApiError("You cannot update your own permissions.");
+    }
+    const userToUpdate = await User.findById(userIdToUpdate).lean().exec();
+    if (userToUpdate?.organizationId.toString() !== organizationId) {
+      throw new ApiError(
+        "You cannot update the permissions of a user outside your organization."
+      );
+    }
+    if (isRemoved) {
+      await firebase.auth().deleteUser(userToUpdate.firebaseId);
+      await User.deleteOne({ _id: userIdToUpdate });
+    } else if (newPermission) {
+      await User.updateOne(
+        { _id: userIdToUpdate },
+        { orgPermissionLevel: newPermission }
+      );
+    }
+  },
 };

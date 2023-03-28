@@ -26,4 +26,9 @@ export const OrganizationSchemas = {
   deleteFolderAndEverythingInside: Joi.object({
     folderId: Joi.string().custom(objectId).required(),
   }),
+  updateUserPermissions: Joi.object({
+    userIdToUpdate: Joi.string().custom(objectId).required(),
+    newPermission: Joi.string(),
+    isRemoved: Joi.boolean(),
+  }),
 };
