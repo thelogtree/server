@@ -45,6 +45,10 @@ export const OrganizationController = {
       folderId as string,
       query as string
     );
+    Logger.sendLog(
+      `searched for logs with query '${query}'`,
+      `/searches/${organization.slug}`
+    );
     res.send({ logs });
   },
   createOrganization: async (req: Request, res: Response) => {
