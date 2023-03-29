@@ -247,8 +247,9 @@ describe("GetLogs", () => {
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { logs } = res.body;
+    const { logs, numLogsInTotal } = res.body;
     expect(logs.length).toBe(2);
+    expect(numLogsInTotal).toBe(2);
     expect(Object.keys(logs[0]).length).toBe(3);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
@@ -316,8 +317,9 @@ describe("GetLogs", () => {
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { logs } = res.body;
+    const { logs, numLogsInTotal } = res.body;
     expect(logs.length).toBe(4);
+    expect(numLogsInTotal).toBe(4);
     expect(Object.keys(logs[0]).length).toBe(3);
     expect(logs[0]._id.toString()).toBe(log4._id.toString());
     expect(logs[1]._id.toString()).toBe(log3._id.toString());
@@ -359,8 +361,9 @@ describe("GetLogs", () => {
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { logs } = res.body;
+    const { logs, numLogsInTotal } = res.body;
     expect(logs.length).toBe(1);
+    expect(numLogsInTotal).toBe(2);
     expect(Object.keys(logs[0]).length).toBe(3);
     expect(logs[0]._id.toString()).toBe(log1._id.toString());
   });

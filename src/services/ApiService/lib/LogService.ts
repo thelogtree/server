@@ -52,11 +52,24 @@ export const LogService = {
       .lean()
       .exec() as Promise<SimplifiedLog[]>;
   },
-  getNumLogsInFolder: (folderId: string, logsNoNewerThanDate?: Date) =>
-    Log.find({ folderId, createdAt: { $lt: logsNoNewerThanDate } })
+  getNumLogsInFolder: async (
+    logsNoNewerThanDate?: Date,
+    folderId?: string,
+    user?: UserDocument
+  ) => {
+    // we assume the response should be the user's favorited logs if user param is provided
+    let favoritedFolderIds: string[] = [];
+    if (user) {
+      favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
+    }
+    return Log.find({
+      ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
+      createdAt: { $lt: logsNoNewerThanDate },
+    })
       .lean()
       .countDocuments()
-      .exec(),
+      .exec();
+  },
   searchForLogs: async (
     organizationId: string | ObjectId,
     query: string,

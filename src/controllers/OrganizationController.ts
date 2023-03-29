@@ -44,8 +44,9 @@ export const OrganizationController = {
       (logsNoNewerThanDate as Date | undefined) || backupDate
     );
     const numLogsInTotal = await LogService.getNumLogsInFolder(
-      folderId as string,
-      (logsNoNewerThanDate as Date | undefined) || backupDate
+      (logsNoNewerThanDate as Date | undefined) || backupDate,
+      folderId as string | undefined,
+      queryBool(isFavorites as string) ? user : undefined
     );
     res.send({ logs, numLogsInTotal });
   },
