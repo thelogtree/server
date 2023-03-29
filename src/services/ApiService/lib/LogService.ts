@@ -10,6 +10,7 @@ export type SimplifiedLog = {
   _id: ObjectId | string;
   content: string;
   createdAt: Date;
+  folderId?: ObjectId | string;
 };
 
 export const LogService = {
