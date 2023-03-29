@@ -253,6 +253,77 @@ describe("GetLogs", () => {
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });
+  it("correctly gets the logs for favorited folders for a user", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "testing-stuff",
+      fullPath: "/testing-stuff",
+    });
+    const subFolder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "testing-stuff-2",
+      fullPath: "/testing-stuff/testing-stuff-2",
+      parentFolderId: folder._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const folderDecoy = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folderDecoy._id,
+    });
+    const log3 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: subFolder._id,
+    });
+    await LogFactory.create();
+    const anotherFolder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "hey-there",
+      fullPath: "/hey-there",
+    });
+    const log4 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: anotherFolder._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    await FavoriteFolderFactory.create({
+      fullPath: "/testing-stuff",
+      userId: user._id,
+    });
+    await FavoriteFolderFactory.create({
+      fullPath: "/hey-there",
+      userId: user._id,
+    });
+    await FavoriteFolderFactory.create({
+      fullPath: "/random-decoy/stuff",
+      userId: user._id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/logs`,
+      "GET",
+      {},
+      { isFavorites: true },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(4);
+    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log4._id.toString());
+    expect(logs[1]._id.toString()).toBe(log3._id.toString());
+    expect(logs[2]._id.toString()).toBe(log2._id.toString());
+    expect(logs[3]._id.toString()).toBe(log1._id.toString());
+  });
   it("correctly gets the logs with a start pagination", async () => {
     const organization = await OrganizationFactory.create();
     const folder = await FolderFactory.create({
@@ -325,6 +396,51 @@ describe("SearchForLogs", () => {
       routeUrl + `/${organization._id.toString()}/search`,
       "POST",
       { folderId: folder.id, query: "test" },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(2);
+    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log2._id.toString());
+    expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+  it("correctly searches for logs in the user's favorited folders", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+      name: "testing-once-again",
+      fullPath: "/testing-once-again",
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "test",
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "hello blahtestm yo.",
+    });
+    const folderDecoy = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folderDecoy._id,
+      content: "test hi",
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    await FavoriteFolderFactory.create({
+      fullPath: folder.fullPath,
+      userId: user._id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/search`,
+      "POST",
+      { isFavorites: true, query: "test" },
       {},
       user.firebaseId
     );

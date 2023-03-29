@@ -1,6 +1,8 @@
 import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
+import { FolderService } from "./FolderService";
+import { UserDocument } from "logtree-types";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
@@ -24,15 +26,22 @@ export const LogService = {
       folderId,
     });
   },
-  getLogs: (
-    folderId: string | ObjectId,
+  getLogs: async (
+    folderId?: string | ObjectId,
+    user?: UserDocument,
     start: number = 0,
     maxLogsToRetrieve: number = 100,
     logsNoNewerThanDate?: Date
-  ): Promise<SimplifiedLog[]> =>
-    Log.find(
+  ): Promise<SimplifiedLog[]> => {
+    // we assume the response should be the user's favorited logs if user param is provided
+    let favoritedFolderIds: string[] = [];
+    if (user) {
+      favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
+    }
+
+    return Log.find(
       {
-        folderId,
+        ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
         createdAt: { $lt: logsNoNewerThanDate },
       },
       { content: 1, _id: 1, createdAt: 1 }
@@ -41,7 +50,8 @@ export const LogService = {
       .skip(start)
       .limit(maxLogsToRetrieve)
       .lean()
-      .exec() as Promise<SimplifiedLog[]>,
+      .exec() as Promise<SimplifiedLog[]>;
+  },
   getNumLogsInFolder: (folderId: string, logsNoNewerThanDate?: Date) =>
     Log.find({ folderId, createdAt: { $lt: logsNoNewerThanDate } })
       .lean()
@@ -49,13 +59,20 @@ export const LogService = {
       .exec(),
   searchForLogs: async (
     organizationId: string | ObjectId,
-    folderId: string | ObjectId,
-    query: string
-  ): Promise<SimplifiedLog[]> =>
-    Log.find(
+    query: string,
+    folderId?: string | ObjectId,
+    user?: UserDocument
+  ): Promise<SimplifiedLog[]> => {
+    // we assume the response should be the user's favorited logs if user param is provided
+    let favoritedFolderIds: string[] = [];
+    if (user) {
+      favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
+    }
+
+    return Log.find(
       {
         organizationId,
-        folderId,
+        ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
         content: { $regex: `.*${query}.*`, $options: "i" },
         createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
@@ -64,5 +81,6 @@ export const LogService = {
       .sort({ createdAt: -1 })
       .limit(300)
       .lean()
-      .exec() as Promise<SimplifiedLog[]>,
+      .exec() as Promise<SimplifiedLog[]>;
+  },
 };

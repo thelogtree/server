@@ -1,6 +1,7 @@
 import _ from "lodash";
-import { FolderDocument } from "logtree-types";
+import { FolderDocument, UserDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
+import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { Folder } from "src/models/Folder";
 import { Log } from "src/models/Log";
 import { ApiError } from "src/utils/errors";
@@ -125,5 +126,28 @@ export const FolderService = {
     }
 
     return lastFolderId;
+  },
+  getFavoritedFolderIds: async (user: UserDocument): Promise<string[]> => {
+    const favoritedFolders = await FavoriteFolder.find(
+      { userId: user._id },
+      { fullPath: 1 }
+    )
+      .lean()
+      .exec();
+    const folders = await Folder.find(
+      {
+        organizationId: user.organizationId,
+      },
+      { _id: 1, fullPath: 1 }
+    )
+      .lean()
+      .exec();
+    const filteredFolders = folders.filter(
+      (orgFolder) =>
+        !!favoritedFolders.find(
+          (favorited) => orgFolder.fullPath.indexOf(favorited.fullPath) === 0
+        )
+    );
+    return filteredFolders.map((f) => f._id.toString());
   },
 };

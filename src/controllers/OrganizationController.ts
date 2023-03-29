@@ -4,6 +4,8 @@ import { ObjectId } from "mongodb";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
+import { ApiError } from "src/utils/errors";
+import { queryBool } from "src/utils/helpers";
 import { Logger } from "src/utils/logger";
 
 export const OrganizationController = {
@@ -28,10 +30,15 @@ export const OrganizationController = {
     res.send({ folders });
   },
   getLogs: async (req: Request, res: Response) => {
-    const { folderId, start, logsNoNewerThanDate } = req.query;
+    const user = req["user"];
+    const { folderId, start, isFavorites, logsNoNewerThanDate } = req.query;
     const backupDate = new Date();
+    if (!folderId && !queryBool(isFavorites as string)) {
+      throw new ApiError("Must provide either a folderId or isFavorites");
+    }
     const logs = await LogService.getLogs(
-      folderId as string,
+      folderId as string | undefined,
+      queryBool(isFavorites as string) ? user : undefined,
       Number(start || 0),
       undefined,
       (logsNoNewerThanDate as Date | undefined) || backupDate
@@ -44,11 +51,16 @@ export const OrganizationController = {
   },
   searchForLogs: async (req: Request, res: Response) => {
     const organization = req["organization"];
-    const { folderId, query } = req.body;
+    const user = req["user"];
+    const { folderId, isFavorites, query } = req.body;
+    if (!folderId && !queryBool(isFavorites as string)) {
+      throw new ApiError("Must provide either a folderId or isFavorites");
+    }
     const logs = await LogService.searchForLogs(
       organization._id,
-      folderId as string,
-      query as string
+      query as string,
+      folderId as string | undefined,
+      queryBool(isFavorites as string) ? user : undefined
     );
     Logger.sendLog(
       `searched for logs with query '${query}'`,

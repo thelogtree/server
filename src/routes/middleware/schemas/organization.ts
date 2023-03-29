@@ -6,7 +6,8 @@ export const OrganizationSchemas = {
     name: Joi.string().required(),
   }),
   getLogs: Joi.object({
-    folderId: Joi.string().custom(objectId).required(),
+    folderId: Joi.string().custom(objectId),
+    isFavorites: Joi.boolean(),
     start: Joi.number(),
     logsNoNewerThanDate: Joi.date(),
   }),
@@ -15,7 +16,8 @@ export const OrganizationSchemas = {
     orgSlug: Joi.string().required(),
   }),
   searchForLogs: Joi.object({
-    folderId: Joi.string().custom(objectId).required(),
+    folderId: Joi.string().custom(objectId),
+    isFavorites: Joi.boolean(),
     query: Joi.string().required(),
   }),
   createNewUser: Joi.object({
