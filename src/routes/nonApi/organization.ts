@@ -48,6 +48,11 @@ router.get(
   }),
   OrganizationController.getLogs
 );
+router.get(
+  "/:id/favorite-folders",
+  auth.requiredOrgMember,
+  OrganizationController.getFavoriteFolderPaths
+);
 
 router.put(
   "/:id/user-permissions",

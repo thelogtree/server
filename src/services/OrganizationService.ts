@@ -252,4 +252,14 @@ export const OrganizationService = {
       userId,
     });
   },
+  getFavoriteFolderPaths: async (userId: string): Promise<string[]> => {
+    const favoriteFolders = await FavoriteFolder.find(
+      { userId },
+      { fullPath: 1, _id: 0 }
+    )
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+    return favoriteFolders.map((f) => f.fullPath);
+  },
 };

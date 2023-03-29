@@ -943,3 +943,31 @@ describe("FavoriteFolder", () => {
     expect(favoritedFolderCount).toBe(0);
   });
 });
+
+describe("GetFavoriteFolder", () => {
+  it("correctly gets the favorite folder paths of a user", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fav1 = await FavoriteFolderFactory.create({
+      fullPath: "/hi",
+      userId: user._id,
+    });
+    const fav2 = await FavoriteFolderFactory.create({
+      fullPath: "/hello",
+      userId: user._id,
+    });
+    await FavoriteFolderFactory.create({ fullPath: "/yo" }); // decoy
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { folderPaths } = res.bosy;
+    expect(folderPaths.length).toBe(2);
+    expect(folderPaths[0]).toBe(fav1.fullPath);
+    expect(folderPaths[1]).toBe(fav2.fullPath);
+  });
+});

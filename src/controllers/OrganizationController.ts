@@ -141,4 +141,11 @@ export const OrganizationController = {
     );
     res.send({});
   },
+  getFavoriteFolderPaths: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const folderPaths = await OrganizationService.getFavoriteFolderPaths(
+      user?._id.toString()
+    );
+    res.send({ folderPaths });
+  },
 };
