@@ -4,4 +4,5 @@ export enum DatabaseModelNames {
   OrgInvitation = "OrgInvitation",
   Folder = "Folder",
   Log = "Log",
+  FavoriteFolder = "FavoriteFolder",
 }
