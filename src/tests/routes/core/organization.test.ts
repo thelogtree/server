@@ -958,14 +958,14 @@ describe("GetFavoriteFolder", () => {
     });
     await FavoriteFolderFactory.create({ fullPath: "/yo" }); // decoy
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      routeUrl + `/${organization._id.toString()}/favorite-folders`,
       "GET",
       {},
       {},
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { folderPaths } = res.bosy;
+    const { folderPaths } = res.body;
     expect(folderPaths.length).toBe(2);
     expect(folderPaths[0]).toBe(fav1.fullPath);
     expect(folderPaths[1]).toBe(fav2.fullPath);
