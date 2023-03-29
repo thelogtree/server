@@ -320,7 +320,7 @@ describe("GetLogs", () => {
     const { logs, numLogsInTotal } = res.body;
     expect(logs.length).toBe(4);
     expect(numLogsInTotal).toBe(4);
-    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(Object.keys(logs[0]).length).toBe(4);
     expect(logs[0]._id.toString()).toBe(log4._id.toString());
     expect(logs[1]._id.toString()).toBe(log3._id.toString());
     expect(logs[2]._id.toString()).toBe(log2._id.toString());

@@ -44,7 +44,7 @@ export const LogService = {
         ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
         createdAt: { $lt: logsNoNewerThanDate },
       },
-      { content: 1, _id: 1, createdAt: 1 }
+      { content: 1, _id: 1, ...(user ? { folderId: 1 } : {}), createdAt: 1 }
     )
       .sort({ createdAt: -1 })
       .skip(start)
