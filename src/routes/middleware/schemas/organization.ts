@@ -31,4 +31,8 @@ export const OrganizationSchemas = {
     newPermission: Joi.string(),
     isRemoved: Joi.boolean(),
   }),
+  favoriteFolder: Joi.object({
+    fullPath: Joi.string().required(),
+    isRemoved: Joi.boolean(),
+  }),
 };

@@ -16,6 +16,8 @@ import { Folder } from "src/models/Folder";
 import { orgPermissionLevel } from "logtree-types";
 import { User } from "src/models/User";
 import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
+import { FavoriteFolder } from "src/models/FavoriteFolder";
+import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory";
 
 const routeUrl = "/organization";
 
@@ -691,5 +693,137 @@ describe("UpdateUserPermissions", () => {
       res,
       "You cannot update the permissions of a user outside your organization."
     );
+  });
+});
+
+describe("FavoriteFolder", () => {
+  beforeEach(async () => {
+    await FavoriteFolder.deleteMany();
+  });
+  it("correctly favorites a folder path for a user", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fullPath = "/test/a";
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      "POST",
+      {
+        fullPath,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const favoritedFolder = await FavoriteFolder.findOne({
+      userId: user._id,
+      fullPath,
+    })
+      .lean()
+      .exec();
+    expect(favoritedFolder).toBeTruthy();
+  });
+  it("correctly unfavorites a folder path for a user", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fullPath = "/test/a";
+    await FavoriteFolderFactory.create({
+      userId: user._id,
+      fullPath,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      "POST",
+      {
+        fullPath,
+        isRemoved: true,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const unfavoritedFolder = await FavoriteFolder.findOne({
+      userId: user._id,
+      fullPath,
+    });
+    expect(unfavoritedFolder).toBeNull();
+  });
+  it("fails to favorite a folder that is already favorited", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fullPath = "/test/a";
+    await FavoriteFolderFactory.create({ userId: user._id, fullPath });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      "POST",
+      {
+        fullPath,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Cannot favorite a folder that is already favorited."
+    );
+
+    const favoritedFolderCount = await FavoriteFolder.countDocuments({
+      userId: user._id,
+      fullPath,
+    })
+      .lean()
+      .exec();
+    expect(favoritedFolderCount).toBe(1);
+  });
+  it("fails to unfavorite a folder that is not currently favorited", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fullPath = "/test/a";
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      "POST",
+      {
+        fullPath,
+        isRemoved: true,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Cannot unfavorite a folder that is not currently favorited."
+    );
+
+    const favoritedFolderCount = await FavoriteFolder.countDocuments({
+      userId: user._id,
+      fullPath,
+    })
+      .lean()
+      .exec();
+    expect(favoritedFolderCount).toBe(0);
+  });
+  it("fails to favorite an invalid folder path", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fullPath = "test/a";
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/favorite-folder`,
+      "POST",
+      {
+        fullPath,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Your folderPath must begin with a /");
+
+    const favoritedFolderCount = await FavoriteFolder.countDocuments({
+      userId: user._id,
+      fullPath,
+    })
+      .lean()
+      .exec();
+    expect(favoritedFolderCount).toBe(0);
   });
 });

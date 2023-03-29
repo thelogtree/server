@@ -19,7 +19,7 @@ FavoriteFolderSchema.index({ userId: 1 });
 
 interface FavoriteFolderModel extends Model<FavoriteFolderDocument> {}
 
-export const Folder = model<FavoriteFolderDocument, FavoriteFolderModel>(
-  DatabaseModelNames.FavoriteFolder,
-  FavoriteFolderSchema
-);
+export const FavoriteFolder = model<
+  FavoriteFolderDocument,
+  FavoriteFolderModel
+>(DatabaseModelNames.FavoriteFolder, FavoriteFolderSchema);

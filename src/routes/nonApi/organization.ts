@@ -92,5 +92,13 @@ router.post(
   }),
   OrganizationController.searchForLogs
 );
+router.post(
+  "/:id/favorite-folder",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.favoriteFolder,
+  }),
+  OrganizationController.favoriteFolder
+);
 
 export default router;

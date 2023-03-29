@@ -16,6 +16,8 @@ import firebase from "../../firebaseConfig";
 import { Folder } from "src/models/Folder";
 import { Log } from "src/models/Log";
 import { ApiService } from "./ApiService/ApiService";
+import { FolderService } from "./ApiService/lib/FolderService";
+import { FavoriteFolder } from "src/models/FavoriteFolder";
 
 export const OrganizationService = {
   createOrganization: async (
@@ -222,5 +224,32 @@ export const OrganizationService = {
         { orgPermissionLevel: newPermission }
       );
     }
+  },
+  favoriteFolder: async (
+    userId: string,
+    fullPath: string,
+    isRemoved?: boolean
+  ) => {
+    FolderService.validateFolderPath(fullPath);
+
+    const favoritedFolderExists = await FavoriteFolder.exists({
+      fullPath,
+      userId,
+    });
+
+    if (!favoritedFolderExists && isRemoved) {
+      throw new ApiError(
+        "Cannot unfavorite a folder that is not currently favorited."
+      );
+    } else if (isRemoved) {
+      return FavoriteFolder.deleteOne({ fullPath, userId });
+    } else if (favoritedFolderExists) {
+      throw new ApiError("Cannot favorite a folder that is already favorited.");
+    }
+
+    return FavoriteFolder.create({
+      fullPath,
+      userId,
+    });
   },
 };

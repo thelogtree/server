@@ -119,4 +119,14 @@ export const OrganizationController = {
     );
     res.send({});
   },
+  favoriteFolder: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const { fullPath, isRemoved } = req.body;
+    await OrganizationService.favoriteFolder(
+      user?._id.toString(),
+      fullPath,
+      isRemoved
+    );
+    res.send({});
+  },
 };
