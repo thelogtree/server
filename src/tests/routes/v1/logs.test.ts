@@ -6,6 +6,8 @@ import { TestHelper } from "../../TestHelper";
 import { FolderFactory } from "src/tests/factories/FolderFactory";
 import { LogFactory } from "src/tests/factories/LogFactory";
 import { MAX_NUM_CHARS_ALLOWED_IN_LOG } from "src/services/ApiService/lib/LogService";
+import { PricingService } from "src/services/ApiService/lib/PricingService";
+import { Organization } from "src/models/Organization";
 
 const routeUrl = "/v1/logs";
 
@@ -331,5 +333,28 @@ describe("CreateLog", () => {
       organizationId: organization._id,
     }).countDocuments();
     expect(allLogsInOrg).toBe(1);
+  });
+});
+
+describe("PricingService.chargeForLog", () => {
+  it("correctly charges the organization from their credit", async () => {
+    const org = await OrganizationFactory.create({
+      currentCredits: 20,
+      currentCharges: 0,
+    });
+    await PricingService.chargeForLog(org);
+    const updatedOrg = await Organization.findById(org._id);
+    expect(updatedOrg?.currentCredits).toBe(19.999);
+    expect(updatedOrg?.currentCharges).toBe(0);
+  });
+  it("correctly charges an organization that doesn't have credit", async () => {
+    const org = await OrganizationFactory.create({
+      currentCredits: 0,
+      currentCharges: 0,
+    });
+    await PricingService.chargeForLog(org);
+    const updatedOrg = await Organization.findById(org._id);
+    expect(updatedOrg?.currentCredits).toBe(0);
+    expect(updatedOrg?.currentCharges).toBe(0.001);
   });
 });

@@ -15,6 +15,8 @@ const OrganizationSchema = new Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true },
     keys: { type: KeysSchema, required: true },
+    currentCharges: { type: Number, default: 0 },
+    currentCredits: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

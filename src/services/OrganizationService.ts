@@ -47,7 +47,7 @@ export const OrganizationService = {
     );
 
     await ApiService.createLog(
-      organization!._id.toString(),
+      organization,
       "/get-started",
       "This is what a log looks like...head over to the API Dashboard to send your own logs!"
     );

@@ -1,18 +1,29 @@
+import { OrganizationDocument } from "logtree-types";
 import { FolderService } from "./lib/FolderService";
 import { LogService } from "./lib/LogService";
+import { PricingService } from "./lib/PricingService";
 
 export const ApiService = {
   createLog: async (
-    organizationId: string,
+    organization: OrganizationDocument,
     folderPath: string,
-    content: string
+    content: string,
+    shouldCharge: boolean = false
   ) => {
     FolderService.validateFolderPath(folderPath);
     const folderIdForThisLog =
       await FolderService.getOrGenerateLastFolderIdFromPath(
-        organizationId,
+        organization._id.toString(),
         folderPath
       );
-    return LogService.createLog(organizationId, folderIdForThisLog, content);
+    const log = await LogService.createLog(
+      organization._id.toString(),
+      folderIdForThisLog,
+      content
+    );
+    if (shouldCharge) {
+      void PricingService.chargeForLog(organization);
+    }
+    return log;
   },
 };

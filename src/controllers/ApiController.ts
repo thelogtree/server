@@ -5,11 +5,7 @@ export const ApiController = {
   createLog: async (req: Request, res: Response) => {
     const organization = req["organization"];
     const { content, folderPath } = req.body;
-    await ApiService.createLog(
-      organization._id.toString(),
-      folderPath,
-      content
-    );
+    await ApiService.createLog(organization, folderPath, content, true);
     res.send({});
   },
 };
