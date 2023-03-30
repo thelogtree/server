@@ -31,7 +31,7 @@ export const LogService = {
     folderId?: string | ObjectId,
     user?: UserDocument,
     start: number = 0,
-    maxLogsToRetrieve: number = 100,
+    maxLogsToRetrieve: number = 50,
     logsNoNewerThanDate?: Date
   ): Promise<SimplifiedLog[]> => {
     // we assume the response should be the user's favorited logs if user param is provided
