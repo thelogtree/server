@@ -85,9 +85,11 @@ const requiredApiKey = async (
       plaintextSecretKey,
       organization.keys.encryptedSecretKey
     );
-    if (isCorrect) {
+    if (isCorrect && !organization.isSuspended) {
       req["organization"] = organization;
       return next();
+    } else if (isCorrect) {
+      throw new AuthError(ErrorMessages.Suspended);
     }
   }
   throw new AuthError(ErrorMessages.ApiCredentialsIncorrect);

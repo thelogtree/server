@@ -17,6 +17,7 @@ const OrganizationSchema = new Schema(
     keys: { type: KeysSchema, required: true },
     currentCharges: { type: Number, default: 0 },
     currentCredits: { type: Number, default: 0 },
+    isSuspended: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

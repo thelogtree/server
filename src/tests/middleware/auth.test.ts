@@ -196,4 +196,15 @@ describe("FailsAuthIfIncorrectApiCredentials", () => {
     );
     TestHelper.expectSuccess(res);
   });
+  it("fails auth with the correct api key and secret key but the organization is suspended", async () => {
+    const org = await OrganizationFactory.create({ isSuspended: true });
+    const res = await TestHelper.sendRequest(
+      routeUrl + "/required-api-key",
+      "GET",
+      {},
+      {},
+      ...TestHelper.extractApiKeys(org)
+    );
+    TestHelper.expectError(res, ErrorMessages.Suspended);
+  });
 });

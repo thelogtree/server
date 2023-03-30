@@ -1,6 +1,7 @@
 export enum ErrorMessages {
   ApiCredentialsIncorrect = "The API credentials on this request are either missing or invalid.",
   NoPermission = "You do not have permission to make this request.",
+  Suspended = "Your organization has been suspended. Please contact support.",
 }
 
 export class ApiError {
