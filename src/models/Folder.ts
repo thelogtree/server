@@ -17,6 +17,7 @@ const FolderSchema = new Schema(
       default: null,
     },
     fullPath: { type: String, required: true },
+    dateOfMostRecentLog: { type: Date },
   },
   { timestamps: true }
 );

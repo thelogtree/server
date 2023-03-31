@@ -26,28 +26,39 @@ export const OrganizationController = {
   },
   getFolders: async (req: Request, res: Response) => {
     const organization = req["organization"];
-    const folders = await FolderService.getFolders(organization._id);
+    const user = req["user"];
+    const folders = await FolderService.getFolders(organization._id, user._id);
     res.send({ folders });
   },
   getLogs: async (req: Request, res: Response) => {
     const user = req["user"];
     const { folderId, start, isFavorites, logsNoNewerThanDate } = req.query;
     const backupDate = new Date();
-    if (!folderId && !queryBool(isFavorites as string)) {
+    const isFavoritesBool = queryBool(isFavorites as string);
+    if (!folderId && !isFavoritesBool) {
       throw new ApiError("Must provide either a folderId or isFavorites");
     }
+
     const logs = await LogService.getLogs(
       folderId as string | undefined,
-      queryBool(isFavorites as string) ? user : undefined,
+      isFavoritesBool ? user : undefined,
       Number(start || 0),
       undefined,
       (logsNoNewerThanDate as Date | undefined) || backupDate
     );
+
     const numLogsInTotal = await LogService.getNumLogsInFolder(
       (logsNoNewerThanDate as Date | undefined) || backupDate,
       folderId as string | undefined,
-      queryBool(isFavorites as string) ? user : undefined
+      isFavoritesBool ? user : undefined
     );
+
+    void FolderService.recordUserCheckingFolder(
+      user._id,
+      folderId as string,
+      isFavoritesBool
+    );
+
     res.send({ logs, numLogsInTotal });
   },
   searchForLogs: async (req: Request, res: Response) => {
