@@ -206,7 +206,7 @@ export const FolderService = {
     }
   },
   getDoesFolderHaveUnreadLogs: (
-    lastCheckedFoldersForUser: LastCheckedFolderDocument[],
+    lastCheckedFoldersForUser: LastCheckedFolderDocument[], // should already be in descending date order (so the newest document is at index 0)
     folder: FolderDocument
   ) => {
     const lastCheckedThisFolder = lastCheckedFoldersForUser.find(
