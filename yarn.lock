@@ -6577,10 +6577,10 @@ log-symbols@3.0.0:
   dependencies:
     chalk "^2.4.2"
 
-logtree-types@1.0.17:
-  version "1.0.17"
-  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.17.tgz#b2c785aa7ebf85890e2ff455c7d0ec64b1b388bb"
-  integrity sha512-Ho6pk4S6N78DVpPOD37b5KXDyZhgwMsAKbyIAvywUZ8TFevqZqzlMlRlpW7Fo0mCCQ3cFh8XD21WbDSfeByBeg==
+logtree-types@1.0.18:
+  version "1.0.18"
+  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.18.tgz#9ab90a4d0a3a3fba45cff5b60291cf3ab3e609c3"
+  integrity sha512-sXXTtPKlKL5GFqt2evz1ESm7dN8CxoJNAAGhVe6y82Eb7VvstikecrauoTseTGysfcRixKbbnHKmDL8RofWmSw==
   dependencies:
     lodash "^4.17.20"
     mongodb "^5.1.0"

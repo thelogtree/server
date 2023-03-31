@@ -2,6 +2,7 @@ import { OrganizationDocument } from "logtree-types";
 import { FolderService } from "./lib/FolderService";
 import { LogService } from "./lib/LogService";
 import { PricingService } from "./lib/PricingService";
+import { Folder } from "src/models/Folder";
 
 export const ApiService = {
   createLog: async (
@@ -20,6 +21,10 @@ export const ApiService = {
       organization._id.toString(),
       folderIdForThisLog,
       content
+    );
+    void Folder.updateOne(
+      { _id: folderIdForThisLog },
+      { dateOfMostRecentLog: new Date() }
     );
     if (shouldCharge) {
       void PricingService.chargeForLog(organization);

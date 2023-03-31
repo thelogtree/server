@@ -1,5 +1,10 @@
 import _ from "lodash";
-import { FolderDocument, UserDocument } from "logtree-types";
+import {
+  FolderDocument,
+  LastCheckedFolderDocument,
+  UserDocument,
+} from "logtree-types";
+import moment from "moment";
 import { ObjectId } from "mongodb";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { Folder } from "src/models/Folder";
@@ -11,7 +16,8 @@ type TreeRepresentation = {
   _id: string | ObjectId;
   name: string;
   fullPath: string;
-  children: any[];
+  hasUnreadLogs: boolean;
+  children: TreeRepresentation[];
 };
 
 export const FolderService = {
@@ -30,34 +36,63 @@ export const FolderService = {
   },
   buildFolderTree(
     allFolders: (FolderDocument & any)[],
-    parentFolderId: string | null
+    parentFolderId: string | null,
+    lastCheckedFolders: LastCheckedFolderDocument[],
+    userId: string | ObjectId
   ): TreeRepresentation[] {
     let tree: any[] = [];
     for (let folder of allFolders) {
       if (folder.parentFolderId?.toString() === parentFolderId?.toString()) {
         let children = FolderService.buildFolderTree(
           allFolders,
-          folder._id.toString()
+          folder._id.toString(),
+          lastCheckedFolders,
+          userId
         );
         if (children.length) {
           folder.children = children;
         } else {
           folder.children = [];
         }
-        tree.push(_.pick(folder, ["_id", "name", "fullPath", "children"]));
+
+        const hasUnreadLogs = FolderService.getDoesFolderHaveUnreadLogs(
+          lastCheckedFolders,
+          folder
+        );
+        folder.hasUnreadLogs = hasUnreadLogs;
+
+        tree.push(
+          _.pick(folder, [
+            "_id",
+            "name",
+            "fullPath",
+            "children",
+            "hasUnreadLogs",
+          ])
+        );
       }
     }
     return tree;
   },
   getFolders: async (
-    organizationId: ObjectId
+    organizationId: ObjectId,
+    userId: ObjectId
   ): Promise<TreeRepresentation[]> => {
     // returns a matrix-like representation of the folders for this organization
     const allFoldersInOrg = await Folder.find({ organizationId })
       .sort({ createdAt: 1 })
       .lean()
       .exec();
-    return FolderService.buildFolderTree(allFoldersInOrg, null);
+    const lastCheckedFolders = await LastCheckedFolder.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    return FolderService.buildFolderTree(
+      allFoldersInOrg,
+      null,
+      lastCheckedFolders,
+      userId
+    );
   },
   findOrCreateNewFolderId: async (
     organizationId: string,
@@ -168,5 +203,21 @@ export const FolderService = {
     if (isFavorites || folderId) {
       await LastCheckedFolder.create({ userId, fullPath });
     }
+  },
+  getDoesFolderHaveUnreadLogs: async (
+    lastCheckedFoldersForUser: LastCheckedFolderDocument[],
+    folder: FolderDocument
+  ) => {
+    const lastCheckedThisFolder = lastCheckedFoldersForUser.find(
+      (lastCheckedFolder) => lastCheckedFolder.fullPath === folder.fullPath
+    );
+    if (!lastCheckedThisFolder) {
+      return true;
+    }
+
+    const dateLastCheckedFolder = lastCheckedThisFolder.createdAt;
+    const dateOfLastLogInFolder = folder.dateOfMostRecentLog;
+
+    return moment(dateOfLastLogInFolder).isAfter(moment(dateLastCheckedFolder));
   },
 };
