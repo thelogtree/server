@@ -87,6 +87,7 @@ export const FolderService = {
       .sort({ createdAt: -1 })
       .lean()
       .exec();
+
     return FolderService.buildFolderTree(
       allFoldersInOrg,
       null,
@@ -204,7 +205,7 @@ export const FolderService = {
       await LastCheckedFolder.create({ userId, fullPath });
     }
   },
-  getDoesFolderHaveUnreadLogs: async (
+  getDoesFolderHaveUnreadLogs: (
     lastCheckedFoldersForUser: LastCheckedFolderDocument[],
     folder: FolderDocument
   ) => {
@@ -218,6 +219,9 @@ export const FolderService = {
     const dateLastCheckedFolder = lastCheckedThisFolder.createdAt;
     const dateOfLastLogInFolder = folder.dateOfMostRecentLog;
 
-    return moment(dateOfLastLogInFolder).isAfter(moment(dateLastCheckedFolder));
+    return (
+      !!dateOfLastLogInFolder &&
+      moment(dateOfLastLogInFolder).isAfter(moment(dateLastCheckedFolder))
+    );
   },
 };

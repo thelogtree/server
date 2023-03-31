@@ -18,6 +18,9 @@ import { User } from "src/models/User";
 import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory";
+import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderFactory";
+import { FolderService } from "src/services/ApiService/lib/FolderService";
+import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 
 const routeUrl = "/organization";
 
@@ -149,17 +152,19 @@ describe("GenerateInviteLink", () => {
 describe("GetFolders", () => {
   it("correctly gets the folder array representation for an organization", async () => {
     const organization = await OrganizationFactory.create();
-    await FolderFactory.create({
+    const folderTop1 = await FolderFactory.create({
       organizationId: organization._id,
       parentFolderId: null,
       name: "folder-top-1",
       fullPath: "/folder-top-1",
     });
     const folderTop2 = await FolderFactory.create({
+      // should have unread logs
       organizationId: organization._id,
       parentFolderId: null,
       name: "folder-top-2",
       fullPath: "/folder-top-2",
+      dateOfMostRecentLog: new Date(),
     });
     await FolderFactory.create(); // decoy
     await FolderFactory.create({
@@ -169,13 +174,28 @@ describe("GetFolders", () => {
     const subfolder2 = await FolderFactory.create({
       organizationId: organization._id,
       parentFolderId: folderTop2._id,
+      dateOfMostRecentLog: moment().subtract(3, "minutes"),
     });
     const deeperSubfolder2 = await FolderFactory.create({
+      // should have unread logs
       organizationId: organization._id,
       parentFolderId: subfolder2._id,
+      dateOfMostRecentLog: new Date(),
     });
-
     const user = await UserFactory.create({ organizationId: organization._id });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: folderTop1.fullPath,
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: folderTop2.fullPath,
+      createdAt: moment().subtract(2, "days"),
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: subfolder2.fullPath,
+    });
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization._id.toString()}/folders`,
       "GET",
@@ -190,14 +210,18 @@ describe("GetFolders", () => {
     expect(folders[1].children.length).toBe(2);
     expect(folders[1].children[0].children.length).toBe(0);
     expect(folders[1].children[1].children.length).toBe(1);
+    expect(folders[1].children[1].hasUnreadLogs).toBeFalsy();
     expect(folders[1].children[1].children[0]._id.toString()).toBe(
       deeperSubfolder2._id.toString()
     );
+    expect(folders[1].children[1].children[0].hasUnreadLogs).toBeTruthy();
     expect(folders[1].children[1].children[0].children.length).toBe(0);
     expect(folders[0].name).toBe("folder-top-1");
     expect(folders[1].name).toBe("folder-top-2");
     expect(folders[0].fullPath).toBe("/folder-top-1");
+    expect(folders[0].hasUnreadLogs).toBeFalsy();
     expect(folders[1].fullPath).toBe("/folder-top-2");
+    expect(folders[1].hasUnreadLogs).toBeTruthy();
   });
   it("correctly gets the folder array representation for an organization (empty array)", async () => {
     const organization = await OrganizationFactory.create();
@@ -972,5 +996,40 @@ describe("GetFavoriteFolder", () => {
     expect(folderPaths.length).toBe(2);
     expect(folderPaths[0]).toBe(fav1.fullPath);
     expect(folderPaths[1]).toBe(fav2.fullPath);
+  });
+});
+
+describe("FolderService.recordUserCheckingFolder", () => {
+  it("correctly records a user checking a folder", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FolderService.recordUserCheckingFolder(
+      user!._id.toString(),
+      folder!._id.toString()
+    );
+
+    const lastCheckedFolderObj = await LastCheckedFolder.findOne({
+      userId: user!._id,
+      fullPath: folder.fullPath,
+    });
+    expect(lastCheckedFolderObj).toBeTruthy();
+  });
+  it("correctly records a user checking the favorites folder", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    await FolderService.recordUserCheckingFolder(
+      user!._id.toString(),
+      undefined,
+      true
+    );
+
+    const lastCheckedFolderObj = await LastCheckedFolder.findOne({
+      userId: user!._id,
+      fullPath: "",
+    });
+    expect(lastCheckedFolderObj).toBeTruthy();
   });
 });
