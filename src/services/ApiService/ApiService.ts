@@ -27,7 +27,7 @@ export const ApiService = {
       { dateOfMostRecentLog: new Date() }
     );
     if (shouldCharge) {
-      void PricingService.chargeForLog(organization);
+      await PricingService.chargeForLog(organization);
     }
     return log;
   },
