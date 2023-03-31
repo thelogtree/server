@@ -3,6 +3,7 @@ import { FolderDocument, UserDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { Folder } from "src/models/Folder";
+import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { Log } from "src/models/Log";
 import { ApiError } from "src/utils/errors";
 
@@ -149,5 +150,23 @@ export const FolderService = {
         )
     );
     return filteredFolders.map((f) => f._id.toString());
+  },
+  recordUserCheckingFolder: async (
+    userId: string | ObjectId,
+    folderId?: string | ObjectId,
+    isFavorites: boolean = false
+  ) => {
+    let fullPath = "";
+    if (folderId) {
+      const folder = await Folder.findById(folderId, { fullPath: 1, _id: 0 });
+      if (!folder) {
+        return;
+      }
+      fullPath = folder.fullPath;
+    }
+
+    if (isFavorites || folderId) {
+      await LastCheckedFolder.create({ userId, fullPath });
+    }
   },
 };
