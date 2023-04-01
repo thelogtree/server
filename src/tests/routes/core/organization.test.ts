@@ -21,6 +21,7 @@ import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory
 import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderFactory";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
+import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
 
 const routeUrl = "/organization";
 
@@ -183,6 +184,11 @@ describe("GetFolders", () => {
       dateOfMostRecentLog: new Date(),
     });
     const user = await UserFactory.create({ organizationId: organization._id });
+    await FolderPreferenceFactory.create({
+      userId: user._id,
+      fullPath: deeperSubfolder2.fullPath,
+      isMuted: true,
+    });
     await LastCheckedFolderFactory.create({
       userId: user._id,
       fullPath: folderTop1.fullPath,
@@ -214,14 +220,17 @@ describe("GetFolders", () => {
     expect(folders[1].children[1].children[0]._id.toString()).toBe(
       deeperSubfolder2._id.toString()
     );
+    expect(folders[1].children[1].children[0].isMuted).toBeTruthy();
     expect(folders[1].children[1].children[0].hasUnreadLogs).toBeTruthy();
     expect(folders[1].children[1].children[0].children.length).toBe(0);
     expect(folders[0].name).toBe("folder-top-1");
     expect(folders[1].name).toBe("folder-top-2");
     expect(folders[0].fullPath).toBe("/folder-top-1");
     expect(folders[0].hasUnreadLogs).toBeFalsy();
+    expect(folders[0].isMuted).toBeFalsy();
     expect(folders[1].fullPath).toBe("/folder-top-2");
     expect(folders[1].hasUnreadLogs).toBeTruthy();
+    expect(folders[1].isMuted).toBeFalsy();
   });
   it("correctly gets the folder array representation for an organization (empty array)", async () => {
     const organization = await OrganizationFactory.create();

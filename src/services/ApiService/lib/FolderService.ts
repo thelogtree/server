@@ -1,6 +1,7 @@
 import _ from "lodash";
 import {
   FolderDocument,
+  FolderPreferenceDocument,
   LastCheckedFolderDocument,
   UserDocument,
 } from "logtree-types";
@@ -8,6 +9,7 @@ import moment from "moment";
 import { ObjectId } from "mongodb";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { Folder } from "src/models/Folder";
+import { FolderPreference } from "src/models/FolderPreference";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { Log } from "src/models/Log";
 import { ApiError } from "src/utils/errors";
@@ -17,6 +19,7 @@ type TreeRepresentation = {
   name: string;
   fullPath: string;
   hasUnreadLogs: boolean;
+  isMuted: boolean;
   children: TreeRepresentation[];
 };
 
@@ -38,6 +41,7 @@ export const FolderService = {
     allFolders: (FolderDocument & any)[],
     parentFolderId: string | null,
     lastCheckedFolders: LastCheckedFolderDocument[],
+    folderPreferences: FolderPreferenceDocument[],
     userId: string | ObjectId
   ): TreeRepresentation[] {
     let tree: any[] = [];
@@ -47,6 +51,7 @@ export const FolderService = {
           allFolders,
           folder._id.toString(),
           lastCheckedFolders,
+          folderPreferences,
           userId
         );
         if (children.length) {
@@ -61,6 +66,12 @@ export const FolderService = {
         );
         folder.hasUnreadLogs = hasUnreadLogs;
 
+        const isMuted = FolderService.getIsFolderMuted(
+          folderPreferences,
+          folder
+        );
+        folder.isMuted = isMuted;
+
         tree.push(
           _.pick(folder, [
             "_id",
@@ -68,6 +79,7 @@ export const FolderService = {
             "fullPath",
             "children",
             "hasUnreadLogs",
+            "isMuted",
           ])
         );
       }
@@ -79,15 +91,21 @@ export const FolderService = {
     userId: ObjectId
   ): Promise<TreeRepresentation[]> => {
     // returns a matrix-like representation of the folders for this organization
-    const [allFoldersInOrg, lastCheckedFolders] = await Promise.all([
-      Folder.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
-      LastCheckedFolder.find({ userId }).sort({ createdAt: -1 }).lean().exec(),
-    ]);
+    const [allFoldersInOrg, lastCheckedFolders, folderPreferences] =
+      await Promise.all([
+        Folder.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
+        LastCheckedFolder.find({ userId })
+          .sort({ createdAt: -1 })
+          .lean()
+          .exec(),
+        FolderPreference.find({ userId }).sort({ createdAt: -1 }).lean().exec(),
+      ]);
 
     return FolderService.buildFolderTree(
       allFoldersInOrg,
       null,
       lastCheckedFolders,
+      folderPreferences,
       userId
     );
   },
@@ -219,5 +237,15 @@ export const FolderService = {
       !!dateOfLastLogInFolder &&
       moment(dateOfLastLogInFolder).isAfter(moment(dateLastCheckedFolder))
     );
+  },
+  getIsFolderMuted: (
+    folderPreferences: FolderPreferenceDocument[],
+    folder: FolderDocument
+  ) => {
+    const folderPreferenceForThisFolder = folderPreferences.find(
+      (folderPreference) => folderPreference.fullPath === folder.fullPath
+    );
+
+    return !!folderPreferenceForThisFolder?.isMuted;
   },
 };
