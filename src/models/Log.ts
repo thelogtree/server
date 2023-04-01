@@ -16,11 +16,13 @@ const LogSchema = new Schema(
       ref: DatabaseModelNames.Folder,
       required: true,
     },
+    referenceId: { type: String },
   },
   { timestamps: true }
 );
 
 LogSchema.index({ folderId: 1 });
+LogSchema.index({ referenceId: 1, folderId: 1 });
 LogSchema.index({ folderId: 1, createdAt: 1 });
 LogSchema.index({ organizationId: 1 });
 LogSchema.index({ folderId: 1, organizationId: 1 });

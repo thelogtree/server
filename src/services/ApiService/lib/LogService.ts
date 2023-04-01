@@ -14,7 +14,12 @@ export type SimplifiedLog = {
 };
 
 export const LogService = {
-  createLog: (organizationId: string, folderId: string, content: string) => {
+  createLog: (
+    organizationId: string,
+    folderId: string,
+    content: string,
+    referenceId?: string
+  ) => {
     let editedContent = content;
     if (content.length > MAX_NUM_CHARS_ALLOWED_IN_LOG) {
       editedContent =
@@ -25,6 +30,7 @@ export const LogService = {
       content: editedContent,
       organizationId,
       folderId,
+      referenceId,
     });
   },
   getLogs: async (

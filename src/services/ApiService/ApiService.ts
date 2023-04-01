@@ -9,6 +9,7 @@ export const ApiService = {
     organization: OrganizationDocument,
     folderPath: string,
     content: string,
+    referenceId?: string,
     shouldCharge: boolean = false
   ) => {
     FolderService.validateFolderPath(folderPath);
@@ -20,7 +21,8 @@ export const ApiService = {
     const log = await LogService.createLog(
       organization._id.toString(),
       folderIdForThisLog,
-      content
+      content,
+      referenceId
     );
     await Folder.updateOne(
       { _id: folderIdForThisLog },
