@@ -24,7 +24,7 @@ export const ApiService = {
       content,
       referenceId
     );
-    await Folder.updateOne(
+    void Folder.updateOne(
       { _id: folderIdForThisLog },
       { dateOfMostRecentLog: new Date() }
     );
