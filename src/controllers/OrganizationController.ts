@@ -39,19 +39,20 @@ export const OrganizationController = {
       throw new ApiError("Must provide either a folderId or isFavorites");
     }
 
-    const logs = await LogService.getLogs(
-      folderId as string | undefined,
-      isFavoritesBool ? user : undefined,
-      Number(start || 0),
-      undefined,
-      (logsNoNewerThanDate as Date | undefined) || backupDate
-    );
-
-    const numLogsInTotal = await LogService.getNumLogsInFolder(
-      (logsNoNewerThanDate as Date | undefined) || backupDate,
-      folderId as string | undefined,
-      isFavoritesBool ? user : undefined
-    );
+    const [logs, numLogsInTotal] = await Promise.all([
+      LogService.getLogs(
+        folderId as string | undefined,
+        isFavoritesBool ? user : undefined,
+        Number(start || 0),
+        undefined,
+        (logsNoNewerThanDate as Date | undefined) || backupDate
+      ),
+      LogService.getNumLogsInFolder(
+        (logsNoNewerThanDate as Date | undefined) || backupDate,
+        folderId as string | undefined,
+        isFavoritesBool ? user : undefined
+      ),
+    ]);
 
     void FolderService.recordUserCheckingFolder(
       user._id,

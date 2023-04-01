@@ -192,10 +192,13 @@ export const OrganizationService = {
         return indexOfPath === 0;
       })
       .map((folder) => folder._id);
-    await Log.deleteMany({ folderId: { $in: foldersIdsUnderTheOneToDelete } });
-    await Folder.deleteMany({
-      _id: { $in: foldersIdsUnderTheOneToDelete },
-    });
+
+    await Promise.all([
+      Log.deleteMany({ folderId: { $in: foldersIdsUnderTheOneToDelete } }),
+      Folder.deleteMany({
+        _id: { $in: foldersIdsUnderTheOneToDelete },
+      }),
+    ]);
   },
   getOrganizationMembers: (organizationId: string) =>
     User.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
