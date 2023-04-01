@@ -37,4 +37,8 @@ export const OrganizationSchemas = {
     fullPath: Joi.string().required(),
     isRemoved: Joi.boolean(),
   }),
+  setFolderPreference: Joi.object({
+    fullPath: Joi.string().required(),
+    isMuted: Joi.boolean(),
+  }),
 };

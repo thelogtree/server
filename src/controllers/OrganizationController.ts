@@ -161,4 +161,14 @@ export const OrganizationController = {
     );
     res.send({ folderPaths });
   },
+  setFolderPreference: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const { fullPath, isMuted } = req.body;
+    await OrganizationService.setFolderPreference(
+      user?._id.toString(),
+      fullPath,
+      isMuted
+    );
+    res.send({});
+  },
 };

@@ -18,6 +18,7 @@ import { Log } from "src/models/Log";
 import { ApiService } from "./ApiService/ApiService";
 import { FolderService } from "./ApiService/lib/FolderService";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
+import { FolderPreference } from "src/models/FolderPreference";
 
 export const OrganizationService = {
   createOrganization: async (
@@ -265,4 +266,14 @@ export const OrganizationService = {
       .exec();
     return favoriteFolders.map((f) => f.fullPath);
   },
+  setFolderPreference: async (
+    userId: string,
+    fullPath: string,
+    isMuted?: boolean
+  ) =>
+    FolderPreference.updateOne(
+      { userId, fullPath },
+      { isMuted },
+      { upsert: true }
+    ).exec(),
 };
