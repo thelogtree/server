@@ -54,7 +54,7 @@ export const OrganizationController = {
       ),
     ]);
 
-    await FolderService.recordUserCheckingFolder(
+    void FolderService.recordUserCheckingFolder(
       user._id,
       folderId as string,
       isFavoritesBool
