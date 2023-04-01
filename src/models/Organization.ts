@@ -25,7 +25,6 @@ const OrganizationSchema = new Schema(
 OrganizationSchema.index({ name: 1 }, { unique: true });
 OrganizationSchema.index({ slug: 1 }, { unique: true });
 OrganizationSchema.index({ "keys.publishableApiKey": 1 }, { unique: true });
-OrganizationSchema.index({ "keys.encryptedSecretKey": 1 }, { unique: true });
 
 interface OrganizationModel extends Model<OrganizationDocument> {}
 
