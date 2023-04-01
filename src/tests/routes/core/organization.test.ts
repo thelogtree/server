@@ -471,7 +471,7 @@ describe("SearchForLogs", () => {
     TestHelper.expectSuccess(res);
     const { logs } = res.body;
     expect(logs.length).toBe(2);
-    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(Object.keys(logs[0]).length).toBe(4);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });
@@ -564,7 +564,7 @@ describe("SearchForLogs", () => {
     TestHelper.expectSuccess(res);
     const { logs } = res.body;
     expect(logs.length).toBe(2);
-    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(Object.keys(logs[0]).length).toBe(4);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });

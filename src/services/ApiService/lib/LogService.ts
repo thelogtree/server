@@ -11,6 +11,7 @@ export type SimplifiedLog = {
   content: string;
   createdAt: Date;
   folderId?: ObjectId | string;
+  referenceId?: string;
 };
 
 export const LogService = {
@@ -51,7 +52,13 @@ export const LogService = {
         ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
         createdAt: { $lt: logsNoNewerThanDate },
       },
-      { content: 1, _id: 1, ...(user ? { folderId: 1 } : {}), createdAt: 1 }
+      {
+        content: 1,
+        _id: 1,
+        ...(user ? { folderId: 1 } : {}),
+        referenceId: 1,
+        createdAt: 1,
+      }
     )
       .sort({ createdAt: -1 })
       .skip(start)
@@ -104,7 +111,7 @@ export const LogService = {
           : { content: { $regex: `.*${query}.*`, $options: "i" } }),
         createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
-      { content: 1, _id: 1, createdAt: 1 }
+      { content: 1, _id: 1, referenceId: 1, createdAt: 1 }
     )
       .sort({ createdAt: -1 })
       .limit(300)
