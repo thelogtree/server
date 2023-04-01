@@ -56,6 +56,49 @@ describe("CreateLog", () => {
     }).countDocuments();
     expect(allLogsInOrg).toBe(1);
   });
+  it("correctly creates a log with a referenceId", async () => {
+    const logContent = "test 123";
+    const folderName = "transactions";
+    const referenceId = "abc";
+    const organization = await OrganizationFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "POST",
+      {
+        content: logContent,
+        folderPath: `/${folderName}`,
+        referenceId,
+      },
+      {},
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectSuccess(res);
+
+    const folder = await Folder.findOne({
+      name: folderName,
+      parentFolderId: null,
+      organizationId: organization._id,
+    });
+    expect(folder).toBeTruthy();
+
+    const allFoldersInOrgNum = await Folder.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allFoldersInOrgNum).toBe(1);
+
+    const logCreatedInsideFolder = await Log.findOne({
+      content: logContent,
+      folderId: folder!._id,
+      organizationId: organization._id,
+    });
+    expect(logCreatedInsideFolder).toBeTruthy();
+    expect(logCreatedInsideFolder?.referenceId).toBe(referenceId);
+
+    const allLogsInOrg = await Log.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allLogsInOrg).toBe(1);
+  });
   it("correctly creates a log under multiple folders", async () => {
     const logContent = "test 123";
     const folder1Name = "transactions";

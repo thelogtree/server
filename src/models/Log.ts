@@ -22,7 +22,7 @@ const LogSchema = new Schema(
 );
 
 LogSchema.index({ folderId: 1 });
-LogSchema.index({ referenceId: 1, folderId: 1 });
+LogSchema.index({ referenceId: 1, folderId: 1, organizationId: 1 });
 LogSchema.index({ folderId: 1, createdAt: 1 });
 LogSchema.index({ organizationId: 1 });
 LogSchema.index({ folderId: 1, organizationId: 1 });

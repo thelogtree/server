@@ -89,11 +89,19 @@ export const LogService = {
       favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
     }
 
+    const isReferenceId = query.indexOf("id:") === 0; // must include id: in the beginning to query for a referenceId
+    let referenceId;
+    if (isReferenceId) {
+      referenceId = query.slice(3);
+    }
+
     return Log.find(
       {
         organizationId,
         ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
-        content: { $regex: `.*${query}.*`, $options: "i" },
+        ...(isReferenceId
+          ? { referenceId }
+          : { content: { $regex: `.*${query}.*`, $options: "i" } }),
         createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
       { content: 1, _id: 1, createdAt: 1 }
