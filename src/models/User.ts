@@ -32,7 +32,6 @@ const UserSchema = new Schema(
 
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ firebaseId: 1 }, { unique: true });
-UserSchema.index({ organizationId: 1 });
 UserSchema.index({ organizationId: 1, invitationId: 1 });
 UserSchema.index({ invitationId: 1 }, { unique: true });
 
