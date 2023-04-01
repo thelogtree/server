@@ -22,6 +22,7 @@ import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderF
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
+import { FolderPreference } from "src/models/FolderPreference";
 
 const routeUrl = "/organization";
 
@@ -1130,5 +1131,69 @@ describe("FolderService.recordUserCheckingFolder", () => {
       fullPath: "",
     });
     expect(lastCheckedFolderObj).toBeTruthy();
+  });
+});
+
+describe("SetFolderPreference", () => {
+  it("correctly updates a folder preference", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const preference = await FolderPreferenceFactory.create({
+      userId: user._id,
+      fullPath: "test123",
+      isMuted: false,
+    });
+    expect(preference.isMuted).toBe(false);
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/folder-preference`,
+      "POST",
+      {
+        fullPath: preference.fullPath,
+        isMuted: true,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const updatedPreference = await FolderPreference.findById(
+      preference._id
+    ).lean();
+    expect(updatedPreference.isMuted).toBe(true);
+
+    const numPreferencesForThisUser = await FolderPreference.countDocuments({
+      userId: user._id,
+    });
+    expect(numPreferencesForThisUser).toBe(1);
+  });
+  it("correctly creates a new folder preference", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const fullPath = "testing4";
+    await FolderPreferenceFactory.create({ userId: user._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/folder-preference`,
+      "POST",
+      {
+        fullPath,
+        isMuted: true,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const preference = await FolderPreference.findOne({
+      userId: user._id,
+      fullPath,
+      isMuted: true,
+    }).lean();
+    expect(preference).toBeTruthy();
+
+    const numPreferencesForThisUser = await FolderPreference.countDocuments({
+      userId: user._id,
+    });
+    expect(numPreferencesForThisUser).toBe(2);
   });
 });

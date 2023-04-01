@@ -105,5 +105,13 @@ router.post(
   }),
   OrganizationController.favoriteFolder
 );
+router.post(
+  "/:id/folder-preference",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.setFolderPreference,
+  }),
+  OrganizationController.setFolderPreference
+);
 
 export default router;
