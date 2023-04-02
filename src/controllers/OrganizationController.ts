@@ -32,7 +32,13 @@ export const OrganizationController = {
   },
   getLogs: async (req: Request, res: Response) => {
     const user = req["user"];
-    const { folderId, start, isFavorites, logsNoNewerThanDate } = req.query;
+    const {
+      folderId,
+      start,
+      isFavorites,
+      logsNoNewerThanDate,
+      logsNoOlderThanDate,
+    } = req.query;
     const backupDate = new Date();
     const isFavoritesBool = queryBool(isFavorites as string);
     if (!folderId && !isFavoritesBool) {
@@ -45,10 +51,12 @@ export const OrganizationController = {
         isFavoritesBool ? user : undefined,
         Number(start || 0),
         undefined,
-        (logsNoNewerThanDate as Date | undefined) || backupDate
+        (logsNoNewerThanDate as Date | undefined) || backupDate,
+        logsNoOlderThanDate as Date | undefined
       ),
       LogService.getNumLogsInFolder(
         (logsNoNewerThanDate as Date | undefined) || backupDate,
+        logsNoOlderThanDate as Date | undefined,
         folderId as string | undefined,
         isFavoritesBool ? user : undefined
       ),

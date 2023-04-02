@@ -288,6 +288,52 @@ describe("GetLogs", () => {
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });
+  it("correctly gets the logs for a specific folder with logsNoOlderThanDate set", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      createdAt: moment().subtract(53, "minutes"),
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+    });
+    const folderDecoy = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      createdAt: moment().subtract(65, "minutes").toDate(),
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folderDecoy._id,
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/logs`,
+      "GET",
+      {},
+      {
+        folderId: folder.id,
+        logsNoOlderThanDate: moment().subtract(1, "hour").toDate(),
+      },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs, numLogsInTotal } = res.body;
+    expect(logs.length).toBe(2);
+    expect(numLogsInTotal).toBe(2);
+    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log2._id.toString());
+    expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
   it("correctly gets the logs for favorited folders for a user", async () => {
     const organization = await OrganizationFactory.create();
     const folder = await FolderFactory.create({

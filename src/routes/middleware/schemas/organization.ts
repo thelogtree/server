@@ -10,6 +10,7 @@ export const OrganizationSchemas = {
     isFavorites: Joi.boolean(),
     start: Joi.number(),
     logsNoNewerThanDate: Joi.date(),
+    logsNoOlderThanDate: Joi.date(),
   }),
   getInvitationInfo: Joi.object({
     invitationId: Joi.string().custom(objectId).required(),

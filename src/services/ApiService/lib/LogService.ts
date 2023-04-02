@@ -39,7 +39,8 @@ export const LogService = {
     user?: UserDocument,
     start: number = 0,
     maxLogsToRetrieve: number = 50,
-    logsNoNewerThanDate?: Date
+    logsNoNewerThanDate?: Date,
+    logsNoOlderThanDate?: Date
   ): Promise<SimplifiedLog[]> => {
     // we assume the response should be the user's favorited logs if user param is provided
     let favoritedFolderIds: string[] = [];
@@ -50,7 +51,10 @@ export const LogService = {
     return Log.find(
       {
         ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
-        createdAt: { $lt: logsNoNewerThanDate },
+        createdAt: {
+          $lt: logsNoNewerThanDate,
+          ...(logsNoOlderThanDate && { $gt: logsNoOlderThanDate }),
+        },
       },
       {
         content: 1,
@@ -68,6 +72,7 @@ export const LogService = {
   },
   getNumLogsInFolder: async (
     logsNoNewerThanDate?: Date,
+    logsNoOlderThanDate?: Date,
     folderId?: string,
     user?: UserDocument
   ) => {
@@ -78,7 +83,10 @@ export const LogService = {
     }
     return Log.find({
       ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
-      createdAt: { $lt: logsNoNewerThanDate },
+      createdAt: {
+        $lt: logsNoNewerThanDate,
+        ...(logsNoOlderThanDate && { $gt: logsNoOlderThanDate }),
+      },
     })
       .lean()
       .countDocuments()
