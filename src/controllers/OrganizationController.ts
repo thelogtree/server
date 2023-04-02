@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import { OrganizationDocument, UserDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
+import { Folder } from "src/models/Folder";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
-import { ApiError } from "src/utils/errors";
+import { StatsService, timeInterval } from "src/services/StatsService";
+import { ApiError, AuthError } from "src/utils/errors";
 import { queryBool } from "src/utils/helpers";
 import { Logger } from "src/utils/logger";
 
@@ -178,5 +180,21 @@ export const OrganizationController = {
       isMuted
     );
     res.send({});
+  },
+  getFolderStats: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { folderId } = req.query;
+    const folder = await Folder.findById(folderId as string)
+      .lean()
+      .exec();
+    if (folder.organizationId.toString() !== organization._id.toString()) {
+      throw new AuthError(
+        "Cannot get the folder stats of a folder in a different organization."
+      );
+    }
+    const { percentageChange, phrasing } = await StatsService.getRelevantStat(
+      folderId as string
+    );
+    res.send({ percentageChange, phrasing });
   },
 };

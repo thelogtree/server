@@ -10,6 +10,11 @@ export enum timeInterval {
   Week = 10080,
 }
 
+type RelevantStat = {
+  percentageChange: number;
+  phrasing: string;
+};
+
 export const StatsService = {
   getLogFrequenciesByInterval: async (
     folderId: string,
@@ -48,11 +53,57 @@ export const StatsService = {
 
     const mostRecentChunk = logs[0];
     const sumOfOtherChunks = _.sum(logs.slice(1));
+    if (!sumOfOtherChunks) {
+      return 0; // just so we can avoid dividing by 0
+    }
     const averageOfOtherChunks = _.round(
       sumOfOtherChunks / (logs.length - 1),
       2
     );
     const diff = _.round(mostRecentChunk - averageOfOtherChunks, 2);
     return _.round(100.0 * (diff / averageOfOtherChunks), 2);
+  },
+  getRelevantStat: async (folderId: string): Promise<RelevantStat> => {
+    const now = new Date();
+    const fullDayAgo = moment(now).subtract(1, "day").toDate();
+    const numLogsInFolderInLast24Hours = await LogService.getNumLogsInFolder(
+      now,
+      fullDayAgo,
+      folderId
+    );
+    if (numLogsInFolderInLast24Hours > 50) {
+      // good amount of logs recently so make the comparison in hours instead of days
+      const percentageChange =
+        await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
+          folderId,
+          timeInterval.Hour,
+          48
+        );
+      if (!percentageChange) {
+        return { percentageChange: 0, phrasing: "" };
+      }
+      return {
+        percentageChange,
+        phrasing: `${percentageChange}% ${
+          percentageChange > 0 ? "more" : "less"
+        } logs than usual in the last hour`,
+      };
+    }
+
+    const percentageChange =
+      await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
+        folderId,
+        timeInterval.Day,
+        30
+      );
+    if (!percentageChange) {
+      return { percentageChange: 0, phrasing: "" };
+    }
+    return {
+      percentageChange,
+      phrasing: `${percentageChange}% ${
+        percentageChange > 0 ? "more" : "less"
+      } logs than usual in the last day`,
+    };
   },
 };

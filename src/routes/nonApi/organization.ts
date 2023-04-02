@@ -49,6 +49,14 @@ router.get(
   OrganizationController.getLogs
 );
 router.get(
+  "/:id/folder-stats",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getFolderStats,
+  }),
+  OrganizationController.getFolderStats
+);
+router.get(
   "/:id/favorite-folders",
   auth.requiredOrgMember,
   OrganizationController.getFavoriteFolderPaths

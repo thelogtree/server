@@ -1243,3 +1243,48 @@ describe("SetFolderPreference", () => {
     expect(numPreferencesForThisUser).toBe(2);
   });
 });
+
+describe("GetFolderStats", () => {
+  it("correctly gets a folder's stats", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "days"),
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/folder-stats`,
+      "GET",
+      {},
+      { folderId: folder.id },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { percentageChange, phrasing } = res.body;
+    expect(phrasing).toBeTruthy();
+    expect(percentageChange).toBeGreaterThan(0);
+  });
+  it("fails to get a folder's stats from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/folder-stats`,
+      "GET",
+      {},
+      { folderId: folder.id },
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Cannot get the folder stats of a folder in a different organization."
+    );
+  });
+});

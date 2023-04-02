@@ -42,4 +42,7 @@ export const OrganizationSchemas = {
     fullPath: Joi.string().required(),
     isMuted: Joi.boolean(),
   }),
+  getFolderStats: Joi.object({
+    folderId: Joi.string().custom(objectId).required(),
+  }),
 };
