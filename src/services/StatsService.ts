@@ -2,6 +2,7 @@ import moment from "moment";
 import { ObjectId } from "mongodb";
 import { LogService } from "./ApiService/lib/LogService";
 import _ from "lodash";
+import { Log } from "src/models/Log";
 
 // we represent these in total minutes
 export enum timeInterval {
@@ -23,6 +24,13 @@ export const StatsService = {
   ) => {
     const stepsBackArr = Array(stepsBack).fill(null);
     const startingCeilingDate = new Date(); // we use this so there aren't time inconsistencies and race conditions with new logs coming in
+    const oldestLogArr = await Log.find({ folderId })
+      .sort({ createdAt: 1 })
+      .limit(1);
+    if (!oldestLogArr.length) {
+      return [];
+    }
+    const oldestLogDate = oldestLogArr[0].createdAt;
 
     const logFrequencyArr = await Promise.all(
       stepsBackArr.map(async (_, index) => {
@@ -32,10 +40,15 @@ export const StatsService = {
         const ceilingDate = moment(startingCeilingDate)
           .subtract(interval * index, "minutes")
           .toDate();
+        if (moment(ceilingDate).isBefore(moment(oldestLogDate))) {
+          return -1;
+        }
         return LogService.getNumLogsInFolder(ceilingDate, floorDate, folderId);
       })
     );
-    return logFrequencyArr;
+
+    // filter out the values that went beyond the existence of the first log
+    return logFrequencyArr.filter((val) => val !== -1);
   },
   getPercentChangeInFrequencyOfMostRecentLogs: async (
     folderId: string,
