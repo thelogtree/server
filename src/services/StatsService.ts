@@ -84,7 +84,7 @@ export const StatsService = {
       }
       return {
         percentageChange,
-        phrasing: `${percentageChange}% ${
+        phrasing: `${Math.abs(percentageChange)}% ${
           percentageChange > 0 ? "more" : "less"
         } logs than usual in the last hour`,
       };
@@ -103,7 +103,7 @@ export const StatsService = {
     }
     return {
       percentageChange,
-      phrasing: `${percentageChange}% ${
+      phrasing: `${Math.abs(percentageChange)}% ${
         percentageChange > 0 ? "more" : "less"
       } logs than usual in the last day`,
     };
