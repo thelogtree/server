@@ -90,12 +90,14 @@ export const StatsService = {
       };
     }
 
-    const percentageChange =
+    const percentageChange = _.round(
       await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
         folderId,
         timeInterval.Day,
         30
-      );
+      ),
+      0
+    );
     if (!percentageChange) {
       return { percentageChange: 0, phrasing: "" };
     }
