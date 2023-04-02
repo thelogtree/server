@@ -52,7 +52,7 @@ export const LogService = {
       {
         ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
         createdAt: {
-          $lt: logsNoNewerThanDate,
+          $lte: logsNoNewerThanDate,
           ...(logsNoOlderThanDate && { $gt: logsNoOlderThanDate }),
         },
       },
@@ -84,7 +84,7 @@ export const LogService = {
     return Log.find({
       ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
       createdAt: {
-        $lt: logsNoNewerThanDate,
+        $lte: logsNoNewerThanDate,
         ...(logsNoOlderThanDate && { $gt: logsNoOlderThanDate }),
       },
     })
