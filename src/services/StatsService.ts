@@ -12,7 +12,7 @@ export enum timeInterval {
 
 type RelevantStat = {
   percentageChange: number;
-  phrasing: string;
+  timeInterval: "hour" | "day";
 };
 
 export const StatsService = {
@@ -80,13 +80,11 @@ export const StatsService = {
           48
         );
       if (!percentageChange) {
-        return { percentageChange: 0, phrasing: "" };
+        return { percentageChange: 0, timeInterval: "hour" };
       }
       return {
         percentageChange,
-        phrasing: `${Math.abs(percentageChange)}% ${
-          percentageChange > 0 ? "more" : "less"
-        } logs than usual in the last hour`,
+        timeInterval: "hour",
       };
     }
 
@@ -99,13 +97,11 @@ export const StatsService = {
       0
     );
     if (!percentageChange) {
-      return { percentageChange: 0, phrasing: "" };
+      return { percentageChange: 0, timeInterval: "day" };
     }
     return {
       percentageChange,
-      phrasing: `${Math.abs(percentageChange)}% ${
-        percentageChange > 0 ? "more" : "less"
-      } logs than usual in the last day`,
+      timeInterval: "day",
     };
   },
 };

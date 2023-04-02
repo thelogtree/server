@@ -1267,8 +1267,8 @@ describe("GetFolderStats", () => {
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { percentageChange, phrasing } = res.body;
-    expect(phrasing).toBeTruthy();
+    const { percentageChange, timeInterval } = res.body;
+    expect(timeInterval).toBe("day");
     expect(percentageChange).toBeGreaterThan(0);
   });
   it("fails to get a folder's stats from a different organization", async () => {

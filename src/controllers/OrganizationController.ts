@@ -192,9 +192,8 @@ export const OrganizationController = {
         "Cannot get the folder stats of a folder in a different organization."
       );
     }
-    const { percentageChange, phrasing } = await StatsService.getRelevantStat(
-      folderId as string
-    );
-    res.send({ percentageChange, phrasing });
+    const { percentageChange, timeInterval } =
+      await StatsService.getRelevantStat(folderId as string);
+    res.send({ percentageChange, timeInterval });
   },
 };
