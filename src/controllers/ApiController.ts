@@ -9,7 +9,7 @@ export const ApiController = {
       organization,
       folderPath,
       content,
-      referenceId,
+      referenceId || undefined,
       true
     );
     res.send({});
