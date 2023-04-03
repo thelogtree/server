@@ -15,6 +15,7 @@ export const ApiController = {
     res.send({});
   },
   testZapierConnection: async (req: Request, res: Response) => {
-    res.send({});
+    const organization = req["organization"];
+    res.send({ name: organization.name });
   },
 };
