@@ -14,4 +14,7 @@ export const ApiController = {
     );
     res.send({});
   },
+  testZapierConnection: async (req: Request, res: Response) => {
+    res.send({});
+  },
 };
