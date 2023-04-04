@@ -423,6 +423,7 @@ describe("GetLogs", () => {
       folderId: folder2._id,
       organizationId: organization._id,
     });
+    await LogFactory.create(); // decoy
     const res = await TestHelper.sendRequest(
       routeUrl,
       "GET",
