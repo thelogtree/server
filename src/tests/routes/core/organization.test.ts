@@ -447,6 +447,21 @@ describe("GetLogs", () => {
     expect(Object.keys(logs[0]).length).toBe(3);
     expect(logs[0]._id.toString()).toBe(log1._id.toString());
   });
+  it("fails because no folderId was provided and we aren't looking at favorites channel either", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/logs`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Must provide either a folderId or isFavorites"
+    );
+  });
 });
 
 describe("SearchForLogs", () => {
@@ -623,6 +638,21 @@ describe("SearchForLogs", () => {
     expect(Object.keys(logs[0]).length).toBe(4);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+  it("fails because no folderId was provided and we aren't looking at favorites channel either", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/search`,
+      "POST",
+      { query: "abc" },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Must provide either a folderId or isFavorites"
+    );
   });
 });
 

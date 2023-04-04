@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 import { FolderService } from "./FolderService";
 import { UserDocument } from "logtree-types";
+import { ApiError } from "src/utils/errors";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
@@ -48,6 +49,12 @@ export const LogService = {
       favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
     }
 
+    if (!user && !folderId) {
+      throw new ApiError(
+        "Must provide either a folderId or specify that you are looking for Favorites."
+      );
+    }
+
     return Log.find(
       {
         ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
@@ -81,6 +88,13 @@ export const LogService = {
     if (user) {
       favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
     }
+
+    if (!user && !folderId) {
+      throw new ApiError(
+        "Must provide either a folderId or specify that you are looking for Favorites."
+      );
+    }
+
     return Log.find({
       ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
       createdAt: {
@@ -102,6 +116,12 @@ export const LogService = {
     let favoritedFolderIds: string[] = [];
     if (user) {
       favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
+    }
+
+    if (!user && !folderId) {
+      throw new ApiError(
+        "Must provide either a folderId or specify that you are looking for Favorites."
+      );
     }
 
     const isReferenceId = query.indexOf("id:") === 0; // must include id: in the beginning to query for a referenceId

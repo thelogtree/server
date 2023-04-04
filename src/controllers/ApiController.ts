@@ -14,6 +14,16 @@ export const ApiController = {
     );
     res.send({});
   },
+  getLogs: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const { folderPath, referenceId } = req.query;
+    const logs = await ApiService.getLogs(
+      organization,
+      folderPath as string | undefined,
+      referenceId as string | undefined
+    );
+    res.send(logs);
+  },
   testZapierConnection: async (req: Request, res: Response) => {
     const organization = req["organization"];
     res.send({ name: organization.name });

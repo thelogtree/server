@@ -7,6 +7,14 @@ import { ApiSchemas } from "../middleware/schemas/api";
 
 const router = expressRouter();
 
+router.get(
+  "/",
+  auth.requiredApiKey,
+  validateRequestAgainstSchemas({
+    querySchema: ApiSchemas.getLogs,
+  }),
+  ApiController.getLogs
+);
 router.post(
   "/",
   auth.requiredApiKey,

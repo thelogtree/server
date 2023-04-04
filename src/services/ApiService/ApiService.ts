@@ -1,8 +1,10 @@
 import { OrganizationDocument } from "logtree-types";
 import { FolderService } from "./lib/FolderService";
-import { LogService } from "./lib/LogService";
+import { LogService, SimplifiedLog } from "./lib/LogService";
 import { PricingService } from "./lib/PricingService";
 import { Folder } from "src/models/Folder";
+import { ApiError } from "src/utils/errors";
+import { Log } from "src/models/Log";
 
 export const ApiService = {
   createLog: async (
@@ -32,5 +34,41 @@ export const ApiService = {
       await PricingService.chargeForLog(organization);
     }
     return log;
+  },
+  getLogs: async (
+    organization: OrganizationDocument,
+    folderPath?: string,
+    referenceId?: string
+  ) => {
+    let folderId;
+    if (folderPath) {
+      const folder = await Folder.findOne(
+        { fullPath: folderPath, organizationId: organization._id },
+        { _id: 1 }
+      ).exec();
+      if (!folder) {
+        throw new ApiError("No folder with this folderPath was found.");
+      }
+      folderId = folder._id;
+    }
+
+    return Log.find(
+      {
+        ...(folderId && { folderId }),
+        ...(referenceId && { referenceId }),
+        organizationId: organization._id,
+      },
+      {
+        _id: 1,
+        content: 1,
+        folderId: 1,
+        referenceId: 1,
+        createdAt: 1,
+      }
+    )
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean()
+      .exec() as Promise<SimplifiedLog[]>;
   },
 };

@@ -401,3 +401,119 @@ describe("PricingService.chargeForLog", () => {
     expect(updatedOrg?.currentCharges).toBe(0.001);
   });
 });
+
+describe("GetLogs", () => {
+  it("correctly gets the recent logs for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+    });
+    const log2 = await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+    });
+    const log3 = await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "GET",
+      {},
+      {},
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectSuccess(res);
+
+    const logs = res.body;
+    expect(logs.length).toBe(3);
+    expect(logs[0]._id.toString()).toBe(log3.id);
+    expect(logs[1]._id.toString()).toBe(log2.id);
+    expect(logs[2]._id.toString()).toBe(log1.id);
+  });
+  it("correctly gets the recent logs in a specific folder for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+    });
+    const log2 = await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "GET",
+      {},
+      { folderPath: folder1.fullPath },
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectSuccess(res);
+
+    const logs = res.body;
+    expect(logs.length).toBe(2);
+    expect(logs[0]._id.toString()).toBe(log2.id);
+    expect(logs[1]._id.toString()).toBe(log1.id);
+  });
+  it("correctly gets the recent logs in a specific folder with a specific reference ID for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      folderId: folder1._id,
+      referenceId: "b",
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      folderId: folder1._id,
+      referenceId: "c",
+      organizationId: organization._id,
+    });
+    await LogFactory.create({ folderId: folder2._id, referenceId: "a" });
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "GET",
+      {},
+      { folderPath: folder1.fullPath, referenceId: "b" },
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectSuccess(res);
+
+    const logs = res.body;
+    expect(logs.length).toBe(1);
+    expect(logs[0]._id.toString()).toBe(log1.id);
+  });
+  it("fails because the folder was not found in the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "GET",
+      {},
+      { folderPath: folder1.fullPath, referenceId: "b" },
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectError(res, "No folder with this folderPath was found.");
+  });
+});
