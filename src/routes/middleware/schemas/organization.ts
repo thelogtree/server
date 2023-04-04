@@ -45,4 +45,8 @@ export const OrganizationSchemas = {
   getFolderStats: Joi.object({
     folderId: Joi.string().custom(objectId).required(),
   }),
+  updateFolder: Joi.object({
+    folderId: Joi.string().custom(objectId).required(),
+    description: Joi.string().allow("").optional(),
+  }),
 };

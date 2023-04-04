@@ -196,4 +196,14 @@ export const OrganizationController = {
       await StatsService.getRelevantStat(folderId as string);
     res.send({ percentageChange, timeInterval });
   },
+  updateFolder: async (req: Request, res: Response) => {
+    const organization: UserDocument = req["organization"];
+    const { folderId, description } = req.body;
+    const folder = await FolderService.updateFolder(
+      organization._id.toString(),
+      folderId,
+      description
+    );
+    res.send({ folder });
+  },
 };

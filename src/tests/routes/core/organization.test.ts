@@ -1288,3 +1288,44 @@ describe("GetFolderStats", () => {
     );
   });
 });
+
+describe("UpdateFolder", () => {
+  it("successfully updates a folder's description", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const description = "test description 123";
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/folder`,
+      "PUT",
+      {
+        folderId: folder._id,
+        description,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { folder: updatedFolder } = res.body;
+    expect(updatedFolder.description).toBe(description);
+  });
+  it("fails to update a folder's description because the folder could not be found", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create();
+    const description = "test description 123";
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/folder`,
+      "PUT",
+      {
+        folderId: folder._id,
+        description,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Cannot update a folder that doesn't exist.");
+  });
+});

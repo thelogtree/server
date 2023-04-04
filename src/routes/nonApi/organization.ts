@@ -70,6 +70,14 @@ router.put(
   }),
   OrganizationController.updateUserPermissions
 );
+router.put(
+  "/:id/folder",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.updateFolder,
+  }),
+  OrganizationController.updateFolder
+);
 
 router.post(
   "/:id/user",

@@ -78,6 +78,7 @@ export const FolderService = {
             "name",
             "fullPath",
             "children",
+            "description",
             "hasUnreadLogs",
             "isMuted",
           ])
@@ -247,5 +248,20 @@ export const FolderService = {
     );
 
     return !!folderPreferenceForThisFolder?.isMuted;
+  },
+  updateFolder: async (
+    organizationId: string,
+    folderId: string,
+    description?: string
+  ) => {
+    const folder = await Folder.exists({
+      organizationId,
+      _id: folderId,
+    }).exec();
+    if (!folder) {
+      throw new ApiError("Cannot update a folder that doesn't exist.");
+    }
+
+    return Folder.findByIdAndUpdate(folderId, { description }, { new: true });
   },
 };
