@@ -436,6 +436,7 @@ describe("GetLogs", () => {
     const logs = res.body;
     expect(logs.length).toBe(3);
     expect(logs[0]._id.toString()).toBe(log3.id);
+    expect(logs[0].id).toBe(log3.id);
     expect(logs[1]._id.toString()).toBe(log2.id);
     expect(logs[2]._id.toString()).toBe(log1.id);
   });

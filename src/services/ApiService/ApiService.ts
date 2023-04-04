@@ -52,7 +52,7 @@ export const ApiService = {
       folderId = folder._id;
     }
 
-    return Log.find(
+    const logs = (await Log.find(
       {
         ...(folderId && { folderId }),
         ...(referenceId && { referenceId }),
@@ -69,6 +69,11 @@ export const ApiService = {
       .sort({ createdAt: -1 })
       .limit(100)
       .lean()
-      .exec() as Promise<SimplifiedLog[]>;
+      .exec()) as SimplifiedLog[];
+
+    return logs.map((log) => ({
+      ...log,
+      id: log._id.toString(),
+    }));
   },
 };
