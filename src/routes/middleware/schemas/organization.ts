@@ -47,6 +47,6 @@ export const OrganizationSchemas = {
   }),
   updateFolder: Joi.object({
     folderId: Joi.string().custom(objectId).required(),
-    description: Joi.string().allow("").optional(),
+    description: Joi.string().allow("").optional().max(400),
   }),
 };
