@@ -17,6 +17,7 @@ const LogSchema = new Schema(
       required: true,
     },
     referenceId: { type: String },
+    externalLink: { type: String },
   },
   { timestamps: true }
 );

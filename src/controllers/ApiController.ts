@@ -4,12 +4,13 @@ import { ApiService } from "src/services/ApiService/ApiService";
 export const ApiController = {
   createLog: async (req: Request, res: Response) => {
     const organization = req["organization"];
-    const { content, folderPath, referenceId } = req.body;
+    const { content, folderPath, referenceId, externalLink } = req.body;
     await ApiService.createLog(
       organization,
       folderPath,
       content,
       referenceId || undefined,
+      externalLink,
       true
     );
     res.send({});

@@ -56,10 +56,11 @@ describe("CreateLog", () => {
     }).countDocuments();
     expect(allLogsInOrg).toBe(1);
   });
-  it("correctly creates a log with a referenceId", async () => {
+  it("correctly creates a log with a referenceId and externalLink", async () => {
     const logContent = "test 123";
     const folderName = "transactions";
     const referenceId = "abc";
+    const externalLink = "some_link";
     const organization = await OrganizationFactory.create();
     const res = await TestHelper.sendRequest(
       routeUrl,
@@ -68,6 +69,7 @@ describe("CreateLog", () => {
         content: logContent,
         folderPath: `/${folderName}`,
         referenceId,
+        externalLink,
       },
       {},
       ...TestHelper.extractApiKeys(organization)
@@ -93,6 +95,7 @@ describe("CreateLog", () => {
     });
     expect(logCreatedInsideFolder).toBeTruthy();
     expect(logCreatedInsideFolder?.referenceId).toBe(referenceId);
+    expect(logCreatedInsideFolder?.externalLink).toBe(externalLink);
 
     const allLogsInOrg = await Log.find({
       organizationId: organization._id,

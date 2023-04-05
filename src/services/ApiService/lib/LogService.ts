@@ -13,6 +13,7 @@ export type SimplifiedLog = {
   createdAt: Date;
   folderId?: ObjectId | string;
   referenceId?: string;
+  externalLink?: string;
 };
 
 export const LogService = {
@@ -20,7 +21,8 @@ export const LogService = {
     organizationId: string,
     folderId: string,
     content: string,
-    referenceId?: string
+    referenceId?: string,
+    externalLink?: string
   ) => {
     let editedContent = content;
     if (content.length > MAX_NUM_CHARS_ALLOWED_IN_LOG) {
@@ -33,6 +35,7 @@ export const LogService = {
       organizationId,
       folderId,
       referenceId,
+      externalLink,
     });
   },
   getLogs: async (
@@ -68,6 +71,7 @@ export const LogService = {
         _id: 1,
         ...(user ? { folderId: 1 } : {}),
         referenceId: 1,
+        externalLink: 1,
         createdAt: 1,
       }
     )
@@ -134,7 +138,14 @@ export const LogService = {
           : { content: { $regex: `.*${query}.*`, $options: "i" } }),
         createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
-      { content: 1, _id: 1, referenceId: 1, createdAt: 1, folderId: 1 }
+      {
+        content: 1,
+        _id: 1,
+        referenceId: 1,
+        createdAt: 1,
+        folderId: 1,
+        externalLink: 1,
+      }
     )
       .sort({ createdAt: -1 })
       .limit(300)
