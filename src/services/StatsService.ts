@@ -79,12 +79,18 @@ export const StatsService = {
   getRelevantStat: async (folderId: string): Promise<RelevantStat> => {
     const now = new Date();
     const fullDayAgo = moment(now).subtract(1, "day").toDate();
+    const twoDaysAgo = moment(now).subtract(2, "days").toDate();
     const numLogsInFolderInLast24Hours = await LogService.getNumLogsInFolder(
       now,
       fullDayAgo,
       folderId
     );
-    if (numLogsInFolderInLast24Hours > 50) {
+    const numLogsInFolderInLast24To48Hours =
+      await LogService.getNumLogsInFolder(fullDayAgo, twoDaysAgo, folderId);
+    const difference =
+      numLogsInFolderInLast24To48Hours - numLogsInFolderInLast24Hours;
+
+    if (difference > 100 && numLogsInFolderInLast24To48Hours < 50) {
       // good amount of logs recently so make the comparison in hours instead of days
       const percentageChange =
         await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
