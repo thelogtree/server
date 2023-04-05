@@ -90,31 +90,46 @@ export const StatsService = {
     const difference =
       numLogsInFolderInLast24To48Hours - numLogsInFolderInLast24Hours;
 
-    if (difference > 100 && numLogsInFolderInLast24To48Hours < 50) {
-      // good amount of logs recently so make the comparison in hours instead of days
-      const percentageChange =
-        await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
-          folderId,
-          timeInterval.Hour,
-          48
-        );
-      if (!percentageChange) {
-        return { percentageChange: 0, timeInterval: "hour" };
-      }
-      return {
-        percentageChange,
-        timeInterval: "hour",
-      };
+    // don't show hourly changes for now //
+
+    // if (difference > 100 && numLogsInFolderInLast24To48Hours < 50) {
+    //   // good amount of logs recently so make the comparison in hours instead of days
+    //   const percentageChange =
+    //     await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
+    //       folderId,
+    //       timeInterval.Hour,
+    //       48
+    //     );
+    //   if (!percentageChange) {
+    //     return { percentageChange: 0, timeInterval: "hour" };
+    //   }
+    //   return {
+    //     percentageChange,
+    //     timeInterval: "hour",
+    //   };
+    // }
+
+    let hasOldEnoughData = false;
+    const oldestLogArr = await Log.find({ folderId })
+      .sort({ createdAt: 1 })
+      .limit(1);
+    if (
+      oldestLogArr.length &&
+      moment().diff(oldestLogArr[0].createdAt, "days") >= 2
+    ) {
+      hasOldEnoughData = true;
     }
 
-    const percentageChange = _.round(
-      await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
-        folderId,
-        timeInterval.Day,
-        30
-      ),
-      0
-    );
+    const percentageChange = hasOldEnoughData
+      ? _.round(
+          await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
+            folderId,
+            timeInterval.Day,
+            30
+          ),
+          0
+        )
+      : 0;
     if (!percentageChange) {
       return { percentageChange: 0, timeInterval: "day" };
     }
