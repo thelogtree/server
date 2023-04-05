@@ -118,12 +118,6 @@ export const LogService = {
       favoritedFolderIds = await FolderService.getFavoritedFolderIds(user);
     }
 
-    if (!user && !folderId) {
-      throw new ApiError(
-        "Must provide either a folderId or specify that you are looking for Favorites."
-      );
-    }
-
     const isReferenceId = query.indexOf("id:") === 0; // must include id: in the beginning to query for a referenceId
     let referenceId;
     if (isReferenceId) {
@@ -133,13 +127,14 @@ export const LogService = {
     return Log.find(
       {
         organizationId,
-        ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
+        ...(user && { folderId: { $in: favoritedFolderIds } }),
+        ...(folderId && { folderId }),
         ...(isReferenceId
           ? { referenceId }
           : { content: { $regex: `.*${query}.*`, $options: "i" } }),
         createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
-      { content: 1, _id: 1, referenceId: 1, createdAt: 1 }
+      { content: 1, _id: 1, referenceId: 1, createdAt: 1, folderId: 1 }
     )
       .sort({ createdAt: -1 })
       .limit(300)

@@ -500,7 +500,7 @@ describe("SearchForLogs", () => {
     TestHelper.expectSuccess(res);
     const { logs } = res.body;
     expect(logs.length).toBe(2);
-    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(Object.keys(logs[0]).length).toBe(4);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });
@@ -542,7 +542,91 @@ describe("SearchForLogs", () => {
     TestHelper.expectSuccess(res);
     const { logs } = res.body;
     expect(logs.length).toBe(2);
-    expect(Object.keys(logs[0]).length).toBe(4);
+    expect(Object.keys(logs[0]).length).toBe(5);
+    expect(logs[0]._id.toString()).toBe(log2._id.toString());
+    expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+  it("correctly searches for logs with specific referenceId and no other filters", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "test",
+      referenceId: "aa",
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      content: "hello blahtestm yo.",
+      referenceId: "aa",
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "hello blahtestm yo.",
+      referenceId: "ab",
+    });
+    await LogFactory.create({
+      content: "test hi",
+      referenceId: "aa",
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/search`,
+      "POST",
+      { query: "id:aa" },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(2);
+    expect(Object.keys(logs[0]).length).toBe(5);
+    expect(logs[0]._id.toString()).toBe(log2._id.toString());
+    expect(logs[1]._id.toString()).toBe(log1._id.toString());
+  });
+  it("correctly searches for logs with specific query and no other filters", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "test",
+      referenceId: "a",
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      content: "hello blahtestm yo.",
+      referenceId: "a",
+    });
+    await LogFactory.create({
+      organizationId: organization._id,
+      folderId: folder._id,
+      content: "hello blahtesmt yo.",
+      referenceId: "b",
+    });
+    await LogFactory.create({
+      content: "test hi",
+      referenceId: "a",
+    });
+    await LogFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization._id.toString()}/search`,
+      "POST",
+      { query: "test" },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { logs } = res.body;
+    expect(logs.length).toBe(2);
+    expect(Object.keys(logs[0]).length).toBe(5);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });
@@ -587,7 +671,7 @@ describe("SearchForLogs", () => {
     TestHelper.expectSuccess(res);
     const { logs } = res.body;
     expect(logs.length).toBe(2);
-    expect(Object.keys(logs[0]).length).toBe(3);
+    expect(Object.keys(logs[0]).length).toBe(4);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
   });
@@ -635,24 +719,9 @@ describe("SearchForLogs", () => {
     TestHelper.expectSuccess(res);
     const { logs } = res.body;
     expect(logs.length).toBe(2);
-    expect(Object.keys(logs[0]).length).toBe(4);
+    expect(Object.keys(logs[0]).length).toBe(5);
     expect(logs[0]._id.toString()).toBe(log2._id.toString());
     expect(logs[1]._id.toString()).toBe(log1._id.toString());
-  });
-  it("fails because no folderId was provided and we aren't looking at favorites channel either", async () => {
-    const organization = await OrganizationFactory.create();
-    const user = await UserFactory.create({ organizationId: organization._id });
-    const res = await TestHelper.sendRequest(
-      routeUrl + `/${organization._id.toString()}/search`,
-      "POST",
-      { query: "abc" },
-      {},
-      user.firebaseId
-    );
-    TestHelper.expectError(
-      res,
-      "Must provide either a folderId or isFavorites"
-    );
   });
 });
 

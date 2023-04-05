@@ -76,9 +76,6 @@ export const OrganizationController = {
     const organization = req["organization"];
     const user = req["user"];
     const { folderId, isFavorites, query } = req.body;
-    if (!folderId && !queryBool(isFavorites as string)) {
-      throw new ApiError("Must provide either a folderId or isFavorites");
-    }
     const logs = await LogService.searchForLogs(
       organization._id,
       query as string,

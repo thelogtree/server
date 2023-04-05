@@ -10,6 +10,9 @@ export const Logger = {
     referenceId?: string
   ) => {
     try {
+      if (config.environment.isTest) {
+        return;
+      }
       await axios.post(
         BASE_URL + "/logs",
         {
