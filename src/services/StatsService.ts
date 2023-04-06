@@ -17,12 +17,23 @@ type RelevantStat = {
 };
 
 export const StatsService = {
+  timeIntervalToMoment: (interval: timeInterval) => {
+    switch (interval) {
+      case timeInterval.Day:
+        return "days";
+      case timeInterval.Hour:
+        return "hours";
+      case timeInterval.Week:
+        return "weeks";
+      default:
+        return "days";
+    }
+  },
   getLogFrequenciesByInterval: async (
     folderId: string,
     interval: timeInterval,
     stepsBack: number
   ) => {
-    const stepsBackArr = Array(stepsBack).fill(null);
     const startingCeilingDate = new Date(); // we use this so there aren't time inconsistencies and race conditions with new logs coming in
     const oldestLogArr = await Log.find({ folderId })
       .sort({ createdAt: 1 })
@@ -31,6 +42,12 @@ export const StatsService = {
       return [];
     }
     const oldestLogDate = oldestLogArr[0].createdAt;
+
+    stepsBack = moment().diff(
+      oldestLogDate,
+      StatsService.timeIntervalToMoment(interval)
+    );
+    const stepsBackArr = Array(stepsBack).fill(null);
 
     const logFrequencyArr = await Promise.all(
       stepsBackArr.map(async (_, index) => {
@@ -60,6 +77,7 @@ export const StatsService = {
       interval,
       stepsBack
     );
+
     if (logs.length <= 1) {
       return 0;
     }
@@ -77,62 +95,19 @@ export const StatsService = {
     return _.round(100.0 * (diff / averageOfOtherChunks), 2);
   },
   getRelevantStat: async (folderId: string): Promise<RelevantStat> => {
-    const now = new Date();
-    const fullDayAgo = moment(now).subtract(1, "day").toDate();
-    const twoDaysAgo = moment(now).subtract(2, "days").toDate();
-    const numLogsInFolderInLast24Hours = await LogService.getNumLogsInFolder(
-      now,
-      fullDayAgo,
-      folderId
+    const percentageChange = _.round(
+      await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
+        folderId,
+        timeInterval.Day,
+        30
+      ),
+      0
     );
-    const numLogsInFolderInLast24To48Hours =
-      await LogService.getNumLogsInFolder(fullDayAgo, twoDaysAgo, folderId);
-    const difference =
-      numLogsInFolderInLast24To48Hours - numLogsInFolderInLast24Hours;
 
-    // don't show hourly changes for now //
-
-    // if (difference > 100 && numLogsInFolderInLast24To48Hours < 50) {
-    //   // good amount of logs recently so make the comparison in hours instead of days
-    //   const percentageChange =
-    //     await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
-    //       folderId,
-    //       timeInterval.Hour,
-    //       48
-    //     );
-    //   if (!percentageChange) {
-    //     return { percentageChange: 0, timeInterval: "hour" };
-    //   }
-    //   return {
-    //     percentageChange,
-    //     timeInterval: "hour",
-    //   };
-    // }
-
-    let hasOldEnoughData = false;
-    const oldestLogArr = await Log.find({ folderId })
-      .sort({ createdAt: 1 })
-      .limit(1);
-    if (
-      oldestLogArr.length &&
-      moment().diff(oldestLogArr[0].createdAt, "days") >= 2
-    ) {
-      hasOldEnoughData = true;
-    }
-
-    const percentageChange = hasOldEnoughData
-      ? _.round(
-          await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
-            folderId,
-            timeInterval.Day,
-            Math.min(30, moment().diff(oldestLogArr[0].createdAt, "days")) // helps with accurate calculations
-          ),
-          0
-        )
-      : 0;
     if (!percentageChange) {
       return { percentageChange: 0, timeInterval: "day" };
     }
+
     return {
       percentageChange,
       timeInterval: "day",
