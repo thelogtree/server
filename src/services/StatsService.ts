@@ -125,7 +125,7 @@ export const StatsService = {
           await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
             folderId,
             timeInterval.Day,
-            30
+            Math.min(30, moment().diff(oldestLogArr[0].createdAt, "days")) // helps with accurate calculations
           ),
           0
         )
