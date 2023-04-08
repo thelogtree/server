@@ -3,6 +3,8 @@ import { ObjectId } from "mongodb";
 import { LogService } from "./ApiService/lib/LogService";
 import _ from "lodash";
 import { Log } from "src/models/Log";
+import { Folder } from "src/models/Folder";
+import { FolderDocument } from "logtree-types";
 
 // we represent these in total minutes
 export enum timeInterval {
@@ -14,6 +16,11 @@ export enum timeInterval {
 type RelevantStat = {
   percentageChange: number;
   timeInterval: "hour" | "day";
+};
+
+type Insight = {
+  folder: FolderDocument;
+  stat: RelevantStat;
 };
 
 export const StatsService = {
@@ -43,9 +50,9 @@ export const StatsService = {
     }
     const oldestLogDate = oldestLogArr[0].createdAt;
 
-    stepsBack = moment().diff(
-      oldestLogDate,
-      StatsService.timeIntervalToMoment(interval)
+    stepsBack = Math.min(
+      moment().diff(oldestLogDate, StatsService.timeIntervalToMoment(interval)),
+      stepsBack
     );
     const stepsBackArr = Array(stepsBack).fill(null);
 
@@ -112,5 +119,31 @@ export const StatsService = {
       percentageChange,
       timeInterval: "day",
     };
+  },
+  getInsights: async (organizationId: string): Promise<Insight[]> => {
+    const allFolders = await Folder.find({
+      organizationId,
+      dateOfMostRecentLog: { $exists: true },
+    })
+      .lean()
+      .exec();
+
+    const insights: Insight[] = await Promise.all(
+      allFolders.map(async (folder) => {
+        const stat = await StatsService.getRelevantStat(folder._id.toString());
+        return {
+          folder,
+          stat,
+        };
+      })
+    );
+
+    return insights
+      .filter((insight) => insight.stat.percentageChange)
+      .sort((a, b) =>
+        Math.abs(a.stat.percentageChange) >= Math.abs(b.stat.percentageChange)
+          ? 1
+          : 0
+      );
   },
 };

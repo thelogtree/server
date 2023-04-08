@@ -57,6 +57,11 @@ router.get(
   OrganizationController.getFolderStats
 );
 router.get(
+  "/:id/insights",
+  auth.requiredOrgMember,
+  OrganizationController.getInsights
+);
+router.get(
   "/:id/favorite-folders",
   auth.requiredOrgMember,
   OrganizationController.getFavoriteFolderPaths

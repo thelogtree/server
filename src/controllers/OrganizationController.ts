@@ -203,4 +203,11 @@ export const OrganizationController = {
     );
     res.send({ folder });
   },
+  getInsights: async (req: Request, res: Response) => {
+    const organization: UserDocument = req["organization"];
+    const insights = await StatsService.getInsights(
+      organization._id.toString()
+    );
+    res.send({ insights });
+  },
 };

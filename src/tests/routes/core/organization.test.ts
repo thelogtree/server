@@ -1358,6 +1358,10 @@ describe("GetFolderStats", () => {
       folderId: folder._id,
       createdAt: moment().subtract(2, "days"),
     });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(3, "days"),
+    });
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization.id}/folder-stats`,
       "GET",
@@ -1426,5 +1430,80 @@ describe("UpdateFolder", () => {
       user.firebaseId
     );
     TestHelper.expectError(res, "Cannot update a folder that doesn't exist.");
+  });
+});
+
+describe("GetInsights", () => {
+  it("correctly gets an organization's insights", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+      dateOfMostRecentLog: new Date(),
+    });
+    await LogFactory.create({
+      folderId: folder1._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder1._id,
+      createdAt: moment().subtract(2, "days"),
+    });
+    await LogFactory.create({
+      folderId: folder1._id,
+      createdAt: moment().subtract(3, "days"),
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+      dateOfMostRecentLog: new Date(),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      createdAt: moment().subtract(2, "days"),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      createdAt: moment().subtract(3, "days"),
+    });
+    const folder3 = await FolderFactory.create({
+      organizationId: organization._id,
+      dateOfMostRecentLog: new Date(),
+    });
+    await LogFactory.create({
+      folderId: folder3._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await FolderFactory.create({
+      organizationId: organization._id,
+      dateOfMostRecentLog: new Date(),
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/insights`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { insights } = res.body;
+    expect(insights.length).toBe(2);
+    expect(insights[0].folder._id.toString()).toBe(folder2.id);
+    expect(insights[1].folder._id.toString()).toBe(folder1.id);
   });
 });
