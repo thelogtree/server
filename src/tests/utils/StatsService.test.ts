@@ -2,6 +2,8 @@ import moment from "moment";
 import { FolderFactory } from "../factories/FolderFactory";
 import { LogFactory } from "../factories/LogFactory";
 import { StatsService, timeInterval } from "src/services/StatsService";
+import { LastCheckedFolderFactory } from "../factories/LastCheckedFolderFactory";
+import { UserFactory } from "../factories/UserFactory";
 
 describe("GetLogFrequenciesByInterval", () => {
   it("correctly gets the log frequencies by an interval of an hour", async () => {
@@ -147,5 +149,61 @@ describe("GetPercentChangeInFrequencyOfMostRecentLogs", () => {
         3
       );
     expect(change).toBe(-14.29);
+  });
+});
+
+describe("GetMostCheckedFolderPathsForUser", () => {
+  it("correctly gets the most checked folder paths for user", async () => {
+    const user = await UserFactory.create();
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: "/f1",
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: "/f1",
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: "/f2",
+    });
+    await LastCheckedFolderFactory.create({
+      fullPath: "/f2",
+    });
+    await LastCheckedFolderFactory.create({
+      fullPath: "/f2",
+    });
+    await LastCheckedFolderFactory.create({
+      fullPath: "/f2",
+    });
+    await LastCheckedFolderFactory.create({
+      fullPath: "/f2",
+    });
+    await LastCheckedFolderFactory.create({
+      fullPath: "/f2",
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: "/f3",
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: "/f3",
+    });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: "/f3",
+    });
+
+    const mostCheckedFolderPaths =
+      await StatsService.getMostCheckedFolderPathsForUser(
+        user._id.toString(),
+        ["/f1", "/f2", "/f3"],
+        2
+      );
+
+    expect(mostCheckedFolderPaths.length).toBe(2);
+    expect(mostCheckedFolderPaths[0]).toBe("/f3");
+    expect(mostCheckedFolderPaths[1]).toBe("/f1");
   });
 });

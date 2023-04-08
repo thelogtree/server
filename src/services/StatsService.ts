@@ -5,6 +5,7 @@ import _ from "lodash";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import { FolderDocument } from "logtree-types";
+import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 
 // we represent these in total minutes
 export enum timeInterval {
@@ -120,7 +121,13 @@ export const StatsService = {
       timeInterval: "day",
     };
   },
-  getInsights: async (organizationId: string): Promise<Insight[]> => {
+  getInsights: async (
+    organizationId: string,
+    userId: string
+  ): Promise<{
+    insightsOfMostCheckedFolders: Insight[];
+    insightsOfNotMostCheckedFolders: Insight[];
+  }> => {
     const allFolders = await Folder.find({
       organizationId,
       dateOfMostRecentLog: { $exists: true },
@@ -138,12 +145,60 @@ export const StatsService = {
       })
     );
 
-    return insights
-      .filter((insight) => insight.stat.percentageChange)
+    const filteredInsights = insights.filter(
+      (insight) => insight.stat.percentageChange
+    );
+
+    let fullPathFolders = filteredInsights.map(
+      (insight) => insight.folder.fullPath
+    );
+    const mostCheckedFolderPaths =
+      await StatsService.getMostCheckedFolderPathsForUser(
+        userId,
+        fullPathFolders,
+        5
+      );
+
+    const insightsOfMostCheckedFolders = filteredInsights.filter((insight) =>
+      mostCheckedFolderPaths.includes(insight.folder.fullPath)
+    );
+    const insightsOfNotMostCheckedFolders = filteredInsights
+      .filter(
+        (insight) => !mostCheckedFolderPaths.includes(insight.folder.fullPath)
+      )
       .sort((a, b) =>
         Math.abs(a.stat.percentageChange) <= Math.abs(b.stat.percentageChange)
           ? 1
           : -1
       );
+
+    return { insightsOfMostCheckedFolders, insightsOfNotMostCheckedFolders };
+  },
+  getMostCheckedFolderPathsForUser: async (
+    userId: string,
+    fullPaths: string[],
+    topX: number
+  ): Promise<string[]> => {
+    const checkedFolders = await LastCheckedFolder.find(
+      {
+        userId,
+        fullPath: { $in: fullPaths },
+      },
+      { fullPath: 1, _id: 0 }
+    )
+      .lean()
+      .exec();
+    const groupedCheckedFolders = _.groupBy(checkedFolders, "fullPath");
+
+    let results: { count: number; fullPath: string }[] = [];
+    Object.keys(groupedCheckedFolders).forEach((fullPath) => {
+      const count = groupedCheckedFolders[fullPath].length;
+      results.push({ fullPath, count });
+    });
+
+    const sortedTopX = results
+      .sort((a, b) => (a.count <= b.count ? 1 : -1))
+      .slice(0, topX);
+    return sortedTopX.map((val) => val.fullPath);
   },
 };

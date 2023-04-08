@@ -194,7 +194,7 @@ export const OrganizationController = {
     res.send({ percentageChange, timeInterval });
   },
   updateFolder: async (req: Request, res: Response) => {
-    const organization: UserDocument = req["organization"];
+    const organization: OrganizationDocument = req["organization"];
     const { folderId, description } = req.body;
     const folder = await FolderService.updateFolder(
       organization._id.toString(),
@@ -204,10 +204,13 @@ export const OrganizationController = {
     res.send({ folder });
   },
   getInsights: async (req: Request, res: Response) => {
-    const organization: UserDocument = req["organization"];
-    const insights = await StatsService.getInsights(
-      organization._id.toString()
-    );
-    res.send({ insights });
+    const organization: OrganizationDocument = req["organization"];
+    const user: UserDocument = req["user"];
+    const { insightsOfMostCheckedFolders, insightsOfNotMostCheckedFolders } =
+      await StatsService.getInsights(
+        organization._id.toString(),
+        user._id.toString()
+      );
+    res.send({ insightsOfMostCheckedFolders, insightsOfNotMostCheckedFolders });
   },
 };

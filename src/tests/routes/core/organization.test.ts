@@ -1493,6 +1493,10 @@ describe("GetInsights", () => {
       organizationId: organization._id,
       dateOfMostRecentLog: new Date(),
     });
+    await LastCheckedFolderFactory.create({
+      userId: user._id,
+      fullPath: folder1.fullPath,
+    });
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization.id}/insights`,
       "GET",
@@ -1501,9 +1505,15 @@ describe("GetInsights", () => {
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { insights } = res.body;
-    expect(insights.length).toBe(2);
-    expect(insights[0].folder._id.toString()).toBe(folder2.id);
-    expect(insights[1].folder._id.toString()).toBe(folder1.id);
+    const { insightsOfNotMostCheckedFolders, insightsOfMostCheckedFolders } =
+      res.body;
+    expect(insightsOfNotMostCheckedFolders.length).toBe(1);
+    expect(insightsOfNotMostCheckedFolders[0].folder._id.toString()).toBe(
+      folder2.id
+    );
+    expect(insightsOfMostCheckedFolders.length).toBe(1);
+    expect(insightsOfMostCheckedFolders[0].folder._id.toString()).toBe(
+      folder1.id
+    );
   });
 });
