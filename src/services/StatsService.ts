@@ -141,9 +141,9 @@ export const StatsService = {
     return insights
       .filter((insight) => insight.stat.percentageChange)
       .sort((a, b) =>
-        Math.abs(a.stat.percentageChange) >= Math.abs(b.stat.percentageChange)
+        Math.abs(a.stat.percentageChange) <= Math.abs(b.stat.percentageChange)
           ? 1
-          : 0
+          : -1
       );
   },
 };
