@@ -156,7 +156,8 @@ export const StatsService = {
       await StatsService.getMostCheckedFolderPathsForUser(
         userId,
         fullPathFolders,
-        5
+        5,
+        moment().subtract(2, "months").toDate()
       );
 
     const insightsOfMostCheckedFolders = filteredInsights.filter((insight) =>
@@ -177,12 +178,14 @@ export const StatsService = {
   getMostCheckedFolderPathsForUser: async (
     userId: string,
     fullPaths: string[],
-    topX: number
+    topX: number,
+    floorDate?: Date
   ): Promise<string[]> => {
     const checkedFolders = await LastCheckedFolder.find(
       {
         userId,
         fullPath: { $in: fullPaths },
+        ...(floorDate && { createdAt: { $gte: floorDate } }),
       },
       { fullPath: 1, _id: 0 }
     )
