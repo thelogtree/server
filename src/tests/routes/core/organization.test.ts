@@ -1370,9 +1370,10 @@ describe("GetFolderStats", () => {
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { percentageChange, timeInterval } = res.body;
+    const { percentageChange, timeInterval, logFrequencies } = res.body;
     expect(timeInterval).toBe("day");
     expect(percentageChange).toBeGreaterThan(0);
+    expect(logFrequencies.length).toBe(3);
   });
   it("fails to get a folder's stats from a different organization", async () => {
     const organization = await OrganizationFactory.create();

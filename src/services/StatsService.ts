@@ -8,7 +8,7 @@ import { FolderDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 
 // we represent these in total minutes
-export enum timeInterval {
+export enum timeIntervalEnum {
   Hour = 60,
   Day = 1440,
   Week = 10080,
@@ -25,13 +25,13 @@ type Insight = {
 };
 
 export const StatsService = {
-  timeIntervalToMoment: (interval: timeInterval) => {
+  timeIntervalToMoment: (interval: timeIntervalEnum) => {
     switch (interval) {
-      case timeInterval.Day:
+      case timeIntervalEnum.Day:
         return "days";
-      case timeInterval.Hour:
+      case timeIntervalEnum.Hour:
         return "hours";
-      case timeInterval.Week:
+      case timeIntervalEnum.Week:
         return "weeks";
       default:
         return "days";
@@ -39,7 +39,7 @@ export const StatsService = {
   },
   getLogFrequenciesByInterval: async (
     folderId: string,
-    interval: timeInterval,
+    interval: timeIntervalEnum,
     stepsBack: number
   ) => {
     const startingCeilingDate = new Date(); // we use this so there aren't time inconsistencies and race conditions with new logs coming in
@@ -77,7 +77,7 @@ export const StatsService = {
   },
   getPercentChangeInFrequencyOfMostRecentLogs: async (
     folderId: string,
-    interval: timeInterval,
+    interval: timeIntervalEnum,
     stepsBack: number
   ) => {
     const logs = await StatsService.getLogFrequenciesByInterval(
@@ -106,7 +106,7 @@ export const StatsService = {
     const percentageChange = _.round(
       await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
         folderId,
-        timeInterval.Day,
+        timeIntervalEnum.Day,
         30
       ),
       0

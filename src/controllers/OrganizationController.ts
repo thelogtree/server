@@ -5,7 +5,7 @@ import { Folder } from "src/models/Folder";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
-import { StatsService, timeInterval } from "src/services/StatsService";
+import { StatsService, timeIntervalEnum } from "src/services/StatsService";
 import { ApiError, AuthError } from "src/utils/errors";
 import { queryBool } from "src/utils/helpers";
 import { Logger } from "src/utils/logger";
@@ -189,9 +189,16 @@ export const OrganizationController = {
         "Cannot get the folder stats of a folder in a different organization."
       );
     }
-    const { percentageChange, timeInterval } =
-      await StatsService.getRelevantStat(folderId as string);
-    res.send({ percentageChange, timeInterval });
+    const [relevantStatObj, logFrequencies] = await Promise.all([
+      StatsService.getRelevantStat(folderId as string),
+      StatsService.getLogFrequenciesByInterval(
+        folderId as string,
+        timeIntervalEnum.Day,
+        7
+      ),
+    ]);
+    const { percentageChange, timeInterval } = relevantStatObj;
+    res.send({ percentageChange, timeInterval, logFrequencies });
   },
   updateFolder: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];

@@ -1,7 +1,7 @@
 import moment from "moment";
 import { FolderFactory } from "../factories/FolderFactory";
 import { LogFactory } from "../factories/LogFactory";
-import { StatsService, timeInterval } from "src/services/StatsService";
+import { StatsService, timeIntervalEnum } from "src/services/StatsService";
 import { LastCheckedFolderFactory } from "../factories/LastCheckedFolderFactory";
 import { UserFactory } from "../factories/UserFactory";
 
@@ -37,7 +37,7 @@ describe("GetLogFrequenciesByInterval", () => {
     });
     const frequencyArr = await StatsService.getLogFrequenciesByInterval(
       folder._id.toString(),
-      timeInterval.Hour,
+      timeIntervalEnum.Hour,
       3
     );
     expect(frequencyArr.length).toBe(3);
@@ -88,7 +88,7 @@ describe("GetPercentChangeInFrequencyOfMostRecentLogs", () => {
     const change =
       await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
         folder._id.toString(),
-        timeInterval.Hour,
+        timeIntervalEnum.Hour,
         3
       );
     expect(change).toBe(50);
@@ -145,7 +145,7 @@ describe("GetPercentChangeInFrequencyOfMostRecentLogs", () => {
     const change =
       await StatsService.getPercentChangeInFrequencyOfMostRecentLogs(
         folder._id.toString(),
-        timeInterval.Hour,
+        timeIntervalEnum.Hour,
         3
       );
     expect(change).toBe(-14.29);
