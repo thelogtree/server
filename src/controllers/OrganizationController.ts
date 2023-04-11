@@ -198,7 +198,11 @@ export const OrganizationController = {
       ),
     ]);
     const { percentageChange, timeInterval } = relevantStatObj;
-    res.send({ percentageChange, timeInterval, logFrequencies });
+    res.send({
+      percentageChange,
+      timeInterval,
+      logFrequencies: logFrequencies.length >= 2 ? logFrequencies : [],
+    });
   },
   updateFolder: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
