@@ -1352,7 +1352,7 @@ describe("GetFolderStats", () => {
     });
     await LogFactory.create({
       folderId: folder._id,
-      createdAt: moment().subtract(2, "minutes"),
+      createdAt: moment().startOf("day").add(2, "minutes"),
     });
     await LogFactory.create({
       folderId: folder._id,
@@ -1366,14 +1366,16 @@ describe("GetFolderStats", () => {
       routeUrl + `/${organization.id}/folder-stats`,
       "GET",
       {},
-      { folderId: folder.id },
+      { folderId: folder.id, timezone: moment.tz.guess() },
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
-    const { percentageChange, timeInterval, logFrequencies } = res.body;
+    const { percentageChange, timeInterval, logFrequencies, numLogsToday } =
+      res.body;
     expect(timeInterval).toBe("day");
     expect(percentageChange).toBeGreaterThan(0);
     expect(logFrequencies.length).toBe(3);
+    expect(numLogsToday).toBe(1);
   });
   it("fails to get a folder's stats from a different organization", async () => {
     const organization = await OrganizationFactory.create();
@@ -1383,7 +1385,7 @@ describe("GetFolderStats", () => {
       routeUrl + `/${organization.id}/folder-stats`,
       "GET",
       {},
-      { folderId: folder.id },
+      { folderId: folder.id, timezone: moment.tz.guess() },
       user.firebaseId
     );
     TestHelper.expectError(

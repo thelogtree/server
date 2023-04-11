@@ -204,4 +204,13 @@ export const StatsService = {
       .slice(0, topX);
     return sortedTopX.map((val) => val.fullPath);
   },
+  getNumLogsInTimePeriod: (
+    folderId: string,
+    floorDate: Date,
+    ceilingDate: Date
+  ) =>
+    Log.countDocuments({
+      folderId,
+      createdAt: { $gte: floorDate, $lt: ceilingDate },
+    }),
 };

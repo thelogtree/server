@@ -9,6 +9,7 @@ import { StatsService, timeIntervalEnum } from "src/services/StatsService";
 import { ApiError, AuthError } from "src/utils/errors";
 import { queryBool } from "src/utils/helpers";
 import { Logger } from "src/utils/logger";
+import moment from "moment-timezone";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -180,7 +181,7 @@ export const OrganizationController = {
   },
   getFolderStats: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
-    const { folderId } = req.query;
+    const { folderId, timezone } = req.query;
     const folder = await Folder.findById(folderId as string)
       .lean()
       .exec();
@@ -189,12 +190,23 @@ export const OrganizationController = {
         "Cannot get the folder stats of a folder in a different organization."
       );
     }
-    const [relevantStatObj, logFrequencies] = await Promise.all([
+    const [relevantStatObj, logFrequencies, numLogsToday] = await Promise.all([
       StatsService.getRelevantStat(folderId as string),
       StatsService.getLogFrequenciesByInterval(
         folderId as string,
         timeIntervalEnum.Day,
         7
+      ),
+      StatsService.getNumLogsInTimePeriod(
+        folderId as string,
+        moment
+          .tz(timezone as string)
+          .startOf("day")
+          .toDate(),
+        moment
+          .tz(timezone as string)
+          .endOf("day")
+          .toDate()
       ),
     ]);
     const { percentageChange, timeInterval } = relevantStatObj;
@@ -202,6 +214,7 @@ export const OrganizationController = {
       percentageChange,
       timeInterval,
       logFrequencies: logFrequencies.length >= 2 ? logFrequencies : [],
+      numLogsToday,
     });
   },
   updateFolder: async (req: Request, res: Response) => {

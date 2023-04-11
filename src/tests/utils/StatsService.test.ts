@@ -207,3 +207,42 @@ describe("GetMostCheckedFolderPathsForUser", () => {
     expect(mostCheckedFolderPaths[1]).toBe("/f1");
   });
 });
+
+describe("GetNumLogsInTimePeriod", () => {
+  it("correctly gets the number of logs in a specified time period", async () => {
+    const user = await UserFactory.create();
+    const folder = await FolderFactory.create();
+    await LogFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      createdAt: moment().startOf("day").add(3, "minutes").toDate(),
+    });
+    await LogFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      createdAt: moment().startOf("day").add(3, "hours").toDate(),
+    });
+    await LogFactory.create({
+      userId: user._id,
+      createdAt: moment().startOf("day").add(3, "minutes").toDate(),
+    });
+    await LogFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      createdAt: moment().startOf("day").subtract(3, "minutes").toDate(),
+    });
+    await LogFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      createdAt: moment().endOf("day").add(2, "minutes").toDate(),
+    });
+
+    const numLogs = await StatsService.getNumLogsInTimePeriod(
+      folder.id,
+      moment().startOf("day").toDate(),
+      moment().endOf("day").toDate()
+    );
+
+    expect(numLogs).toBe(2);
+  });
+});
