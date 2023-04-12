@@ -229,10 +229,12 @@ export const OrganizationController = {
   getInsights: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const user: UserDocument = req["user"];
+    const { timezone } = req.query;
     const { insightsOfMostCheckedFolders, insightsOfNotMostCheckedFolders } =
       await StatsService.getInsights(
         organization._id.toString(),
-        user._id.toString()
+        user._id.toString(),
+        timezone as string
       );
     res.send({ insightsOfMostCheckedFolders, insightsOfNotMostCheckedFolders });
   },

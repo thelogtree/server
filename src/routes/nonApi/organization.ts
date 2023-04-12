@@ -59,6 +59,9 @@ router.get(
 router.get(
   "/:id/insights",
   auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getInsights,
+  }),
   OrganizationController.getInsights
 );
 router.get(

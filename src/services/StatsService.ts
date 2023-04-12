@@ -22,6 +22,7 @@ type RelevantStat = {
 type Insight = {
   folder: FolderDocument;
   stat: RelevantStat;
+  numLogsToday: number;
 };
 
 export const StatsService = {
@@ -123,7 +124,8 @@ export const StatsService = {
   },
   getInsights: async (
     organizationId: string,
-    userId: string
+    userId: string,
+    timezone: string
   ): Promise<{
     insightsOfMostCheckedFolders: Insight[];
     insightsOfNotMostCheckedFolders: Insight[];
@@ -138,9 +140,22 @@ export const StatsService = {
     const insights: Insight[] = await Promise.all(
       allFolders.map(async (folder) => {
         const stat = await StatsService.getRelevantStat(folder._id.toString());
+        const numLogsToday = await StatsService.getNumLogsInTimePeriod(
+          folder._id.toString() as string,
+          moment
+            .tz(timezone as string)
+            .startOf("day")
+            .toDate(),
+          moment
+            .tz(timezone as string)
+            .endOf("day")
+            .toDate()
+        );
+
         return {
           folder,
           stat,
+          numLogsToday,
         };
       })
     );

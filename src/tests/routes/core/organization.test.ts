@@ -1504,7 +1504,7 @@ describe("GetInsights", () => {
       routeUrl + `/${organization.id}/insights`,
       "GET",
       {},
-      {},
+      { timezone: moment.tz.guess() },
       user.firebaseId
     );
     TestHelper.expectSuccess(res);
@@ -1514,9 +1514,11 @@ describe("GetInsights", () => {
     expect(insightsOfNotMostCheckedFolders[0].folder._id.toString()).toBe(
       folder2.id
     );
+    expect(insightsOfNotMostCheckedFolders[0].numLogsToday).toBe(4);
     expect(insightsOfMostCheckedFolders.length).toBe(1);
     expect(insightsOfMostCheckedFolders[0].folder._id.toString()).toBe(
       folder1.id
     );
+    expect(insightsOfMostCheckedFolders[0].numLogsToday).toBe(1);
   });
 });

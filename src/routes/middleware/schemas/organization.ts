@@ -50,4 +50,7 @@ export const OrganizationSchemas = {
     folderId: Joi.string().custom(objectId).required(),
     description: Joi.string().allow("").optional().max(400),
   }),
+  getInsights: Joi.object({
+    timezone: Joi.string().required(),
+  }),
 };
