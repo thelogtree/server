@@ -12,6 +12,7 @@ import { Folder } from "src/models/Folder";
 import { FolderPreference } from "src/models/FolderPreference";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { Log } from "src/models/Log";
+import { User } from "src/models/User";
 import { ApiError } from "src/utils/errors";
 
 type TreeRepresentation = {
@@ -218,6 +219,22 @@ export const FolderService = {
 
     if (isFavorites || folderId) {
       await LastCheckedFolder.create({ userId, fullPath });
+
+      if (isFavorites) {
+        // if we are checking the favorites folder, label that we checked
+        // all of the channels that are favorited.
+        const favoritedFolders = await FavoriteFolder.find(
+          { userId: userId },
+          { fullPath: 1 }
+        )
+          .lean()
+          .exec();
+        await Promise.all(
+          favoritedFolders.map((folder) =>
+            LastCheckedFolder.create({ userId, fullPath: folder.fullPath })
+          )
+        );
+      }
     }
   },
   getDoesFolderHaveUnreadLogs: (
