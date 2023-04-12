@@ -218,13 +218,18 @@ export const FolderService = {
     }
 
     if (isFavorites || folderId) {
-      await LastCheckedFolder.create({ userId, fullPath });
+      if (folderId) {
+        await LastCheckedFolder.create({ userId, fullPath });
+      } else {
+        // don't await this call because speed is unimportant in this case
+        LastCheckedFolder.create({ userId, fullPath });
+      }
 
       if (isFavorites) {
         // if we are checking the favorites folder, label that we checked
         // all of the channels that are favorited.
         const favoritedFolders = await FavoriteFolder.find(
-          { userId: userId },
+          { userId },
           { fullPath: 1 }
         )
           .lean()

@@ -63,13 +63,12 @@ export const OrganizationController = {
         folderId as string | undefined,
         isFavoritesBool ? user : undefined
       ),
+      FolderService.recordUserCheckingFolder(
+        user._id,
+        folderId as string,
+        isFavoritesBool
+      ),
     ]);
-
-    void FolderService.recordUserCheckingFolder(
-      user._id,
-      folderId as string,
-      isFavoritesBool
-    );
 
     res.send({ logs, numLogsInTotal });
   },
