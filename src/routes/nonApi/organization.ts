@@ -137,5 +137,21 @@ router.post(
   }),
   OrganizationController.setFolderPreference
 );
+router.post(
+  "/:id/rule",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createRule,
+  }),
+  OrganizationController.createRule
+);
+router.post(
+  "/:id/delete-rule",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteRule,
+  }),
+  OrganizationController.deleteRule
+);
 
 export default router;
