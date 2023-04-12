@@ -36,4 +36,6 @@ export const RuleService = {
 
     await Rule.deleteOne({ _id: ruleId });
   },
+  getRulesForUser: (userId: string) =>
+    Rule.find({ userId }).sort({ createdAt: -1 }).lean().exec(),
 };

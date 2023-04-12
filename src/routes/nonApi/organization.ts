@@ -69,6 +69,11 @@ router.get(
   auth.requiredOrgMember,
   OrganizationController.getFavoriteFolderPaths
 );
+router.get(
+  "/:id/rules",
+  auth.requiredOrgMember,
+  OrganizationController.getRulesForUser
+);
 
 router.put(
   "/:id/user-permissions",

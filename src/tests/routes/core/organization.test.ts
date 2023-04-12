@@ -1641,3 +1641,37 @@ describe("DeleteRule", () => {
     TestHelper.expectError(res, "Cannot delete a rule that does not exist.");
   });
 });
+
+describe("GetRulesForUser", () => {
+  it("correctly gets the rules for a user", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const rule1 = await RuleFactory.create({
+      userId: user.id,
+      folderId: folder.id,
+    });
+    const rule2 = await RuleFactory.create({
+      userId: user.id,
+    });
+    await RuleFactory.create({
+      folderId: folder.id,
+    });
+    await RuleFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/rules`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { rules } = res.body;
+    expect(rules.length).toBe(2);
+    expect(rules[0]._id.toString()).toBe(rule2.id);
+    expect(rules[1]._id.toString()).toBe(rule1.id);
+  });
+});

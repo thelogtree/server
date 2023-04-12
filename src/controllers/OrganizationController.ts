@@ -260,4 +260,9 @@ export const OrganizationController = {
     await RuleService.deleteRule(user._id.toString(), ruleId);
     res.send({});
   },
+  getRulesForUser: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const rules = await RuleService.getRulesForUser(user._id.toString());
+    res.send({ rules });
+  },
 };
