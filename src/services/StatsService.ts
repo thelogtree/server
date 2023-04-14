@@ -40,8 +40,9 @@ export const StatsService = {
   },
   getLogFrequenciesByInterval: async (
     folderId: string,
-    interval: timeIntervalEnum,
-    stepsBack: number
+    interval: timeIntervalEnum | number,
+    stepsBack: number,
+    ignoreTimeCleaner?: boolean
   ) => {
     const startingCeilingDate = new Date(); // we use this so there aren't time inconsistencies and race conditions with new logs coming in
     const oldestLogArr = await Log.find({ folderId })
@@ -52,10 +53,16 @@ export const StatsService = {
     }
     const oldestLogDate = oldestLogArr[0].createdAt;
 
-    stepsBack = Math.min(
-      moment().diff(oldestLogDate, StatsService.timeIntervalToMoment(interval)),
-      stepsBack
-    );
+    if (!ignoreTimeCleaner) {
+      stepsBack = Math.min(
+        moment().diff(
+          oldestLogDate,
+          StatsService.timeIntervalToMoment(interval)
+        ),
+        stepsBack
+      );
+    }
+
     const stepsBackArr = Array(stepsBack).fill(null);
 
     const logFrequencyArr = await Promise.all(

@@ -17,7 +17,9 @@ const RuleSchema = new Schema(
     },
     comparisonType: { type: String, enum: comparisonTypeEnum, required: true },
     comparisonValue: { type: Number, required: true },
-    lookbackTimeInMins: { type: Number, required: true },
+    lookbackTimeInMins: { type: Number, required: true }, // the intervals to look back at and compare
+    numberOfTimesTriggered: { type: Number, default: 0 },
+    lastTriggeredAt: { type: Date },
   },
   { timestamps: true }
 );
