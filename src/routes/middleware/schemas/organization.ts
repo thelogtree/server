@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { comparisonTypeEnum } from "logtree-types";
 import { objectId } from "src/utils/joiFieldValidators";
 
 export const OrganizationSchemas = {
@@ -52,5 +53,14 @@ export const OrganizationSchemas = {
   }),
   getInsights: Joi.object({
     timezone: Joi.string().required(),
+  }),
+  createRule: Joi.object({
+    folderId: Joi.string().custom(objectId).required(),
+    comparisonType: Joi.string().required(),
+    comparisonValue: Joi.number().required().min(0),
+    lookbackTimeInMins: Joi.number().required().min(1),
+  }),
+  deleteRule: Joi.object({
+    ruleId: Joi.string().custom(objectId).required(),
   }),
 };

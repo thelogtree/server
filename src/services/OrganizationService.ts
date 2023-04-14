@@ -19,6 +19,7 @@ import { ApiService } from "./ApiService/ApiService";
 import { FolderService } from "./ApiService/lib/FolderService";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { FolderPreference } from "src/models/FolderPreference";
+import { Rule } from "src/models/Rule";
 
 export const OrganizationService = {
   createOrganization: async (
@@ -199,6 +200,7 @@ export const OrganizationService = {
       Folder.deleteMany({
         _id: { $in: foldersIdsUnderTheOneToDelete },
       }),
+      Rule.deleteMany({ folderId: { $in: foldersIdsUnderTheOneToDelete } }),
     ]);
   },
   getOrganizationMembers: (organizationId: string) =>

@@ -10,6 +10,7 @@ import { ApiError, AuthError } from "src/utils/errors";
 import { queryBool } from "src/utils/helpers";
 import { Logger } from "src/utils/logger";
 import moment from "moment-timezone";
+import { RuleService } from "src/services/RuleService";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -237,5 +238,31 @@ export const OrganizationController = {
         timezone as string
       );
     res.send({ insightsOfMostCheckedFolders, insightsOfNotMostCheckedFolders });
+  },
+  createRule: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const user: UserDocument = req["user"];
+    const { folderId, comparisonType, comparisonValue, lookbackTimeInMins } =
+      req.body;
+    const rule = await RuleService.createRule(
+      user._id.toString(),
+      organization._id.toString(),
+      folderId,
+      comparisonType,
+      comparisonValue,
+      lookbackTimeInMins
+    );
+    res.send({ rule });
+  },
+  deleteRule: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const { ruleId } = req.body;
+    await RuleService.deleteRule(user._id.toString(), ruleId);
+    res.send({});
+  },
+  getRulesForUser: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const rules = await RuleService.getRulesForUser(user._id.toString());
+    res.send({ rules });
   },
 };

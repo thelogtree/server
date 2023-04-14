@@ -13,7 +13,7 @@ import { DateTime } from "luxon";
 import moment from "moment";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
-import { orgPermissionLevel } from "logtree-types";
+import { comparisonTypeEnum, orgPermissionLevel } from "logtree-types";
 import { User } from "src/models/User";
 import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
@@ -23,6 +23,8 @@ import { FolderService } from "src/services/ApiService/lib/FolderService";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
 import { FolderPreference } from "src/models/FolderPreference";
+import { RuleFactory } from "src/tests/factories/RuleFactory";
+import { Rule } from "src/models/Rule";
 
 const routeUrl = "/organization";
 
@@ -854,6 +856,9 @@ describe("DeleteFolderAndEverythingInside", () => {
     const randomFolder2 = await FolderFactory.create({
       organizationId: organization._id,
     }); // decoy
+    const ruleToKeep = await RuleFactory.create({
+      folderId: randomFolder2._id,
+    });
     const topFolder = await FolderFactory.create({
       organizationId: organization._id,
       name: "top",
@@ -865,6 +870,9 @@ describe("DeleteFolderAndEverythingInside", () => {
       name: "middle",
       fullPath: "/top/middle",
       parentFolderId: topFolder._id,
+    });
+    const ruleToDelete = await RuleFactory.create({
+      folderId: middleFolder._id,
     });
     const bottomFolder = await FolderFactory.create({
       organizationId: organization._id,
@@ -914,6 +922,11 @@ describe("DeleteFolderAndEverythingInside", () => {
     expect(_middleFolder).toBeNull();
     const _bottomFolder = await Folder.findById(bottomFolder._id);
     expect(_bottomFolder).toBeNull();
+
+    const _ruleToKeep = await Rule.findById(ruleToKeep._id);
+    expect(_ruleToKeep).toBeTruthy();
+    const _ruleToDelete = await Rule.findById(ruleToDelete._id);
+    expect(_ruleToDelete).toBeNull();
   });
   it("fails to delete the folder because it belongs to a different organization", async () => {
     const organization = await OrganizationFactory.create();
@@ -1520,5 +1533,145 @@ describe("GetInsights", () => {
       folder1.id
     );
     expect(insightsOfMostCheckedFolders[0].numLogsToday).toBe(1);
+  });
+});
+
+describe("CreateRule", () => {
+  it("correctly creates a rule", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const comparisonType = comparisonTypeEnum.CrossesBelow;
+    const comparisonValue = 6;
+    const lookbackTimeInMins = 12;
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/rule`,
+      "POST",
+      {
+        folderId: folder.id,
+        comparisonType,
+        comparisonValue,
+        lookbackTimeInMins,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+    const { rule } = res.body;
+    expect(rule.folderId.toString()).toBe(folder.id);
+    expect(rule.comparisonType).toBe(comparisonType);
+    expect(rule.comparisonValue).toBe(comparisonValue);
+    expect(rule.lookbackTimeInMins).toBe(lookbackTimeInMins);
+  });
+  it("fails to create a rule because the folderId is for a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create();
+    const comparisonType = comparisonTypeEnum.CrossesBelow;
+    const comparisonValue = 6;
+    const lookbackTimeInMins = 12;
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/rule`,
+      "POST",
+      {
+        folderId: folder.id,
+        comparisonType,
+        comparisonValue,
+        lookbackTimeInMins,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No folder with this ID exists in this organization."
+    );
+  });
+});
+
+describe("DeleteRule", () => {
+  it("correctly deletes a rule", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const rule = await RuleFactory.create({
+      userId: user.id,
+      folderId: folder.id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/delete-rule`,
+      "POST",
+      {
+        ruleId: rule._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const deletedRule = await Rule.findById(rule._id);
+    expect(deletedRule).toBeNull();
+  });
+  it("fails to delete a rule because the rule doesn't belong to this user", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const otherUser = await UserFactory.create({
+      organizationId: organization._id,
+    });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const rule = await RuleFactory.create({
+      userId: otherUser.id,
+      folderId: folder.id,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/delete-rule`,
+      "POST",
+      {
+        ruleId: rule._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Cannot delete a rule that does not exist.");
+  });
+});
+
+describe("GetRulesForUser", () => {
+  it("correctly gets the rules for a user", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const rule1 = await RuleFactory.create({
+      userId: user.id,
+      folderId: folder.id,
+    });
+    const rule2 = await RuleFactory.create({
+      userId: user.id,
+    });
+    await RuleFactory.create({
+      folderId: folder.id,
+    });
+    await RuleFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${organization.id}/rules`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { rules } = res.body;
+    expect(rules.length).toBe(2);
+    expect(rules[0]._id.toString()).toBe(rule2.id);
+    expect(rules[1]._id.toString()).toBe(rule1.id);
   });
 });

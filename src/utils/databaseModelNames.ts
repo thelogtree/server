@@ -7,4 +7,5 @@ export enum DatabaseModelNames {
   FavoriteFolder = "FavoriteFolder",
   LastCheckedFolder = "LastCheckedFolder",
   FolderPreference = "FolderPreference",
+  Rule = "Rule",
 }

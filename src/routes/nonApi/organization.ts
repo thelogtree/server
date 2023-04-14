@@ -69,6 +69,11 @@ router.get(
   auth.requiredOrgMember,
   OrganizationController.getFavoriteFolderPaths
 );
+router.get(
+  "/:id/rules",
+  auth.requiredOrgMember,
+  OrganizationController.getRulesForUser
+);
 
 router.put(
   "/:id/user-permissions",
@@ -136,6 +141,22 @@ router.post(
     bodySchema: OrganizationSchemas.setFolderPreference,
   }),
   OrganizationController.setFolderPreference
+);
+router.post(
+  "/:id/rule",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createRule,
+  }),
+  OrganizationController.createRule
+);
+router.post(
+  "/:id/delete-rule",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteRule,
+  }),
+  OrganizationController.deleteRule
 );
 
 export default router;
