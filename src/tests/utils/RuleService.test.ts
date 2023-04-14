@@ -143,3 +143,311 @@ describe("RunAllRulesForOrganization", () => {
     expect(sendgridSpy).toBeCalledTimes(3);
   });
 });
+
+describe("IsRuleTriggered", () => {
+  it("correctly says a rule was triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesAbove,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(1, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(3, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(true);
+  });
+  it("correctly says a rule was not triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesAbove,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(1, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(3, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(false);
+  });
+  it("correctly says a rule was not triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesAbove,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(1, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(3, "minutes"),
+    });
+    await LogFactory.create({
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(false);
+  });
+  it("correctly says a rule was triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesAbove,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(1, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(1, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(8, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(11, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(12, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(15, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(true);
+  });
+  it("correctly says a rule was triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesBelow,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(6, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(8, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(true);
+  });
+  it("correctly says a rule was triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesBelow,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(8, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(true);
+  });
+  it("correctly says a rule was not triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesBelow,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(3, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(false);
+  });
+  it("correctly says a rule was not triggered", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const rule = await RuleFactory.create({
+      userId: user._id,
+      folderId: folder._id,
+      comparisonType: comparisonTypeEnum.CrossesBelow,
+      comparisonValue: 3,
+      lookbackTimeInMins: 5,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(2, "minutes"),
+    });
+    await LogFactory.create({
+      createdAt: moment().subtract(8, "minutes"),
+    });
+    await LogFactory.create({
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      createdAt: moment().subtract(7, "minutes"),
+    });
+    const isTriggered = await RuleService.isRuleTriggered(rule);
+
+    expect(isTriggered).toBe(false);
+  });
+});
