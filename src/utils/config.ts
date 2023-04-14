@@ -37,7 +37,7 @@ export const config = {
   },
   sentryDsn: process.env.SENTRY_DSN || "",
   sendgrid: {
-    fromEmail: "andy@logtree.co",
+    fromEmail: "notifications@logtree.co",
     apiKey: process.env.SENDGRID_API_KEY || "",
   },
   encryption: {
