@@ -10,7 +10,7 @@ import { LogFactory } from "src/tests/factories/LogFactory";
 import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
 import faker from "faker";
 import { DateTime } from "luxon";
-import moment from "moment";
+import moment from "moment-timezone";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import { comparisonTypeEnum, orgPermissionLevel } from "logtree-types";
