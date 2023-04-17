@@ -7,6 +7,7 @@ import _ from "lodash";
 import { Organization } from "src/models/Organization";
 import { config } from "src/utils/config";
 import { SendgridUtil } from "src/utils/sendgrid";
+import moment from "moment";
 
 export const RuleService = {
   createRule: async (
@@ -44,6 +45,15 @@ export const RuleService = {
   getRulesForUser: (userId: string) =>
     Rule.find({ userId }).sort({ createdAt: -1 }).lean().exec(),
   isRuleTriggered: async (rule: RuleDocument): Promise<boolean> => {
+    if (
+      rule.lastTriggeredAt &&
+      moment().diff(moment(rule.lastTriggeredAt), "minutes") <=
+        rule.lookbackTimeInMins
+    ) {
+      // do not trigger rule if it was just triggered because we need the data to refresh first
+      return false;
+    }
+
     const vals = await StatsService.getLogFrequenciesByInterval(
       rule.folderId.toString(),
       rule.lookbackTimeInMins,
