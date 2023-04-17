@@ -224,7 +224,7 @@ describe("GetFolders", () => {
       deeperSubfolder2._id.toString()
     );
     expect(folders[1].children[1].children[0].isMuted).toBeTruthy();
-    expect(folders[1].children[1].children[0].hasUnreadLogs).toBeTruthy();
+    expect(folders[1].children[1].children[0].hasUnreadLogs).toBeFalsy();
     expect(folders[1].children[1].children[0].children.length).toBe(0);
     expect(folders[0].name).toBe("folder-top-1");
     expect(folders[1].name).toBe("folder-top-2");

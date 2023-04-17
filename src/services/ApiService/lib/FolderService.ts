@@ -12,7 +12,6 @@ import { Folder } from "src/models/Folder";
 import { FolderPreference } from "src/models/FolderPreference";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { Log } from "src/models/Log";
-import { User } from "src/models/User";
 import { ApiError } from "src/utils/errors";
 
 type TreeRepresentation = {
@@ -250,7 +249,7 @@ export const FolderService = {
       (lastCheckedFolder) => lastCheckedFolder.fullPath === folder.fullPath
     );
     if (!lastCheckedThisFolder) {
-      return true;
+      return false;
     }
 
     const dateLastCheckedFolder = lastCheckedThisFolder.createdAt;
