@@ -1545,7 +1545,7 @@ describe("CreateRule", () => {
     });
     const comparisonType = comparisonTypeEnum.CrossesBelow;
     const comparisonValue = 6;
-    const lookbackTimeInMins = 12;
+    const lookbackTimeInMins = 40;
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization.id}/rule`,
       "POST",
@@ -1571,7 +1571,7 @@ describe("CreateRule", () => {
     const folder = await FolderFactory.create();
     const comparisonType = comparisonTypeEnum.CrossesBelow;
     const comparisonValue = 6;
-    const lookbackTimeInMins = 12;
+    const lookbackTimeInMins = 20;
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization.id}/rule`,
       "POST",

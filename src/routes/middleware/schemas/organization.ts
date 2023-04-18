@@ -58,7 +58,7 @@ export const OrganizationSchemas = {
     folderId: Joi.string().custom(objectId).required(),
     comparisonType: Joi.string().required(),
     comparisonValue: Joi.number().required().min(0),
-    lookbackTimeInMins: Joi.number().required().min(10),
+    lookbackTimeInMins: Joi.number().required().min(20),
   }),
   deleteRule: Joi.object({
     ruleId: Joi.string().custom(objectId).required(),
