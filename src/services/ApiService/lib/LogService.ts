@@ -99,16 +99,13 @@ export const LogService = {
       );
     }
 
-    return Log.find({
+    return Log.countDocuments({
       ...(user ? { folderId: { $in: favoritedFolderIds } } : { folderId }),
       createdAt: {
         $lte: logsNoNewerThanDate,
         ...(logsNoOlderThanDate && { $gt: logsNoOlderThanDate }),
       },
-    })
-      .lean()
-      .countDocuments()
-      .exec();
+    }).exec();
   },
   searchForLogs: async (
     organizationId: string | ObjectId,

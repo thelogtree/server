@@ -159,11 +159,9 @@ export const OrganizationService = {
       throw new ApiError("The invitation and organization do not match.");
     }
 
-    const numMembers = await User.find({
+    const numMembers = await User.countDocuments({
       organizationId: organization._id,
-    })
-      .countDocuments()
-      .exec();
+    }).exec();
 
     return {
       organizationName: organization.name,
