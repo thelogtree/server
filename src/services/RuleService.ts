@@ -113,14 +113,14 @@ export const RuleService = {
       duration = `${val} ${val === 1 ? "minute" : "minutes"}`;
     }
 
-    const organization = await Organization.findById(folder.organizationId, {
+    const organization = await Organization.findById(folder?.organizationId, {
       slug: 1,
       _id: 0,
     })
       .lean()
       .exec();
 
-    return `You are receiving this alert because the number of logs in ${folder.fullPath} has ${comparisonLanguage} ${comparisonValue} in the last ${duration}.\n\nYou can view the logs in this channel here: ${config.baseUrl}/org/${organization.slug}/logs${folder.fullPath}`;
+    return `You are receiving this alert because the number of logs in ${folder?.fullPath} has ${comparisonLanguage} ${comparisonValue} in the last ${duration}.\n\nYou can view the logs in this channel here: ${config.baseUrl}/org/${organization?.slug}/logs${folder?.fullPath}`;
   },
   executeTriggeredRule: async (rule: RuleDocument, user: UserDocument) => {
     const text = await RuleService.getRuleEmailBody(rule);
@@ -146,11 +146,13 @@ export const RuleService = {
     await Promise.all(
       rules.map(async (rule) => {
         try {
-          const isTriggered = await RuleService.isRuleTriggered(rule);
+          const isTriggered = await RuleService.isRuleTriggered(
+            rule as RuleDocument
+          );
           if (isTriggered) {
             // send email to the user attached to this rule
             const user = rule.userId as UserDocument;
-            await RuleService.executeTriggeredRule(rule, user);
+            await RuleService.executeTriggeredRule(rule as RuleDocument, user);
           }
         } catch (e: any) {
           Logger.sendLog(

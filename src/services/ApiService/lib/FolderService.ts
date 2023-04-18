@@ -94,12 +94,18 @@ export const FolderService = {
     // returns a matrix-like representation of the folders for this organization
     const [allFoldersInOrg, lastCheckedFolders, folderPreferences] =
       await Promise.all([
-        Folder.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
+        Folder.find({ organizationId })
+          .sort({ createdAt: 1 })
+          .lean()
+          .exec() as Promise<FolderDocument[]>,
         LastCheckedFolder.find({ userId })
           .sort({ createdAt: -1 })
           .lean()
-          .exec(),
-        FolderPreference.find({ userId }).sort({ createdAt: -1 }).lean().exec(),
+          .exec() as Promise<LastCheckedFolderDocument[]>,
+        FolderPreference.find({ userId })
+          .sort({ createdAt: -1 })
+          .lean()
+          .exec() as Promise<FolderPreferenceDocument[]>,
       ]);
 
     return FolderService.buildFolderTree(

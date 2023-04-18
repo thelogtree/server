@@ -136,12 +136,12 @@ export const StatsService = {
     insightsOfMostCheckedFolders: Insight[];
     insightsOfNotMostCheckedFolders: Insight[];
   }> => {
-    const allFolders = await Folder.find({
+    const allFolders = (await Folder.find({
       organizationId,
       dateOfMostRecentLog: { $exists: true },
     })
       .lean()
-      .exec();
+      .exec()) as FolderDocument[];
 
     const insights: Insight[] = await Promise.all(
       allFolders.map(async (folder) => {
