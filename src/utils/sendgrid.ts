@@ -12,5 +12,11 @@ type Content = {
 
 export const SendgridUtil = {
   sendEmail: async (content: Content) =>
-    sendgrid.send({ ...content, from: config.sendgrid.fromEmail }),
+    sendgrid.send({
+      ...content,
+      from: {
+        email: config.sendgrid.fromEmail,
+        name: "Logtree",
+      },
+    }),
 };
