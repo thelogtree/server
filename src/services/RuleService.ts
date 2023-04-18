@@ -10,6 +10,7 @@ import { SendgridUtil } from "src/utils/sendgrid";
 import moment from "moment";
 import { Logger } from "src/utils/logger";
 import { getErrorMessage } from "src/utils/helpers";
+import { User } from "src/models/User";
 
 export const RuleService = {
   createRule: async (
@@ -139,12 +140,25 @@ export const RuleService = {
     );
   },
   checkRulesAndExecuteIfNecessary: async (folderId: string) => {
-    const rules = await Rule.find({ folderId })
-      .populate("userId")
+    const unpopulatedRules = await Rule.find({ folderId }).lean().exec();
+    const users = await User.find({
+      _id: { $in: unpopulatedRules.map((rule) => rule.userId) },
+    })
       .lean()
       .exec();
+    // doing a .populate on userId manually
+    const hydratedRules = unpopulatedRules.map((rule) => {
+      const userId = users.find(
+        (user) => user._id.toString() === rule.userId.toString()
+      ) as UserDocument;
+      return {
+        ...rule,
+        userId,
+      };
+    });
+
     await Promise.all(
-      rules.map(async (rule) => {
+      hydratedRules.map(async (rule) => {
         try {
           const isTriggered = await RuleService.isRuleTriggered(
             rule as RuleDocument
