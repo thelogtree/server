@@ -8,6 +8,8 @@ import { Organization } from "src/models/Organization";
 import { config } from "src/utils/config";
 import { SendgridUtil } from "src/utils/sendgrid";
 import moment from "moment";
+import { Logger } from "src/utils/logger";
+import { getErrorMessage } from "src/utils/helpers";
 
 export const RuleService = {
   createRule: async (
@@ -143,11 +145,19 @@ export const RuleService = {
       .exec();
     await Promise.all(
       rules.map(async (rule) => {
-        const isTriggered = await RuleService.isRuleTriggered(rule);
-        if (isTriggered) {
-          // send email to the user attached to this rule
-          const user = rule.userId as UserDocument;
-          await RuleService.executeTriggeredRule(rule, user);
+        try {
+          const isTriggered = await RuleService.isRuleTriggered(rule);
+          if (isTriggered) {
+            // send email to the user attached to this rule
+            const user = rule.userId as UserDocument;
+            await RuleService.executeTriggeredRule(rule, user);
+          }
+        } catch (e: any) {
+          Logger.sendLog(
+            getErrorMessage(e),
+            "/errors",
+            (rule.userId as UserDocument).email
+          );
         }
       })
     );
