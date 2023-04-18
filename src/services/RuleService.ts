@@ -143,6 +143,7 @@ export const RuleService = {
       .populate("userId")
       .lean()
       .exec();
+    Logger.sendLog("here " + rules.length, "/debugging");
     await Promise.all(
       rules.map(async (rule) => {
         try {
