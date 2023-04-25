@@ -30,9 +30,10 @@ export const PricingService = {
     organization?: OrganizationDocument
   ): PeriodDatesReturnType => {
     const PERIOD_DURATION_IN_DAYS = 30;
+
     const hasStartDate = !!organization?.cycleStarts;
-    const now = moment();
     if (!hasStartDate) {
+      const now = moment();
       return {
         cycleStarts: moment(now).toDate(),
         cycleEnds: moment(now).add(PERIOD_DURATION_IN_DAYS, "days").toDate(),
