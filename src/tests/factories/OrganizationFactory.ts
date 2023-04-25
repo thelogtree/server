@@ -5,15 +5,21 @@ import { getHashFromPlainTextKey } from "src/utils/helpers";
 import _ from "lodash";
 import { OrganizationDocument } from "logtree-types";
 import { config } from "src/utils/config";
+import { PricingService } from "src/services/ApiService/lib/PricingService";
 
-const getDefaultFields = async () => ({
-  name: faker.datatype.uuid(),
-  slug: faker.datatype.uuid(),
-  keys: {
-    publishableApiKey: faker.datatype.uuid(),
-    encryptedSecretKey: null,
-  },
-});
+const getDefaultFields = async () => {
+  const { cycleStarts, cycleEnds } = PricingService.getPeriodDates();
+  return {
+    name: faker.datatype.uuid(),
+    slug: faker.datatype.uuid(),
+    keys: {
+      publishableApiKey: faker.datatype.uuid(),
+      encryptedSecretKey: null,
+    },
+    cycleStarts,
+    cycleEnds,
+  };
+};
 
 export const OrganizationFactory = {
   create: async (overrideFields?: Object) => {

@@ -40,8 +40,8 @@ export const PricingService = {
     }
 
     return {
-      cycleStarts: moment(organization.cycleEnds).toDate(),
-      cycleEnds: moment(organization.cycleEnds)
+      cycleStarts: moment(organization?.cycleEnds).toDate(),
+      cycleEnds: moment(organization?.cycleEnds)
         .add(PERIOD_DURATION_IN_DAYS, "days")
         .toDate(),
     };
