@@ -6,6 +6,7 @@ import _ from "lodash";
 import { OrganizationDocument } from "logtree-types";
 import { config } from "src/utils/config";
 import { PricingService } from "src/services/ApiService/lib/PricingService";
+import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
 
 const getDefaultFields = async () => {
   const { cycleStarts, cycleEnds } = PricingService.getPeriodDates();
@@ -18,6 +19,8 @@ const getDefaultFields = async () => {
     },
     cycleStarts,
     cycleEnds,
+    numLogsSentInPeriod: 0,
+    logLimitForPeriod: TRIAL_LOG_LIMIT,
   };
 };
 

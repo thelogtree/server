@@ -8,6 +8,8 @@ import { LogFactory } from "src/tests/factories/LogFactory";
 import { MAX_NUM_CHARS_ALLOWED_IN_LOG } from "src/services/ApiService/lib/LogService";
 import { PricingService } from "src/services/ApiService/lib/PricingService";
 import { Organization } from "src/models/Organization";
+import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
+import { ErrorMessages } from "src/utils/errors";
 
 const routeUrl = "/v1/logs";
 
@@ -210,6 +212,30 @@ describe("CreateLog", () => {
     }).countDocuments();
     expect(allLogsInOrg).toBe(2);
   });
+  it("correctly ignores api limits because it is a high value account", async () => {
+    const logContent = "test 123";
+    const folderName = "transactions";
+    const organization = await OrganizationFactory.create({
+      numLogsSentInPeriod: 5000000,
+      logLimitForPeriod: 300000,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "POST",
+      {
+        content: logContent,
+        folderPath: `/${folderName}`,
+      },
+      {},
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectSuccess(res);
+
+    const allLogsInOrg = await Log.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allLogsInOrg).toBe(1);
+  });
   it("fails because we're trying to open up a subfolder inside a folder that already has at least 1 log", async () => {
     const logContent = "test 123";
     const organization = await OrganizationFactory.create();
@@ -379,6 +405,29 @@ describe("CreateLog", () => {
       organizationId: organization._id,
     }).countDocuments();
     expect(allLogsInOrg).toBe(1);
+  });
+  it("fails because the trial account has reached the max number of logs", async () => {
+    const logContent = "aa";
+    const folderName = "/transactions";
+    const organization = await OrganizationFactory.create({
+      numLogsSentInPeriod: TRIAL_LOG_LIMIT,
+    });
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "POST",
+      {
+        content: logContent,
+        folderPath: `/${folderName}`,
+      },
+      {},
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectError(res, ErrorMessages.ReachedLimit);
+
+    const allLogsInOrg = await Log.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allLogsInOrg).toBe(0);
   });
 });
 
