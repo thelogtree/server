@@ -385,23 +385,13 @@ describe("CreateLog", () => {
 describe("PricingService.chargeForLog", () => {
   it("correctly charges the organization from their credit", async () => {
     const org = await OrganizationFactory.create({
-      currentCredits: 20,
-      currentCharges: 0,
+      numLogsSentInPeriod: 2,
+      logLimitForPeriod: 40,
     });
     await PricingService.chargeForLog(org);
     const updatedOrg = await Organization.findById(org._id);
-    expect(updatedOrg?.currentCredits).toBe(19.999);
-    expect(updatedOrg?.currentCharges).toBe(0);
-  });
-  it("correctly charges an organization that doesn't have credit", async () => {
-    const org = await OrganizationFactory.create({
-      currentCredits: 0,
-      currentCharges: 0,
-    });
-    await PricingService.chargeForLog(org);
-    const updatedOrg = await Organization.findById(org._id);
-    expect(updatedOrg?.currentCredits).toBe(0);
-    expect(updatedOrg?.currentCharges).toBe(0.001);
+    expect(updatedOrg?.numLogsSentInPeriod).toBe(3);
+    expect(updatedOrg?.logLimitForPeriod).toBe(40);
   });
 });
 
