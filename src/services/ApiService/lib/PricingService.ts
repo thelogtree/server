@@ -14,7 +14,7 @@ export const PricingService = {
     Organization.updateOne(
       { _id: organization._id },
       {
-        numLogsSentInPeriod: organization.numLogsSentInPeriod + 1,
+        $inc: { numLogsSentInPeriod: 1 },
       }
     ),
   shouldAllowAnotherLog: (organization: OrganizationDocument) => {

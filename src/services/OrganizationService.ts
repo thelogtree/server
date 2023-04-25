@@ -22,7 +22,7 @@ import { FolderPreference } from "src/models/FolderPreference";
 import { Rule } from "src/models/Rule";
 import { PricingService } from "./ApiService/lib/PricingService";
 
-export const TRIAL_LOG_LIMIT = 20000;
+export const TRIAL_LOG_LIMIT = 10000;
 
 export const OrganizationService = {
   createOrganization: async (
