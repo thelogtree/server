@@ -20,6 +20,9 @@ import { FolderService } from "./ApiService/lib/FolderService";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { FolderPreference } from "src/models/FolderPreference";
 import { Rule } from "src/models/Rule";
+import { PricingService } from "./ApiService/lib/PricingService";
+
+export const TRIAL_LOG_LIMIT = 20000;
 
 export const OrganizationService = {
   createOrganization: async (
@@ -35,12 +38,16 @@ export const OrganizationService = {
 
     const publishableApiKey = uuid();
     const slug = wrapWords(name).toLowerCase();
+    const { cycleStarts, cycleEnds } = PricingService.getPeriodDates();
     const organization = await Organization.create({
       name,
       slug,
       keys: {
         publishableApiKey,
       },
+      logLimitForPeriod: TRIAL_LOG_LIMIT,
+      cycleStarts,
+      cycleEnds,
     });
 
     const firstInvitationUrl = await OrganizationService.generateInviteLink(

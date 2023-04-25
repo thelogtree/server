@@ -1,24 +1,49 @@
 import { OrganizationDocument } from "logtree-types";
 import { Organization } from "src/models/Organization";
 import _ from "lodash";
+import moment from "moment";
+import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
 
-const COST_IN_DOLLARS_OF_LOG = 0.001;
+type PeriodDatesReturnType = {
+  cycleStarts: Date;
+  cycleEnds: Date;
+};
 
 export const PricingService = {
-  chargeForLog: async (organization: OrganizationDocument) => {
-    let newCurrentCredits = organization.currentCredits;
-    let newCurrentCharges = organization.currentCharges;
-    if (organization.currentCredits >= COST_IN_DOLLARS_OF_LOG) {
-      newCurrentCredits -= COST_IN_DOLLARS_OF_LOG;
-    } else {
-      newCurrentCharges += COST_IN_DOLLARS_OF_LOG;
-    }
-    await Organization.updateOne(
+  chargeForLog: async (organization: OrganizationDocument) =>
+    Organization.updateOne(
       { _id: organization._id },
       {
-        currentCredits: _.round(newCurrentCredits, 3),
-        currentCharges: _.round(newCurrentCharges, 3),
+        numLogsSentInPeriod: organization.numLogsSentInPeriod + 1,
       }
-    );
+    ),
+  shouldAllowAnotherLog: (organization: OrganizationDocument) => {
+    // enforce api limits for these smaller accounts (most likely trials)
+    if (organization.logLimitForPeriod <= TRIAL_LOG_LIMIT) {
+      return organization.numLogsSentInPeriod < organization.logLimitForPeriod;
+    }
+
+    // enforce the limit manually with larger accounts
+    return true;
+  },
+  getPeriodDates: (
+    organization?: OrganizationDocument
+  ): PeriodDatesReturnType => {
+    const PERIOD_DURATION_IN_DAYS = 30;
+    const hasStartDate = !!organization?.cycleStarts;
+    const now = moment();
+    if (!hasStartDate) {
+      return {
+        cycleStarts: moment(now).toDate(),
+        cycleEnds: moment(now).add(PERIOD_DURATION_IN_DAYS, "days").toDate(),
+      };
+    }
+
+    return {
+      cycleStarts: moment(organization.cycleEnds).toDate(),
+      cycleEnds: moment(organization.cycleEnds)
+        .add(PERIOD_DURATION_IN_DAYS, "days")
+        .toDate(),
+    };
   },
 };

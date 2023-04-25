@@ -15,8 +15,10 @@ const OrganizationSchema = new Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true },
     keys: { type: KeysSchema, required: true },
-    currentCharges: { type: Number, default: 0 },
-    currentCredits: { type: Number, default: 0 },
+    logLimitForPeriod: { type: Number, default: 0 },
+    numLogsSentInPeriod: { type: Number, default: 0 },
+    cycleStarts: { type: Date, required: true },
+    cycleEnds: { type: Date, required: true },
     isSuspended: { type: Boolean, default: false },
   },
   { timestamps: true }

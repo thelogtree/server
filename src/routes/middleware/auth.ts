@@ -7,6 +7,7 @@ import {
   orgPermissionLevel,
 } from "logtree-types";
 import { Organization } from "src/models/Organization";
+import { PricingService } from "src/services/ApiService/lib/PricingService";
 import { AuthError, ErrorMessages } from "src/utils/errors";
 
 const requiredOrgMember = async (
@@ -85,11 +86,21 @@ const requiredApiKey = async (
       plaintextSecretKey,
       organization.keys.encryptedSecretKey
     );
-    if (isCorrect && !organization.isSuspended) {
+
+    const shouldAllowAnotherLog =
+      PricingService.shouldAllowAnotherLog(organization);
+
+    if (isCorrect && !organization.isSuspended && shouldAllowAnotherLog) {
       req["organization"] = organization;
       return next();
-    } else if (isCorrect) {
+    } else if (isCorrect && shouldAllowAnotherLog && organization.isSuspended) {
       throw new AuthError(ErrorMessages.Suspended);
+    } else if (
+      isCorrect &&
+      !shouldAllowAnotherLog &&
+      !organization.isSuspended
+    ) {
+      throw new AuthError(ErrorMessages.ReachedLimit);
     }
   }
   throw new AuthError(ErrorMessages.ApiCredentialsIncorrect);
