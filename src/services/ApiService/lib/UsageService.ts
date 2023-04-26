@@ -57,9 +57,7 @@ export const UsageService = {
   resetUsages: async () => {
     const organizations = await Organization.find({
       cycleEnds: { $lte: new Date() },
-    })
-      .lean()
-      .exec();
+    }).exec();
     await Promise.all(
       organizations.map(async (org) => {
         void Logger.sendLog(`Just reset usage for ${org.name}.`, "/usage");
@@ -75,9 +73,7 @@ export const UsageService = {
     const organizations = await Organization.find(
       {},
       { logRetentionInDays: 1, _id: 1 }
-    )
-      .lean()
-      .exec();
+    ).exec();
     await Promise.all(
       organizations.map(async (org) => {
         const cutoffDate = moment()
