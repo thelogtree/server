@@ -160,20 +160,20 @@ export const OrganizationService = {
       .lean()
       .exec();
     const invitationBelongsToOrg =
-      organization._id.toString() === invitation.organizationId.toString();
+      organization?._id.toString() === invitation.organizationId.toString();
 
     if (!invitationBelongsToOrg) {
       throw new ApiError("The invitation and organization do not match.");
     }
 
     const numMembers = await User.countDocuments({
-      organizationId: organization._id,
+      organizationId: organization?._id,
     }).exec();
 
     return {
-      organizationName: organization.name,
+      organizationName: organization?.name,
       numMembers,
-      organizationId: organization._id.toString(),
+      organizationId: organization?._id.toString(),
     };
   },
   deleteFolderAndEverythingInside: async (
