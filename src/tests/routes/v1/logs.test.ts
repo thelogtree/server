@@ -6,7 +6,7 @@ import { TestHelper } from "../../TestHelper";
 import { FolderFactory } from "src/tests/factories/FolderFactory";
 import { LogFactory } from "src/tests/factories/LogFactory";
 import { MAX_NUM_CHARS_ALLOWED_IN_LOG } from "src/services/ApiService/lib/LogService";
-import { PricingService } from "src/services/ApiService/lib/PricingService";
+import { UsageService } from "src/services/ApiService/lib/UsageService";
 import { Organization } from "src/models/Organization";
 import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
 import { ErrorMessages } from "src/utils/errors";
@@ -431,13 +431,13 @@ describe("CreateLog", () => {
   });
 });
 
-describe("PricingService.chargeForLog", () => {
+describe("UsageService.recordNewLog", () => {
   it("correctly charges the organization from their credit", async () => {
     const org = await OrganizationFactory.create({
       numLogsSentInPeriod: 2,
       logLimitForPeriod: 40,
     });
-    await PricingService.chargeForLog(org);
+    await UsageService.recordNewLog(org);
     const updatedOrg = await Organization.findById(org._id);
     expect(updatedOrg?.numLogsSentInPeriod).toBe(3);
     expect(updatedOrg?.logLimitForPeriod).toBe(40);

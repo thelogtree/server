@@ -20,6 +20,7 @@ const OrganizationSchema = new Schema(
     cycleStarts: { type: Date, required: true },
     cycleEnds: { type: Date, required: true },
     isSuspended: { type: Boolean, default: false },
+    logRetentionInDays: { type: Number, default: 30 },
   },
   { timestamps: true }
 );

@@ -1,7 +1,7 @@
 import { OrganizationDocument } from "logtree-types";
 import { FolderService } from "./lib/FolderService";
 import { LogService, SimplifiedLog } from "./lib/LogService";
-import { PricingService } from "./lib/PricingService";
+import { UsageService } from "./lib/UsageService";
 import { Folder } from "src/models/Folder";
 import { ApiError } from "src/utils/errors";
 import { Log } from "src/models/Log";
@@ -33,7 +33,7 @@ export const ApiService = {
       { dateOfMostRecentLog: new Date() }
     );
     if (shouldCharge) {
-      await PricingService.chargeForLog(organization);
+      await UsageService.recordNewLog(organization);
     }
     return log;
   },

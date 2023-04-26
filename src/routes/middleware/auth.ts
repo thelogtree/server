@@ -7,7 +7,7 @@ import {
   orgPermissionLevel,
 } from "logtree-types";
 import { Organization } from "src/models/Organization";
-import { PricingService } from "src/services/ApiService/lib/PricingService";
+import { UsageService } from "src/services/ApiService/lib/UsageService";
 import { AuthError, ErrorMessages } from "src/utils/errors";
 
 const requiredOrgMember = async (
@@ -88,7 +88,7 @@ const requiredApiKey = async (
     );
 
     const shouldAllowAnotherLog =
-      PricingService.shouldAllowAnotherLog(organization);
+      UsageService.shouldAllowAnotherLog(organization);
 
     if (isCorrect && !organization.isSuspended && shouldAllowAnotherLog) {
       req["organization"] = organization;

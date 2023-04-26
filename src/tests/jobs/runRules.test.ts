@@ -14,7 +14,7 @@ import { runRulesJob } from "src/jobs/runRules";
 describe("RunRulesJob", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    Rule.deleteMany();
+    await Rule.deleteMany();
   });
   it("correctly checks the ruleset for all organizations and executes the correct rules", async () => {
     const sendgridSpy = jest

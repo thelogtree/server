@@ -5,11 +5,11 @@ import { getHashFromPlainTextKey } from "src/utils/helpers";
 import _ from "lodash";
 import { OrganizationDocument } from "logtree-types";
 import { config } from "src/utils/config";
-import { PricingService } from "src/services/ApiService/lib/PricingService";
+import { UsageService } from "src/services/ApiService/lib/UsageService";
 import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
 
 const getDefaultFields = async () => {
-  const { cycleStarts, cycleEnds } = PricingService.getPeriodDates();
+  const { cycleStarts, cycleEnds } = UsageService.getPeriodDates();
   return {
     name: faker.datatype.uuid(),
     slug: faker.datatype.uuid(),

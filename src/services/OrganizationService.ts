@@ -20,7 +20,7 @@ import { FolderService } from "./ApiService/lib/FolderService";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { FolderPreference } from "src/models/FolderPreference";
 import { Rule } from "src/models/Rule";
-import { PricingService } from "./ApiService/lib/PricingService";
+import { UsageService } from "./ApiService/lib/UsageService";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -38,7 +38,7 @@ export const OrganizationService = {
 
     const publishableApiKey = uuid();
     const slug = wrapWords(name).toLowerCase();
-    const { cycleStarts, cycleEnds } = PricingService.getPeriodDates();
+    const { cycleStarts, cycleEnds } = UsageService.getPeriodDates();
     const organization = await Organization.create({
       name,
       slug,
