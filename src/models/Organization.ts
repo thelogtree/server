@@ -21,6 +21,7 @@ const OrganizationSchema = new Schema(
     cycleEnds: { type: Date, required: true },
     isSuspended: { type: Boolean, default: false },
     logRetentionInDays: { type: Number, default: 30 },
+    sentLastUsageEmailAt: { type: Date },
   },
   { timestamps: true }
 );
