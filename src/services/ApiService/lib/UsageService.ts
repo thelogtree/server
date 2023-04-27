@@ -79,6 +79,7 @@ export const UsageService = {
         numLogsSentInPeriod: 1,
         logLimitForPeriod: 1,
         sentLastUsageEmailAt: 1,
+        cycleEnds: 1,
         _id: 1,
       }
     ).exec();
