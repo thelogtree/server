@@ -160,7 +160,7 @@ export const OrganizationService = {
       .lean()
       .exec();
     const invitationBelongsToOrg =
-      organization?._id.toString() === invitation.organizationId.toString();
+      organization?._id?.toString() === invitation.organizationId.toString();
 
     if (!invitationBelongsToOrg) {
       throw new ApiError("The invitation and organization do not match.");
