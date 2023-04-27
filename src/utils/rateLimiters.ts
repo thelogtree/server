@@ -9,7 +9,7 @@ export const rateLimiterP3 = config.environment.isTest
   ? skipMiddleware
   : rateLimit({
       windowMs: 1000, // 1 second
-      max: 100, // Limit each IP to 50 requests per 1 second
+      max: 100, // Limit each IP to 100 requests per 1 second
       message: "You have exceeded the rate limit.",
       standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
