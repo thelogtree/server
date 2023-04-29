@@ -158,5 +158,21 @@ router.post(
   }),
   OrganizationController.deleteRule
 );
+router.post(
+  "/:id/user/phone/send-code",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.sendPhoneCode,
+  }),
+  OrganizationController.sendPhoneCode
+);
+router.post(
+  "/:id/user/phone/verify-code",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.verifyPhoneCode,
+  }),
+  OrganizationController.verifyPhoneCode
+);
 
 export default router;

@@ -11,6 +11,7 @@ import { queryBool } from "src/utils/helpers";
 import { Logger } from "src/utils/logger";
 import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
+import { TwilioUtil } from "src/utils/twilio";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -264,5 +265,20 @@ export const OrganizationController = {
     const user: UserDocument = req["user"];
     const rules = await RuleService.getRulesForUser(user._id.toString());
     res.send({ rules });
+  },
+  sendPhoneCode: async (req: Request, res: Response) => {
+    const { phoneNumber } = req.body;
+    await TwilioUtil.sendVerificationCode(phoneNumber);
+    res.send({});
+  },
+  verifyPhoneCode: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
+    const { phoneNumber, code } = req.body;
+    await TwilioUtil.submitVerificationCode(
+      user._id.toString(),
+      phoneNumber,
+      code
+    );
+    res.send({});
   },
 };

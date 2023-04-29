@@ -25,6 +25,8 @@ import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFac
 import { FolderPreference } from "src/models/FolderPreference";
 import { RuleFactory } from "src/tests/factories/RuleFactory";
 import { Rule } from "src/models/Rule";
+import { MyTwilio, TwilioUtil } from "src/utils/twilio";
+import { fakePromise } from "src/tests/mockHelpers";
 
 const routeUrl = "/organization";
 
@@ -1673,5 +1675,81 @@ describe("GetRulesForUser", () => {
     expect(rules.length).toBe(2);
     expect(rules[0]._id.toString()).toBe(rule2.id);
     expect(rules[1]._id.toString()).toBe(rule1.id);
+  });
+});
+
+describe("SendPhoneCode", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it("correctly sends a phone code to a user", async () => {
+    const twilioSpy = jest
+      .spyOn(TwilioUtil, "sendVerificationCode")
+      .mockImplementation(fakePromise);
+    const user = await UserFactory.create();
+    const phoneNumber = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/user/phone/send-code`,
+      "POST",
+      { phoneNumber },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    expect(twilioSpy).toBeCalledTimes(1);
+    expect(twilioSpy.mock.calls[0][0]).toBe(phoneNumber);
+  });
+});
+
+describe("VerifyPhoneCode", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it("correctly approves a phone code for a user", async () => {
+    const twilioSpy = jest
+      .spyOn(TwilioUtil, "_getVerificationCodeResult")
+      .mockImplementation(() => Promise.resolve(true));
+    const user = await UserFactory.create();
+    const phoneNumber = faker.datatype.uuid();
+    const code = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/user/phone/verify-code`,
+      "POST",
+      { phoneNumber, code },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    expect(twilioSpy).toBeCalledTimes(1);
+    expect(twilioSpy.mock.calls[0][0]).toBe(phoneNumber);
+    expect(twilioSpy.mock.calls[0][1]).toBe(code);
+
+    const updatedUser = await User.findById(user._id);
+    expect(updatedUser?.phoneNumber).toBe(phoneNumber);
+  });
+  it("correctly rejects a phone code for a user", async () => {
+    const twilioSpy = jest
+      .spyOn(TwilioUtil, "_getVerificationCodeResult")
+      .mockImplementation(() => Promise.resolve(false));
+    const user = await UserFactory.create();
+    const phoneNumber = faker.datatype.uuid();
+    const code = faker.datatype.uuid();
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/user/phone/verify-code`,
+      "POST",
+      { phoneNumber, code },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "The code you entered was incorrect.");
+
+    expect(twilioSpy).toBeCalledTimes(1);
+    expect(twilioSpy.mock.calls[0][0]).toBe(phoneNumber);
+    expect(twilioSpy.mock.calls[0][1]).toBe(code);
+
+    const updatedUser = await User.findById(user._id);
+    expect(updatedUser?.phoneNumber).toBeUndefined();
   });
 });

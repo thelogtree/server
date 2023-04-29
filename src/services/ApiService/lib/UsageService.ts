@@ -6,7 +6,6 @@ import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
 import { Logger } from "src/utils/logger";
 import { Log } from "src/models/Log";
 import { SendgridUtil } from "src/utils/sendgrid";
-import { config } from "src/utils/config";
 
 type PeriodDatesReturnType = {
   cycleStarts: Date;

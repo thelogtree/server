@@ -63,4 +63,11 @@ export const OrganizationSchemas = {
   deleteRule: Joi.object({
     ruleId: Joi.string().custom(objectId).required(),
   }),
+  sendPhoneCode: Joi.object({
+    phoneNumber: Joi.string().required(),
+  }),
+  verifyPhoneCode: Joi.object({
+    phoneNumber: Joi.string().required(),
+    code: Joi.string().required(),
+  }),
 };

@@ -26,6 +26,9 @@ const UserSchema = new Schema(
       enum: orgPermissionLevel,
       default: orgPermissionLevel.Member,
     },
+    phoneNumber: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
