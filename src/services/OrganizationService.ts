@@ -209,7 +209,20 @@ export const OrganizationService = {
     ]);
   },
   getOrganizationMembers: (organizationId: string) =>
-    User.find({ organizationId }).sort({ createdAt: 1 }).lean().exec(),
+    User.find(
+      { organizationId },
+      {
+        email: 1,
+        _id: 1,
+        phoneNumber: 0,
+        organizationId: 1,
+        isAdmin: 1,
+        orgPermissionLevel: 1,
+      }
+    )
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec(),
   updateUserPermissions: async (
     organizationId: string,
     userIdMakingRequest: string,
