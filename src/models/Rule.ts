@@ -1,4 +1,9 @@
-import { comparisonTypeEnum, LogDocument, RuleDocument } from "logtree-types";
+import {
+  comparisonTypeEnum,
+  LogDocument,
+  notificationTypeEnum,
+  RuleDocument,
+} from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Model, model, Schema } from "mongoose";
 import { DatabaseModelNames } from "src/utils/databaseModelNames";
@@ -20,6 +25,11 @@ const RuleSchema = new Schema(
     lookbackTimeInMins: { type: Number, required: true }, // the intervals to look back at and compare
     numberOfTimesTriggered: { type: Number, default: 0 },
     lastTriggeredAt: { type: Date },
+    notificationType: {
+      type: String,
+      enum: notificationTypeEnum,
+      required: true,
+    },
   },
   { timestamps: true }
 );

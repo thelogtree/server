@@ -59,6 +59,7 @@ export const OrganizationSchemas = {
     comparisonType: Joi.string().required(),
     comparisonValue: Joi.number().required().min(0),
     lookbackTimeInMins: Joi.number().required().min(20),
+    notificationType: Joi.string().required(),
   }),
   deleteRule: Joi.object({
     ruleId: Joi.string().custom(objectId).required(),

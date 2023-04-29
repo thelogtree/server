@@ -13,7 +13,11 @@ import { DateTime } from "luxon";
 import moment from "moment-timezone";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
-import { comparisonTypeEnum, orgPermissionLevel } from "logtree-types";
+import {
+  comparisonTypeEnum,
+  notificationTypeEnum,
+  orgPermissionLevel,
+} from "logtree-types";
 import { User } from "src/models/User";
 import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
@@ -1548,6 +1552,7 @@ describe("CreateRule", () => {
     const comparisonType = comparisonTypeEnum.CrossesBelow;
     const comparisonValue = 6;
     const lookbackTimeInMins = 40;
+    const notificationType = notificationTypeEnum.Email;
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization.id}/rule`,
       "POST",
@@ -1556,6 +1561,7 @@ describe("CreateRule", () => {
         comparisonType,
         comparisonValue,
         lookbackTimeInMins,
+        notificationType,
       },
       {},
       user.firebaseId
@@ -1566,6 +1572,7 @@ describe("CreateRule", () => {
     expect(rule.comparisonType).toBe(comparisonType);
     expect(rule.comparisonValue).toBe(comparisonValue);
     expect(rule.lookbackTimeInMins).toBe(lookbackTimeInMins);
+    expect(rule.notificationType).toBe(notificationType);
   });
   it("fails to create a rule because the folderId is for a different organization", async () => {
     const organization = await OrganizationFactory.create();
@@ -1574,6 +1581,7 @@ describe("CreateRule", () => {
     const comparisonType = comparisonTypeEnum.CrossesBelow;
     const comparisonValue = 6;
     const lookbackTimeInMins = 20;
+    const notificationType = notificationTypeEnum.Email;
     const res = await TestHelper.sendRequest(
       routeUrl + `/${organization.id}/rule`,
       "POST",
@@ -1582,6 +1590,7 @@ describe("CreateRule", () => {
         comparisonType,
         comparisonValue,
         lookbackTimeInMins,
+        notificationType,
       },
       {},
       user.firebaseId

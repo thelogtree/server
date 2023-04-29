@@ -243,15 +243,21 @@ export const OrganizationController = {
   createRule: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const user: UserDocument = req["user"];
-    const { folderId, comparisonType, comparisonValue, lookbackTimeInMins } =
-      req.body;
+    const {
+      folderId,
+      comparisonType,
+      comparisonValue,
+      lookbackTimeInMins,
+      notificationType,
+    } = req.body;
     const rule = await RuleService.createRule(
       user._id.toString(),
       organization._id.toString(),
       folderId,
       comparisonType,
       comparisonValue,
-      lookbackTimeInMins
+      lookbackTimeInMins,
+      notificationType
     );
     res.send({ rule });
   },

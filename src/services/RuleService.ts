@@ -1,4 +1,9 @@
-import { RuleDocument, UserDocument, comparisonTypeEnum } from "logtree-types";
+import {
+  RuleDocument,
+  UserDocument,
+  comparisonTypeEnum,
+  notificationTypeEnum,
+} from "logtree-types";
 import { Folder } from "src/models/Folder";
 import { Rule } from "src/models/Rule";
 import { ApiError } from "src/utils/errors";
@@ -11,6 +16,7 @@ import moment from "moment";
 import { Logger } from "src/utils/logger";
 import { getErrorMessage } from "src/utils/helpers";
 import { User } from "src/models/User";
+import { TwilioUtil } from "src/utils/twilio";
 
 export const RuleService = {
   createRule: async (
@@ -19,7 +25,8 @@ export const RuleService = {
     folderId: string,
     comparisonType: comparisonTypeEnum,
     comparisonValue: number,
-    lookbackTimeInMins: number
+    lookbackTimeInMins: number,
+    notificationType: notificationTypeEnum = notificationTypeEnum.Email
   ) => {
     const folderExistsInOrganization = await Folder.exists({
       organizationId,
@@ -35,6 +42,7 @@ export const RuleService = {
       comparisonType,
       comparisonValue,
       lookbackTimeInMins,
+      notificationType,
     });
   },
   deleteRule: async (userId: string, ruleId: string) => {
@@ -84,7 +92,7 @@ export const RuleService = {
     }
     return false;
   },
-  getRuleEmailBody: async (rule: RuleDocument) => {
+  getRuleAlertMessageBody: async (rule: RuleDocument) => {
     const { lookbackTimeInMins, comparisonType, folderId, comparisonValue } =
       rule;
     const folder = await Folder.findById(folderId, {
@@ -124,12 +132,24 @@ export const RuleService = {
     return `You are receiving this alert because the number of logs in ${folder?.fullPath} has ${comparisonLanguage} ${comparisonValue} in the last ${duration}.\n\nYou can view the logs in this channel here: ${config.baseUrl}/org/${organization?.slug}/logs${folder?.fullPath}`;
   },
   executeTriggeredRule: async (rule: RuleDocument, user: UserDocument) => {
-    const text = await RuleService.getRuleEmailBody(rule);
-    await SendgridUtil.sendEmail({
-      to: user.email,
-      subject: `Logtree Alert`,
-      text,
-    });
+    const message = await RuleService.getRuleAlertMessageBody(rule);
+
+    if (rule.notificationType === notificationTypeEnum.Email) {
+      await SendgridUtil.sendEmail({
+        to: user.email,
+        subject: `Logtree Alert`,
+        text: message,
+      });
+    } else if (
+      user.phoneNumber &&
+      rule.notificationType === notificationTypeEnum.SMS
+    ) {
+      await TwilioUtil.sendMessage(user.phoneNumber, message);
+    } else if (rule.notificationType === notificationTypeEnum.SMS) {
+      throw new ApiError(
+        "Rule execution failed because it was an SMS rule but the user has no phone number."
+      );
+    }
 
     await Rule.updateOne(
       { _id: rule._id },

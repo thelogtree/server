@@ -2,6 +2,7 @@ import merge from "lodash/merge";
 import {
   comparisonTypeEnum,
   FolderDocument,
+  notificationTypeEnum,
   OrganizationDocument,
   UserDocument,
 } from "logtree-types";
@@ -25,6 +26,7 @@ const getDefaultFields = async () => {
     comparisonType: comparisonTypeEnum.CrossesAbove,
     comparisonValue: 10,
     lookbackTimeInMins: 60,
+    notificationType: notificationTypeEnum.Email,
   };
 };
 
