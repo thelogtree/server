@@ -23,6 +23,7 @@ const getDefaultFields = async () => {
   return {
     userId: user._id,
     folderId: folder._id,
+    organizationId: organization._id,
     comparisonType: comparisonTypeEnum.CrossesAbove,
     comparisonValue: 10,
     lookbackTimeInMins: 60,

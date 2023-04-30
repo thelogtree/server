@@ -39,6 +39,7 @@ describe("RunAllRulesForOrganization", () => {
       // triggers
       userId: user1._id,
       folderId: folder1._id,
+      organizationId: folder1.organizationId,
       comparisonType: comparisonTypeEnum.CrossesAbove,
       comparisonValue: 2,
       lookbackTimeInMins: 5,
@@ -47,6 +48,7 @@ describe("RunAllRulesForOrganization", () => {
       // does not trigger
       userId: user1._id,
       folderId: folder1._id,
+      organizationId: folder1.organizationId,
       comparisonType: comparisonTypeEnum.CrossesAbove,
       comparisonValue: 2,
       lookbackTimeInMins: 1,
@@ -55,6 +57,7 @@ describe("RunAllRulesForOrganization", () => {
       // triggers
       userId: user2._id,
       folderId: folder1._id,
+      organizationId: folder1.organizationId,
       comparisonType: comparisonTypeEnum.CrossesAbove,
       comparisonValue: 2,
       lookbackTimeInMins: 5,
@@ -63,6 +66,7 @@ describe("RunAllRulesForOrganization", () => {
       // triggers
       userId: user2._id,
       folderId: folder2._id,
+      organizationId: folder2.organizationId,
       comparisonType: comparisonTypeEnum.CrossesBelow,
       comparisonValue: 2,
       lookbackTimeInMins: 60,
@@ -70,6 +74,7 @@ describe("RunAllRulesForOrganization", () => {
     const rule5 = await RuleFactory.create({
       // does not trigger
       folderId: folder3._id,
+      organizationId: folder3.organizationId,
       comparisonType: comparisonTypeEnum.CrossesBelow,
       comparisonValue: 2,
       lookbackTimeInMins: 60,

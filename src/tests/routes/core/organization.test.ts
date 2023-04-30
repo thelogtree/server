@@ -959,6 +959,7 @@ describe("GetOrganizationMembers", () => {
     await UserFactory.create(); // decoy
     const user1 = await UserFactory.create({
       organizationId: organization._id,
+      phoneNumber: "abcd",
     });
     const user2 = await UserFactory.create({
       organizationId: organization._id,
@@ -974,6 +975,9 @@ describe("GetOrganizationMembers", () => {
     const { users } = res.body;
     expect(users.length).toBe(2);
     expect(users[0]._id.toString()).toBe(user1.id);
+    expect(users[0].email).toBeTruthy();
+    expect(users[0].orgPermissionLevel).toBeTruthy();
+    expect(users[0].phoneNumber).toBeUndefined();
     expect(users[1]._id.toString()).toBe(user2.id);
   });
 });

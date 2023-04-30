@@ -20,6 +20,11 @@ const RuleSchema = new Schema(
       ref: DatabaseModelNames.Folder,
       required: true,
     },
+    organizationId: {
+      type: ObjectId,
+      ref: DatabaseModelNames.Organization,
+      required: true,
+    },
     comparisonType: { type: String, enum: comparisonTypeEnum, required: true },
     comparisonValue: { type: Number, required: true },
     lookbackTimeInMins: { type: Number, required: true }, // the intervals to look back at and compare

@@ -214,7 +214,6 @@ export const OrganizationService = {
       {
         email: 1,
         _id: 1,
-        phoneNumber: 0,
         organizationId: 1,
         isAdmin: 1,
         orgPermissionLevel: 1,

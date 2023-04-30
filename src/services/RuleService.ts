@@ -39,6 +39,7 @@ export const RuleService = {
     return Rule.create({
       userId,
       folderId,
+      organizationId,
       comparisonType,
       comparisonValue,
       lookbackTimeInMins,
@@ -159,13 +160,14 @@ export const RuleService = {
       }
     );
   },
-  checkRulesAndExecuteIfNecessary: async (folderId: string) => {
-    const unpopulatedRules = await Rule.find({ folderId }).lean().exec();
+  runAllRulesForOrganization: async (organizationId: string) => {
+    const unpopulatedRules = await Rule.find({ organizationId }).lean().exec();
     const users = await User.find({
       _id: { $in: unpopulatedRules.map((rule) => rule.userId) },
     })
       .lean()
       .exec();
+
     // doing a .populate on userId manually
     const hydratedRules = unpopulatedRules.map((rule) => {
       const userId = users.find(
@@ -184,7 +186,7 @@ export const RuleService = {
             rule as RuleDocument
           );
           if (isTriggered) {
-            // send email to the user attached to this rule
+            // send notification to the user attached to this rule
             const user = rule.userId as UserDocument;
             await RuleService.executeTriggeredRule(rule as RuleDocument, user);
           }
@@ -196,16 +198,6 @@ export const RuleService = {
           );
         }
       })
-    );
-  },
-  runAllRulesForOrganization: async (organizationId: string) => {
-    const folders = await Folder.find({ organizationId }, { _id: 1 })
-      .lean()
-      .exec();
-    await Promise.all(
-      folders.map((folder) =>
-        RuleService.checkRulesAndExecuteIfNecessary(folder._id.toString())
-      )
     );
   },
 };
