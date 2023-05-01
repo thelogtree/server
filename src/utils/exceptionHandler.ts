@@ -3,7 +3,7 @@ import { config } from "./config";
 import { Logger } from "./logger";
 import { getErrorMessage } from "./helpers";
 
-export const exceptionHandler = (error, _req, res, _next) => {
+export const exceptionHandler = (error, req, res, _next) => {
   if (config.environment.isTest) {
     return res.send({
       success: false,
@@ -12,7 +12,13 @@ export const exceptionHandler = (error, _req, res, _next) => {
     });
   } else {
     try {
-      Logger.sendLog(getErrorMessage(error as any), "/errors");
+      const organization = req["organization"];
+      const user = req["user"];
+      Logger.sendLog(
+        getErrorMessage(error as any),
+        "/errors",
+        user?.email || organization?.slug
+      );
     } catch {}
     console.error(error);
     Sentry.captureException(error);

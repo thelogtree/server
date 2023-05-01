@@ -61,7 +61,11 @@ export const UsageService = {
     }).exec();
     await Promise.all(
       organizations.map(async (org) => {
-        void Logger.sendLog(`Just reset usage for ${org.name}.`, "/usage");
+        void Logger.sendLog(
+          `Just reset usage for ${org.name}.`,
+          "/usage",
+          org.slug
+        );
         const { cycleStarts, cycleEnds } = UsageService.getPeriodDates(org);
         await Organization.updateOne(
           { _id: org._id },
