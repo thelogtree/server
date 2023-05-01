@@ -12,6 +12,7 @@ import { Logger } from "src/utils/logger";
 import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
 import { TwilioUtil } from "src/utils/twilio";
+import { LoggerHelpers } from "src/utils/loggerHelpers";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -78,16 +79,22 @@ export const OrganizationController = {
     const organization = req["organization"];
     const user = req["user"];
     const { folderId, isFavorites, query } = req.body;
+    const isFavoritesBool = queryBool(isFavorites as string);
     const logs = await LogService.searchForLogs(
       organization._id,
       query as string,
       folderId as string | undefined,
-      queryBool(isFavorites as string) ? user : undefined
+      isFavoritesBool ? user : undefined
     );
-    Logger.sendLog(
-      `searched for logs with query '${query}'`,
-      `/searches/${organization.slug}`
+
+    LoggerHelpers.recordSearch(
+      organization,
+      user,
+      isFavoritesBool,
+      query,
+      folderId
     );
+
     res.send({ logs });
   },
   createOrganization: async (req: Request, res: Response) => {
@@ -120,6 +127,9 @@ export const OrganizationController = {
       email,
       password
     );
+
+    LoggerHelpers.recordNewUserCreated(organizationId, email);
+
     res.send(user);
   },
   getInvitationInfo: async (req: Request, res: Response) => {
@@ -133,11 +143,15 @@ export const OrganizationController = {
   },
   deleteFolderAndEverythingInside: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
+    const user: UserDocument = req["user"];
     const { folderId } = req.body;
     await OrganizationService.deleteFolderAndEverythingInside(
       organization._id.toString(),
       folderId
     );
+
+    LoggerHelpers.recordDeletedFolder(user, folderId, organization);
+
     res.send({});
   },
   updateUserPermissions: async (req: Request, res: Response) => {
@@ -155,12 +169,20 @@ export const OrganizationController = {
   },
   favoriteFolder: async (req: Request, res: Response) => {
     const user: UserDocument = req["user"];
+    const organization: OrganizationDocument = req["organization"];
     const { fullPath, isRemoved } = req.body;
     await OrganizationService.favoriteFolder(
       user?._id.toString(),
       fullPath,
       isRemoved
     );
+
+    Logger.sendLog(
+      `User ${isRemoved ? "unfavorited" : "favorited"} a channel: ${fullPath}`,
+      `/favorited-channel/${organization?.slug}`,
+      user.email
+    );
+
     res.send({});
   },
   getFavoriteFolderPaths: async (req: Request, res: Response) => {
@@ -172,12 +194,20 @@ export const OrganizationController = {
   },
   setFolderPreference: async (req: Request, res: Response) => {
     const user: UserDocument = req["user"];
+    const organization: OrganizationDocument = req["organization"];
     const { fullPath, isMuted } = req.body;
     await OrganizationService.setFolderPreference(
       user?._id.toString(),
       fullPath,
       isMuted
     );
+
+    Logger.sendLog(
+      `User ${isMuted ? "muted" : "unmuted"} a channel: ${fullPath}`,
+      `/channel-preferences/${organization?.slug}`,
+      user.email
+    );
+
     res.send({});
   },
   getFolderStats: async (req: Request, res: Response) => {
@@ -259,12 +289,19 @@ export const OrganizationController = {
       lookbackTimeInMins,
       notificationType
     );
+
+    LoggerHelpers.recordNewRule(user, folderId, organization);
+
     res.send({ rule });
   },
   deleteRule: async (req: Request, res: Response) => {
     const user: UserDocument = req["user"];
+    const organization: OrganizationDocument = req["organization"];
     const { ruleId } = req.body;
     await RuleService.deleteRule(user._id.toString(), ruleId);
+
+    LoggerHelpers.recordDeletedRule(user, ruleId, organization);
+
     res.send({});
   },
   getRulesForUser: async (req: Request, res: Response) => {
