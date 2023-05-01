@@ -75,4 +75,22 @@ export const LoggerHelpers = {
       user.email
     );
   },
+  recordCheckingChannel: async (
+    user: UserDocument,
+    organization: OrganizationDocument,
+    isFavorites: boolean,
+    folderId?: string
+  ) => {
+    let channelName = isFavorites ? "Favorites" : "Global Search";
+    if (folderId) {
+      const folder = await Folder.findById(folderId, { fullPath: 1 }).exec();
+      channelName = folder?.fullPath || "";
+    }
+
+    Logger.sendLog(
+      `User checked a channel: ${channelName}`,
+      `/fetched-logs/${organization?.slug}`,
+      user.email
+    );
+  },
 };

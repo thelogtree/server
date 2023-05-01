@@ -38,6 +38,7 @@ export const OrganizationController = {
   },
   getLogs: async (req: Request, res: Response) => {
     const user = req["user"];
+    const organization = req["organization"];
     const {
       folderId,
       start,
@@ -72,6 +73,13 @@ export const OrganizationController = {
         isFavoritesBool
       ),
     ]);
+
+    LoggerHelpers.recordCheckingChannel(
+      user,
+      organization,
+      isFavoritesBool,
+      folderId as string | undefined
+    );
 
     res.send({ logs, numLogsInTotal });
   },
