@@ -17,7 +17,9 @@ export const exceptionHandler = (error, req, res, _next) => {
       Logger.sendLog(
         getErrorMessage(error as any),
         "/errors",
-        user?.email || organization?.slug
+        user?.email ||
+          organization?.slug ||
+          req.headers["x-logtree-key"]?.toString()
       );
     } catch {}
     console.error(error);
