@@ -332,4 +332,14 @@ export const OrganizationController = {
     );
     res.send({});
   },
+  addToWaitlist: async (req: Request, res: Response) => {
+    const { email, websiteUrl, description } = req.body;
+    await Logger.sendLog(
+      `${email} joined the waitlist with ${websiteUrl}.\n\n${description}`,
+      "/waitlist",
+      email,
+      websiteUrl
+    );
+    res.send({});
+  },
 };

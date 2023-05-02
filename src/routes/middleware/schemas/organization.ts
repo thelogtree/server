@@ -71,4 +71,9 @@ export const OrganizationSchemas = {
     phoneNumber: Joi.string().required(),
     code: Joi.string().required(),
   }),
+  addToWaitlist: Joi.object({
+    email: Joi.string().required(),
+    websiteUrl: Joi.string().required(),
+    description: Joi.string().required(),
+  }),
 };

@@ -174,5 +174,13 @@ router.post(
   }),
   OrganizationController.verifyPhoneCode
 );
+router.post(
+  "/waitlist",
+  rateLimiterP1,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.addToWaitlist,
+  }),
+  OrganizationController.addToWaitlist
+);
 
 export default router;

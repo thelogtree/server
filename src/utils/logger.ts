@@ -7,7 +7,8 @@ export const Logger = {
   sendLog: async (
     content: string,
     folderPath: string,
-    referenceId?: string
+    referenceId?: string,
+    externalLink?: string
   ) => {
     try {
       if (config.environment.isTest) {
@@ -19,6 +20,7 @@ export const Logger = {
           content, // what you want to log
           folderPath, // where you want to log it in logtree. e.g. "/transactions"
           referenceId,
+          externalLink,
         },
         {
           headers: {
