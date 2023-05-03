@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 import { FolderService } from "./FolderService";
 import { UserDocument } from "logtree-types";
-import { ApiError } from "src/utils/errors";
+import { ApiError, AuthError } from "src/utils/errors";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
@@ -148,5 +148,13 @@ export const LogService = {
       .limit(300)
       .lean()
       .exec() as Promise<SimplifiedLog[]>;
+  },
+  deleteLog: async (logId: string, organizationId: string) => {
+    const log = await Log.findById(logId, { organizationId: 1 }).exec();
+    if (!log || log?.organizationId.toString() !== organizationId.toString()) {
+      throw new AuthError("Cannot delete a log from a different organization.");
+    }
+
+    await Log.deleteOne({ _id: logId });
   },
 };

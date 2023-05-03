@@ -76,4 +76,7 @@ export const OrganizationSchemas = {
     websiteUrl: Joi.string().required(),
     description: Joi.string().required(),
   }),
+  deleteLog: Joi.object({
+    logId: Joi.string().custom(objectId).required(),
+  }),
 };

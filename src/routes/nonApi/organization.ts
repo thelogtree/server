@@ -175,6 +175,14 @@ router.post(
   OrganizationController.verifyPhoneCode
 );
 router.post(
+  "/:id/delete-log",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteLog,
+  }),
+  OrganizationController.deleteLog
+);
+router.post(
   "/waitlist",
   rateLimiterP1,
   validateRequestAgainstSchemas({

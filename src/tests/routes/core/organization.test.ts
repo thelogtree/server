@@ -1766,3 +1766,54 @@ describe("VerifyPhoneCode", () => {
     expect(updatedUser?.phoneNumber).toBeUndefined();
   });
 });
+
+describe("DeleteLog", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it("correctly deletes a log", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const log1 = await LogFactory.create({ organizationId: organization._id });
+    const log2 = await LogFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-log`,
+      "POST",
+      { logId: log1._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const log1Exists = await Log.exists({ _id: log1._id });
+    expect(log1Exists).toBeFalsy();
+
+    const log2Exists = await Log.exists({ _id: log2._id });
+    expect(log2Exists).toBeTruthy();
+  });
+  it("fails to delete a log from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const log1 = await LogFactory.create();
+    const log2 = await LogFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-log`,
+      "POST",
+      { logId: log1._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Cannot delete a log from a different organization."
+    );
+
+    const log1Exists = await Log.exists({ _id: log1._id });
+    expect(log1Exists).toBeTruthy();
+
+    const log2Exists = await Log.exists({ _id: log2._id });
+    expect(log2Exists).toBeTruthy();
+  });
+});

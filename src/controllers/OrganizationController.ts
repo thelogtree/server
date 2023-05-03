@@ -342,4 +342,10 @@ export const OrganizationController = {
     );
     res.send({});
   },
+  deleteLog: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { logId } = req.body;
+    await LogService.deleteLog(logId, organization._id.toString())
+    res.send({});
+  },
 };
