@@ -5,6 +5,7 @@ import {
   integrationTypeEnum,
   keyTypeEnum,
 } from "logtree-types";
+import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import { config } from "src/utils/config";
 
@@ -18,7 +19,7 @@ export const SecureIntegrationService = {
     organizationId: string,
     integrationType: integrationTypeEnum,
     keys: PlaintextKey[]
-  ) => {
+  ): Promise<LeanDocument<IntegrationDocument> | IntegrationDocument> => {
     const encryptedKeys: Key[] = keys.map((key) => {
       const encryptedValue = CryptoJS.AES.encrypt(
         key.plaintextValue,
@@ -36,12 +37,13 @@ export const SecureIntegrationService = {
     }).exec();
 
     if (existingIntegration) {
-      await Integration.updateOne(
-        { _id: existingIntegration._id },
-        { keys: encryptedKeys }
-      );
+      return Integration.findByIdAndUpdate(existingIntegration._id, {
+        keys: encryptedKeys,
+      })
+        .lean()
+        .exec();
     } else {
-      await Integration.create({
+      return Integration.create({
         organizationId,
         type: integrationType,
         keys: encryptedKeys,

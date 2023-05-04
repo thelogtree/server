@@ -15,6 +15,8 @@ import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import {
   comparisonTypeEnum,
+  integrationTypeEnum,
+  keyTypeEnum,
   notificationTypeEnum,
   orgPermissionLevel,
 } from "logtree-types";
@@ -31,6 +33,7 @@ import { RuleFactory } from "src/tests/factories/RuleFactory";
 import { Rule } from "src/models/Rule";
 import { MyTwilio, TwilioUtil } from "src/utils/twilio";
 import { fakePromise } from "src/tests/mockHelpers";
+import { IntegrationFactory } from "src/tests/factories/IntegrationFactory";
 
 const routeUrl = "/organization";
 
@@ -1815,5 +1818,110 @@ describe("DeleteLog", () => {
 
     const log2Exists = await Log.exists({ _id: log2._id });
     expect(log2Exists).toBeTruthy();
+  });
+});
+
+describe("AddOrUpdateIntegration", () => {
+  it("correctly adds an integration", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [
+          {
+            plaintextKey: "abc",
+            type: keyTypeEnum.ApiKey,
+          },
+        ],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integration } = res.body;
+    expect(integration).toBeTruthy();
+    expect(integration.organizationId.toString()).toBe(
+      organization._id.toString()
+    );
+  });
+  it("correctly updates an integration's keys", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const oldIntegration = await IntegrationFactory.create({
+      organizationId: organization._id,
+      type: integrationTypeEnum.Sentry,
+      keys: [],
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [
+          {
+            plaintextKey: "abc",
+            type: keyTypeEnum.ApiKey,
+          },
+        ],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integration } = res.body;
+    expect(integration).toBeTruthy();
+    expect(integration.organizationId.toString()).toBe(
+      organization._id.toString()
+    );
+    expect(integration.keys.length).toBe(1);
+    expect(integration._id.toString()).toBe(oldIntegration._id.toString());
+  });
+  it("fails to create or update an integration because the keys are incorrectly formatted.", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [
+          {
+            someKey: "abc",
+            type: keyTypeEnum.ApiKey,
+          },
+        ],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Either no keys were provided, or the keys you provided were sent in an invalid format."
+    );
+  });
+  it("fails to create or update an integration because no keys were provided.", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Either no keys were provided, or the keys you provided were sent in an invalid format."
+    );
   });
 });

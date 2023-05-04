@@ -13,6 +13,7 @@ import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
 import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
+import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -345,7 +346,22 @@ export const OrganizationController = {
   deleteLog: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const { logId } = req.body;
-    await LogService.deleteLog(logId, organization._id.toString())
+    await LogService.deleteLog(logId, organization._id.toString());
     res.send({});
+  },
+  addOrUpdateIntegration: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { keys, type } = req.body;
+    if (!keys.length || keys.find((key) => !key.plaintextValue || !key.type)) {
+      throw new ApiError(
+        "Either no keys were provided, or the keys you provided were sent in an invalid format."
+      );
+    }
+    const integration = await SecureIntegrationService.addOrUpdateIntegration(
+      organization._id.toString(),
+      type,
+      keys
+    );
+    res.send({ integration });
   },
 };

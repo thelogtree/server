@@ -79,4 +79,8 @@ export const OrganizationSchemas = {
   deleteLog: Joi.object({
     logId: Joi.string().custom(objectId).required(),
   }),
+  addOrUpdateIntegration: Joi.object({
+    keys: Joi.array().required(),
+    type: Joi.string().required(),
+  }),
 };
