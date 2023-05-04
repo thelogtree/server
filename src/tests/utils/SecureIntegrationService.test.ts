@@ -191,9 +191,10 @@ describe("GetDecryptedKeysForIntegration (also e2e)", () => {
 
 describe("FinishConnection", () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
   });
-  it("correctly finishes the connection", async () => {
+  it("correctly finishes the connection (no extra work)", async () => {
     const getSetupFunctionToRunSpy = jest
       .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
       .mockImplementation(() => undefined);
@@ -211,12 +212,11 @@ describe("FinishConnection", () => {
     expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
     expect(wasSuccessful).toBe(true);
   });
-  it("fails to finish the connection", async () => {
+  it("correctly finishes the connection (there was extra work)", async () => {
+    const innerFxn = jest.fn((organizationId: string) => {});
     const getSetupFunctionToRunSpy = jest
       .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
-      .mockImplementation(() => {
-        throw new Error("something wrong");
-      });
+      .mockImplementation(() => innerFxn);
     const integration = await IntegrationFactory.create();
 
     let wasSuccessful = await SecureIntegrationService.finishConnection(
@@ -229,6 +229,35 @@ describe("FinishConnection", () => {
     expect(updatedIntegration).toBeTruthy();
 
     expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
+    expect(innerFxn).toBeCalledTimes(1);
+    expect(innerFxn.mock.calls[0][0].toString()).toBe(
+      integration.organizationId.toString()
+    );
+    expect(wasSuccessful).toBe(true);
+  });
+  it("fails to finish the connection", async () => {
+    const innerFxn = jest.fn((organizationId: string) => {
+      throw new Error("something wrong");
+    });
+    const getSetupFunctionToRunSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
+      .mockImplementation(() => innerFxn);
+    const integration = await IntegrationFactory.create();
+
+    let wasSuccessful = await SecureIntegrationService.finishConnection(
+      integration
+    );
+
+    const updatedIntegration = await Integration.findById(
+      integration._id
+    ).exec();
+    expect(updatedIntegration).toBeTruthy();
+
+    expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
+    expect(innerFxn).toBeCalledTimes(1);
+    expect(innerFxn.mock.calls[0][0].toString()).toBe(
+      integration.organizationId.toString()
+    );
     expect(wasSuccessful).toBe(false);
   });
 });
