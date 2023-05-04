@@ -37,9 +37,13 @@ export const SecureIntegrationService = {
     }).exec();
 
     if (existingIntegration) {
-      return Integration.findByIdAndUpdate(existingIntegration._id, {
-        keys: encryptedKeys,
-      })
+      return Integration.findByIdAndUpdate(
+        existingIntegration._id,
+        {
+          keys: encryptedKeys,
+        },
+        { new: true }
+      )
         .lean()
         .exec();
     } else {
