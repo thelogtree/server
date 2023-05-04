@@ -234,9 +234,7 @@ describe("FinishConnection", () => {
 
     expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
     expect(innerFxn).toBeCalledTimes(1);
-    expect(innerFxn.mock.calls[0][0].toString()).toBe(
-      integration.organizationId.toString()
-    );
+    expect(innerFxn.mock.calls[0][0]._id.toString()).toBe(integration.id);
     expect(wasSuccessful).toBe(true);
   });
   it("fails to finish the connection", async () => {
@@ -259,9 +257,7 @@ describe("FinishConnection", () => {
 
     expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
     expect(innerFxn).toBeCalledTimes(1);
-    expect(innerFxn.mock.calls[0][0].toString()).toBe(
-      integration.organizationId.toString()
-    );
+    expect(innerFxn.mock.calls[0][0]._id.toString()).toBe(integration.id);
     expect(wasSuccessful).toBe(false);
   });
 });
