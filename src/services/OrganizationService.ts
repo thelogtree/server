@@ -303,4 +303,15 @@ export const OrganizationService = {
       .sort({ createdAt: -1 })
       .lean()
       .exec(),
+  deleteIntegration: async (organizationId: string, integrationId: string) => {
+    const integration = await Integration.exists({
+      _id: integrationId,
+      organizationId,
+    }).exec();
+    if (!integration) {
+      throw new ApiError("Could not find that integration.");
+    }
+
+    await Integration.deleteOne({ _id: integrationId });
+  },
 };

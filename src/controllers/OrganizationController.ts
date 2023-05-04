@@ -371,4 +371,13 @@ export const OrganizationController = {
     );
     res.send({ integrations });
   },
+  deleteIntegration: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationId } = req.body;
+    await OrganizationService.deleteIntegration(
+      organization._id.toString(),
+      integrationId
+    );
+    res.send({});
+  },
 };

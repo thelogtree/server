@@ -1,18 +1,5 @@
-import { OrganizationFactory } from "src/tests/factories/OrganizationFactory";
-import { TestHelper } from "../../TestHelper";
-import { UserFactory } from "../../factories/UserFactory";
 import bcrypt from "bcrypt";
-import { config } from "src/utils/config";
-import { OrgInvitation } from "src/models/OrgInvitation";
-import { Organization } from "src/models/Organization";
-import { FolderFactory } from "src/tests/factories/FolderFactory";
-import { LogFactory } from "src/tests/factories/LogFactory";
-import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
 import faker from "faker";
-import { DateTime } from "luxon";
-import moment from "moment-timezone";
-import { Log } from "src/models/Log";
-import { Folder } from "src/models/Folder";
 import {
   comparisonTypeEnum,
   integrationTypeEnum,
@@ -20,20 +7,35 @@ import {
   notificationTypeEnum,
   orgPermissionLevel,
 } from "logtree-types";
-import { User } from "src/models/User";
-import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
+import { DateTime } from "luxon";
+import moment from "moment-timezone";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
-import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory";
-import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderFactory";
-import { FolderService } from "src/services/ApiService/lib/FolderService";
-import { LastCheckedFolder } from "src/models/LastCheckedFolder";
-import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
+import { Folder } from "src/models/Folder";
 import { FolderPreference } from "src/models/FolderPreference";
-import { RuleFactory } from "src/tests/factories/RuleFactory";
+import { Integration } from "src/models/Integration";
+import { LastCheckedFolder } from "src/models/LastCheckedFolder";
+import { Log } from "src/models/Log";
+import { Organization } from "src/models/Organization";
+import { OrgInvitation } from "src/models/OrgInvitation";
 import { Rule } from "src/models/Rule";
-import { MyTwilio, TwilioUtil } from "src/utils/twilio";
-import { fakePromise } from "src/tests/mockHelpers";
+import { User } from "src/models/User";
+import { FolderService } from "src/services/ApiService/lib/FolderService";
+import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory";
+import { FolderFactory } from "src/tests/factories/FolderFactory";
+import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
 import { IntegrationFactory } from "src/tests/factories/IntegrationFactory";
+import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderFactory";
+import { LogFactory } from "src/tests/factories/LogFactory";
+import { OrganizationFactory } from "src/tests/factories/OrganizationFactory";
+import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
+import { RuleFactory } from "src/tests/factories/RuleFactory";
+import { fakePromise } from "src/tests/mockHelpers";
+import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
+import { config } from "src/utils/config";
+import { TwilioUtil } from "src/utils/twilio";
+
+import { UserFactory } from "../../factories/UserFactory";
+import { TestHelper } from "../../TestHelper";
 
 const routeUrl = "/organization";
 
@@ -1951,5 +1953,52 @@ describe("GetIntegrations", () => {
     expect(integrations.length).toBe(2);
     expect(integrations[0]._id.toString()).toBe(integration2.id);
     expect(integrations[1]._id.toString()).toBe(integration1.id);
+  });
+});
+
+describe("DeleteIntegration", () => {
+  it("correctly deletes an integration", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-integration`,
+      "POST",
+      {
+        integrationId: integration._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const integrationStillExists = await Integration.exists({
+      _id: integration._id,
+    });
+    expect(integrationStillExists).toBeFalsy();
+  });
+  it("fails to delete an integration from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration = await IntegrationFactory.create();
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-integration`,
+      "POST",
+      {
+        integrationId: integration._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Could not find that integration.");
+
+    const integrationStillExists = await Integration.exists({
+      _id: integration._id,
+    });
+    expect(integrationStillExists).toBeTruthy();
   });
 });

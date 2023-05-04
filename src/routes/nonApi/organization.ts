@@ -196,6 +196,14 @@ router.post(
   OrganizationController.addOrUpdateIntegration
 );
 router.post(
+  "/:id/delete-integration",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteIntegration,
+  }),
+  OrganizationController.deleteIntegration
+);
+router.post(
   "/waitlist",
   rateLimiterP1,
   validateRequestAgainstSchemas({
