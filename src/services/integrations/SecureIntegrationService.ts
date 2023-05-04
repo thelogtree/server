@@ -16,7 +16,9 @@ export type PlaintextKey = {
   plaintextValue: string;
 };
 
-type FinishSetupFunctionType = (integration: IntegrationDocument) => Promise<any> | void;
+type FinishSetupFunctionType = (
+  integration: IntegrationDocument
+) => Promise<any> | void;
 const _finishSetupFunctionsToRun: {
   [key in integrationTypeEnum]: FinishSetupFunctionType;
 } = {
@@ -105,7 +107,7 @@ export const SecureIntegrationService = {
       const finishSetupFxn =
         SecureIntegrationService.getCorrectSetupFunctionToRun(integration);
       if (finishSetupFxn) {
-        await finishSetupFxn(integration.organizationId.toString());
+        await finishSetupFxn(integration);
       }
       wasSuccessful = true;
     } catch (e) {}
