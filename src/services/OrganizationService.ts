@@ -21,6 +21,7 @@ import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { FolderPreference } from "src/models/FolderPreference";
 import { Rule } from "src/models/Rule";
 import { UsageService } from "./ApiService/lib/UsageService";
+import { Integration } from "src/models/Integration";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -295,4 +296,11 @@ export const OrganizationService = {
       { isMuted },
       { upsert: true }
     ).exec(),
+  getIntegrations: async (organizationId: string) =>
+    Integration.find({
+      organizationId,
+    })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec(),
 };

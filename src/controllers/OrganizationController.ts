@@ -364,4 +364,11 @@ export const OrganizationController = {
     );
     res.send({ integration });
   },
+  getIntegrations: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const integrations = await OrganizationService.getIntegrations(
+      organization._id.toString()
+    );
+    res.send({ integrations });
+  },
 };

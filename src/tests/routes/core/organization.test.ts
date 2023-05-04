@@ -1925,3 +1925,31 @@ describe("AddOrUpdateIntegration", () => {
     );
   });
 });
+
+describe("GetIntegrations", () => {
+  it("correctly gets the integrations for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration1 = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+    await IntegrationFactory.create();
+    const integration2 = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integrations`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integrations } = res.body;
+    expect(integrations.length).toBe(2);
+    expect(integrations[0]._id.toString()).toBe(integration2.id);
+    expect(integrations[1]._id.toString()).toBe(integration1.id);
+  });
+});
