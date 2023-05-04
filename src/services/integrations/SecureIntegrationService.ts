@@ -94,6 +94,8 @@ export const SecureIntegrationService = {
     return decryptedKeys;
   },
   finishConnection: async (integration: IntegrationDocument) => {
+    // todo: add unit test(s) for this fxn
+
     let wasSuccessful = false;
     try {
       const finishSetupFxn = _finishSetupFunctionsToRun[integration.type];
