@@ -14,6 +14,7 @@ import { RuleService } from "src/services/RuleService";
 import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import _ from "lodash";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -379,5 +380,15 @@ export const OrganizationController = {
       integrationId
     );
     res.send({});
+  },
+  updateIntegration: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationId } = req.body;
+    const integration = await OrganizationService.updateIntegration(
+      organization._id.toString(),
+      integrationId,
+      _.omit(req.body, "integrationId")
+    );
+    res.send({ integration });
   },
 };

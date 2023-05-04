@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 import { config } from "./config";
+import { SentryService } from "src/services/integrations/components/SentryService";
 
 export async function startMongo() {
   mongoose

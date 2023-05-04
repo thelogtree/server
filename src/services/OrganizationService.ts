@@ -1,4 +1,5 @@
 import {
+  IntegrationDocument,
   OrganizationDocument,
   UserDocument,
   orgPermissionLevel,
@@ -313,5 +314,20 @@ export const OrganizationService = {
     }
 
     await Integration.deleteOne({ _id: integrationId });
+  },
+  updateIntegration: async (
+    organizationId: string,
+    integrationId: string,
+    fields: Partial<IntegrationDocument>
+  ) => {
+    const integration = await Integration.exists({
+      _id: integrationId,
+      organizationId,
+    }).exec();
+    if (!integration) {
+      throw new ApiError("Could not find an integration to update.");
+    }
+
+    return Integration.findByIdAndUpdate(integrationId, fields, { new: true });
   },
 };

@@ -4,7 +4,7 @@ import { ApiError } from "src/utils/errors";
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import axios from "axios";
 
-const BASE_URL = "https://sentry.io/api/0/projects";
+const BASE_URL = "https://sentry.io/api/0/projects/";
 
 export const SentryService = {
   getAuthorizationHeader: async (organizationId: string) => {
@@ -39,7 +39,7 @@ export const SentryService = {
     const res = await axios.get(BASE_URL, {
       headers: authHeaders,
     });
-    const resultArray = res.data
-    
+    const resultArray = res.data;
+    console.log(resultArray);
   },
 };

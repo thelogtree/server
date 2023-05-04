@@ -96,6 +96,14 @@ router.put(
   }),
   OrganizationController.updateFolder
 );
+router.put(
+  "/:id/integration",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.updateIntegration,
+  }),
+  OrganizationController.updateIntegration
+);
 
 router.post(
   "/:id/user",

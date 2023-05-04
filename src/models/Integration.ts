@@ -28,6 +28,7 @@ const IntegrationSchema = new Schema(
       required: true,
     },
     keys: [KeySchema],
+    additionalProperties: { type: Map, default: {} },
   },
   { timestamps: true }
 );

@@ -2002,3 +2002,58 @@ describe("DeleteIntegration", () => {
     expect(integrationStillExists).toBeTruthy();
   });
 });
+
+describe("UpdateIntegration", () => {
+  it("correctly updates an integration", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const oldIntegration = await IntegrationFactory.create({
+      organizationId: organization._id,
+      additionalProperties: {},
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}`,
+      "PUT",
+      {
+        integrationId: oldIntegration._id,
+        additionalProperties: { test: "hi", test2: "yo" },
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integration } = res.body;
+    expect(integration._id.toString()).toBe(oldIntegration.id);
+    expect(integration.additionalProperties).toEqual({
+      test: "hi",
+      test2: "yo",
+    });
+  });
+  it("fails to update an integration from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const oldIntegration = await IntegrationFactory.create({
+      additionalProperties: {},
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}`,
+      "PUT",
+      {
+        integrationId: oldIntegration._id,
+        additionalProperties: { test: "hi", test2: "yo" },
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Could not find an integration to update.");
+
+    const integration = await Integration.findById(oldIntegration._id)
+      .lean()
+      .exec();
+    expect(integration._id.toString()).toBe(oldIntegration.id);
+    expect(integration.additionalProperties).toEqual({});
+  });
+});
