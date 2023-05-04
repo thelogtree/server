@@ -36,6 +36,8 @@ import { TwilioUtil } from "src/utils/twilio";
 
 import { UserFactory } from "../../factories/UserFactory";
 import { TestHelper } from "../../TestHelper";
+import { SentryService } from "src/services/integrations/components/SentryService";
+import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 
 const routeUrl = "/organization";
 
@@ -1824,7 +1826,13 @@ describe("DeleteLog", () => {
 });
 
 describe("AddOrUpdateIntegration", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it("correctly adds an integration", async () => {
+    const projectConnectionsSpy = jest
+      .spyOn(SecureIntegrationService, "finishConnection")
+      .mockImplementation(() => Promise.resolve(true));
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
 
@@ -1850,6 +1858,7 @@ describe("AddOrUpdateIntegration", () => {
     expect(integration.organizationId.toString()).toBe(
       organization._id.toString()
     );
+    expect(projectConnectionsSpy).toBeCalledTimes(1);
   });
   it("correctly updates an integration's keys", async () => {
     const organization = await OrganizationFactory.create();

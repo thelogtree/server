@@ -8,10 +8,18 @@ import {
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import { config } from "src/utils/config";
+import { SentryService } from "./components/SentryService";
+import { ApiError } from "src/utils/errors";
 
 export type PlaintextKey = {
   type: keyTypeEnum;
   plaintextValue: string;
+};
+
+const _finishSetupFunctionsToRun: {
+  [key in integrationTypeEnum]: (organizationId: string) => any;
+} = {
+  sentry: SentryService.refreshProjectConnections,
 };
 
 export const SecureIntegrationService = {
@@ -36,8 +44,9 @@ export const SecureIntegrationService = {
       type: integrationType,
     }).exec();
 
+    let integration;
     if (existingIntegration) {
-      return Integration.findByIdAndUpdate(
+      integration = await Integration.findByIdAndUpdate(
         existingIntegration._id,
         {
           keys: encryptedKeys,
@@ -47,12 +56,25 @@ export const SecureIntegrationService = {
         .lean()
         .exec();
     } else {
-      return Integration.create({
+      integration = await Integration.create({
         organizationId,
         type: integrationType,
         keys: encryptedKeys,
       });
     }
+
+    const wasSuccessful = await SecureIntegrationService.finishConnection(
+      integration!
+    );
+
+    if (!wasSuccessful) {
+      await Integration.deleteOne({ _id: integration._id });
+      throw new ApiError(
+        "Something went wrong. Please make sure any keys you provided are correct. If you need help, reach out to us at hello@logtree.co"
+      );
+    }
+
+    return integration;
   },
   getDecryptedKeysForIntegration: (
     integration: IntegrationDocument
@@ -70,5 +92,20 @@ export const SecureIntegrationService = {
     });
 
     return decryptedKeys;
+  },
+  finishConnection: async (integration: IntegrationDocument) => {
+    let wasSuccessful = false;
+    try {
+      const finishSetupFxn = _finishSetupFunctionsToRun[integration.type];
+      if (finishSetupFxn) {
+        await finishSetupFxn(integration.organizationId.toString());
+      }
+      await Integration.updateOne(
+        { _id: integration._id },
+        { hasFinishedSetup: true }
+      );
+      wasSuccessful = true;
+    } catch (e) {}
+    return wasSuccessful;
   },
 };

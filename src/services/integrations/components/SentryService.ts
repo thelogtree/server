@@ -32,7 +32,7 @@ export const SentryService = {
       Authorization: `Bearer ${key.plaintextValue}`,
     };
   },
-  listProjects: async (organizationId: string) => {
+  refreshProjectConnections: async (organizationId: string) => {
     const authHeaders = await SentryService.getAuthorizationHeader(
       organizationId
     );
@@ -40,6 +40,20 @@ export const SentryService = {
       headers: authHeaders,
     });
     const resultArray = res.data;
-    console.log(resultArray);
+
+    const organizationSlug = resultArray.length
+      ? resultArray[0].organization.slug
+      : null;
+    const projectSlugs = resultArray.map((project) => project.slug);
+
+    await Integration.updateOne(
+      { organizationId, type: integrationTypeEnum.Sentry },
+      {
+        additionalProperties: {
+          organizationSlug,
+          projectSlugs,
+        },
+      }
+    );
   },
 };
