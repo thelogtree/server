@@ -42,6 +42,7 @@ export const config = {
   },
   encryption: {
     saltRounds: 10,
+    encryptDecryptKey: process.env.ENCRYPT_DECRYPT_KEY || "dummy",
   },
   logtree: {
     publishableApiKey: process.env.LOGTREE_PUBLISHABLE_API_KEY || "",
