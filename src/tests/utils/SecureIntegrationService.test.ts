@@ -4,8 +4,6 @@ import { SecureIntegrationService } from "src/services/integrations/SecureIntegr
 import { Integration } from "src/models/Integration";
 import { OrganizationFactory } from "../factories/OrganizationFactory";
 import faker from "faker";
-import { SentryService } from "src/services/integrations/components/SentryService";
-import { fakePromise } from "../mockHelpers";
 
 describe("AddOrUpdateIntegration", () => {
   beforeEach(() => {
@@ -176,7 +174,6 @@ describe("GetDecryptedKeysForIntegration (also e2e)", () => {
       organizationId: organization._id,
     }).exec();
     expect(integration!.keys[0].encryptedValue).not.toBe(plaintextValue);
-    expect(integration!.hasFinishedSetup).not.toBe(true);
     expect(integration!.keys[0].encryptedValue).toBeTruthy();
     expect(integration!.keys[0].encryptedValue.length).toBeGreaterThan(
       plaintextValue.length
@@ -189,5 +186,49 @@ describe("GetDecryptedKeysForIntegration (also e2e)", () => {
     expect(decryptedKeys[0].plaintextValue).toBe(plaintextValue);
 
     expect(projectConnectionsSpy).toBeCalledTimes(1);
+  });
+});
+
+describe("FinishConnection", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it("correctly finishes the connection", async () => {
+    const getSetupFunctionToRunSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
+      .mockImplementation(() => undefined);
+    const integration = await IntegrationFactory.create();
+
+    let wasSuccessful = await SecureIntegrationService.finishConnection(
+      integration
+    );
+
+    const updatedIntegration = await Integration.findById(
+      integration._id
+    ).exec();
+    expect(updatedIntegration).toBeTruthy();
+
+    expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
+    expect(wasSuccessful).toBe(true);
+  });
+  it("fails to finish the connection", async () => {
+    const getSetupFunctionToRunSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
+      .mockImplementation(() => {
+        throw new Error("something wrong");
+      });
+    const integration = await IntegrationFactory.create();
+
+    let wasSuccessful = await SecureIntegrationService.finishConnection(
+      integration
+    );
+
+    const updatedIntegration = await Integration.findById(
+      integration._id
+    ).exec();
+    expect(updatedIntegration).toBeTruthy();
+
+    expect(getSetupFunctionToRunSpy).toBeCalledTimes(1);
+    expect(wasSuccessful).toBe(false);
   });
 });

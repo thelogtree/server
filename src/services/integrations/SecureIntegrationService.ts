@@ -16,8 +16,9 @@ export type PlaintextKey = {
   plaintextValue: string;
 };
 
+type FinishSetupFunctionType = (organizationId: string) => Promise<any>;
 const _finishSetupFunctionsToRun: {
-  [key in integrationTypeEnum]: (organizationId: string) => any;
+  [key in integrationTypeEnum]: FinishSetupFunctionType;
 } = {
   sentry: SentryService.refreshProjectConnections,
 };
@@ -76,6 +77,11 @@ export const SecureIntegrationService = {
 
     return integration;
   },
+  // main reason this is extracted is so we can mock it in a unit test easily
+  getCorrectSetupFunctionToRun: (
+    integration: IntegrationDocument
+  ): FinishSetupFunctionType | undefined =>
+    _finishSetupFunctionsToRun[integration.type],
   getDecryptedKeysForIntegration: (
     integration: IntegrationDocument
   ): PlaintextKey[] => {
@@ -94,18 +100,12 @@ export const SecureIntegrationService = {
     return decryptedKeys;
   },
   finishConnection: async (integration: IntegrationDocument) => {
-    // todo: add unit test(s) for this fxn
-
     let wasSuccessful = false;
     try {
-      const finishSetupFxn = _finishSetupFunctionsToRun[integration.type];
+      const finishSetupFxn = getCorrectSetupFunctionToRun(integration);
       if (finishSetupFxn) {
         await finishSetupFxn(integration.organizationId.toString());
       }
-      await Integration.updateOne(
-        { _id: integration._id },
-        { hasFinishedSetup: true }
-      );
       wasSuccessful = true;
     } catch (e) {}
     return wasSuccessful;
