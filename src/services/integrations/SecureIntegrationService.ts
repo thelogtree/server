@@ -102,7 +102,8 @@ export const SecureIntegrationService = {
   finishConnection: async (integration: IntegrationDocument) => {
     let wasSuccessful = false;
     try {
-      const finishSetupFxn = getCorrectSetupFunctionToRun(integration);
+      const finishSetupFxn =
+        SecureIntegrationService.getCorrectSetupFunctionToRun(integration);
       if (finishSetupFxn) {
         await finishSetupFxn(integration.organizationId.toString());
       }
