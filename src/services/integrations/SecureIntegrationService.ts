@@ -16,7 +16,7 @@ export type PlaintextKey = {
   plaintextValue: string;
 };
 
-type FinishSetupFunctionType = (organizationId: string) => Promise<any> | void;
+type FinishSetupFunctionType = (integration: IntegrationDocument) => Promise<any> | void;
 const _finishSetupFunctionsToRun: {
   [key in integrationTypeEnum]: FinishSetupFunctionType;
 } = {

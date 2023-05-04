@@ -1,4 +1,8 @@
-import { integrationTypeEnum, keyTypeEnum } from "logtree-types";
+import {
+  IntegrationDocument,
+  integrationTypeEnum,
+  keyTypeEnum,
+} from "logtree-types";
 import { IntegrationFactory } from "../factories/IntegrationFactory";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import { Integration } from "src/models/Integration";
@@ -213,7 +217,7 @@ describe("FinishConnection", () => {
     expect(wasSuccessful).toBe(true);
   });
   it("correctly finishes the connection (there was extra work)", async () => {
-    const innerFxn = jest.fn((organizationId: string) => {});
+    const innerFxn = jest.fn((_integration: IntegrationDocument) => {});
     const getSetupFunctionToRunSpy = jest
       .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
       .mockImplementation(() => innerFxn);
@@ -236,7 +240,7 @@ describe("FinishConnection", () => {
     expect(wasSuccessful).toBe(true);
   });
   it("fails to finish the connection", async () => {
-    const innerFxn = jest.fn((organizationId: string) => {
+    const innerFxn = jest.fn((_integration: IntegrationDocument) => {
       throw new Error("something wrong");
     });
     const getSetupFunctionToRunSpy = jest

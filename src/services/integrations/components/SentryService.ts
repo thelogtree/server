@@ -1,4 +1,8 @@
-import { integrationTypeEnum, keyTypeEnum } from "logtree-types";
+import {
+  IntegrationDocument,
+  integrationTypeEnum,
+  keyTypeEnum,
+} from "logtree-types";
 import { Integration } from "src/models/Integration";
 import { ApiError } from "src/utils/errors";
 import { SecureIntegrationService } from "../SecureIntegrationService";
@@ -32,9 +36,9 @@ export const SentryService = {
       Authorization: `Bearer ${key.plaintextValue}`,
     };
   },
-  refreshProjectConnections: async (organizationId: string) => {
+  refreshProjectConnections: async (integration: IntegrationDocument) => {
     const authHeaders = await SentryService.getAuthorizationHeader(
-      organizationId
+      integration.organizationId.toString()
     );
     const res = await axios.get(BASE_URL, {
       headers: authHeaders,
@@ -47,7 +51,7 @@ export const SentryService = {
     const projectSlugs = resultArray.map((project) => project.slug);
 
     await Integration.updateOne(
-      { organizationId, type: integrationTypeEnum.Sentry },
+      { _id: integration._id },
       {
         additionalProperties: {
           organizationSlug,
