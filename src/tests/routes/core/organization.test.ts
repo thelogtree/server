@@ -2013,7 +2013,7 @@ describe("UpdateIntegration", () => {
     });
 
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${user.organizationId.toString()}`,
+      routeUrl + `/${user.organizationId.toString()}/integration`,
       "PUT",
       {
         integrationId: oldIntegration._id,
@@ -2039,7 +2039,7 @@ describe("UpdateIntegration", () => {
     });
 
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${user.organizationId.toString()}`,
+      routeUrl + `/${user.organizationId.toString()}/integration`,
       "PUT",
       {
         integrationId: oldIntegration._id,
