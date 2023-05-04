@@ -7,8 +7,10 @@ import { Integration } from "src/models/Integration";
 import { ApiError } from "src/utils/errors";
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import axios from "axios";
+import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import _ from "lodash";
 
-const BASE_URL = "https://sentry.io/api/0/projects/";
+const BASE_URL = "https://sentry.io/api/0/";
 
 export const SentryService = {
   getAuthorizationHeader: async (organizationId: string) => {
@@ -40,7 +42,7 @@ export const SentryService = {
     const authHeaders = await SentryService.getAuthorizationHeader(
       integration.organizationId.toString()
     );
-    const res = await axios.get(BASE_URL, {
+    const res = await axios.get(BASE_URL + "projects/", {
       headers: authHeaders,
     });
     const resultArray = res.data;
@@ -59,5 +61,38 @@ export const SentryService = {
         },
       }
     );
+  },
+  getLogsForUser: async (
+    integration: IntegrationDocument,
+    referenceId: string
+  ): Promise<SimplifiedLog[]> => {
+    const issuesForEachProject: SimplifiedLog[][] = await Promise.all(
+      integration.additionalProperties["projectSlugs"].map(
+        async (projectSlug) => {
+          const issuesRes = await axios.get(
+            `projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
+            {
+              params: {
+                query: `user.email:${referenceId}`,
+              },
+            }
+          );
+          const issuesArray = issuesRes.data;
+          return issuesArray.map(
+            (issue) =>
+              ({
+                _id: issue.id,
+                content: issue.title,
+                createdAt: new Date(issue.lastSeen),
+                referenceId,
+                externalLink: issue.permalink,
+              } as SimplifiedLog)
+          );
+        }
+      )
+    );
+    const logsForUser = _.flatten(issuesForEachProject);
+
+    return logsForUser;
   },
 };
