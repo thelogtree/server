@@ -1832,7 +1832,7 @@ describe("AddOrUpdateIntegration", () => {
       {
         keys: [
           {
-            plaintextKey: "abc",
+            plaintextValue: "abc",
             type: keyTypeEnum.ApiKey,
           },
         ],
@@ -1864,7 +1864,7 @@ describe("AddOrUpdateIntegration", () => {
       {
         keys: [
           {
-            plaintextKey: "abc",
+            plaintextValue: "abc",
             type: keyTypeEnum.ApiKey,
           },
         ],
