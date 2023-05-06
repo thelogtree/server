@@ -146,4 +146,16 @@ export const SecureIntegrationService = {
 
     return flattenedResults;
   },
+  getConnectableIntegrationsForOrganization: async (organizationId: string) => {
+    const connectedIntegrationTypes = await Integration.find(
+      { organizationId },
+      { type: 1 }
+    ).exec();
+
+    // prune the integrations this organization has already connected to
+    return integrationsAvailableToConnectTo.filter(
+      (type) =>
+        !connectedIntegrationTypes.find((typeObj) => typeObj.type === type)
+    );
+  },
 };

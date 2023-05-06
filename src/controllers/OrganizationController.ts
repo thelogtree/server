@@ -391,4 +391,12 @@ export const OrganizationController = {
     );
     res.send({ integration });
   },
+  getConnectableIntegrations: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const integrations =
+      await SecureIntegrationService.getConnectableIntegrationsForOrganization(
+        organization._id.toString()
+      );
+    res.send({ integrations });
+  },
 };

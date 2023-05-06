@@ -37,6 +37,7 @@ import { TwilioUtil } from "src/utils/twilio";
 import { UserFactory } from "../../factories/UserFactory";
 import { TestHelper } from "../../TestHelper";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import { integrationsAvailableToConnectTo } from "src/services/integrations/lib";
 
 const routeUrl = "/organization";
 
@@ -2063,5 +2064,51 @@ describe("UpdateIntegration", () => {
       .exec();
     expect(integration._id.toString()).toBe(oldIntegration.id);
     expect(integration.additionalProperties).toEqual({});
+  });
+});
+
+describe("GetConnectableIntegrations", () => {
+  it("correctly gets the connectable integrations for an organization (at least one exists)", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    await IntegrationFactory.create(); // decoy
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/connectable-integrations`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integrations } = res.body;
+    expect(integrations.length).toBeGreaterThan(0);
+    expect(integrations.length).toBe(integrationsAvailableToConnectTo.length);
+  });
+
+  it("correctly gets the connectable integrations for an organization (none left)", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    for (const type of integrationsAvailableToConnectTo) {
+      await IntegrationFactory.create({
+        type,
+        organizationId: organization._id.toString(),
+      });
+    }
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/connectable-integrations`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integrations } = res.body;
+    expect(integrations.length).toBe(0);
   });
 });

@@ -79,6 +79,11 @@ router.get(
   auth.requiredOrgMember,
   OrganizationController.getIntegrations
 );
+router.get(
+  "/:id/connectable-integrations",
+  auth.requiredOrgMember,
+  OrganizationController.getConnectableIntegrations
+);
 
 router.put(
   "/:id/user-permissions",
