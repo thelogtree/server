@@ -36,7 +36,6 @@ import { TwilioUtil } from "src/utils/twilio";
 
 import { UserFactory } from "../../factories/UserFactory";
 import { TestHelper } from "../../TestHelper";
-import { SentryService } from "src/services/integrations/components/SentryService";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 
 const routeUrl = "/organization";

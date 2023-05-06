@@ -9,8 +9,14 @@ import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import { config } from "src/utils/config";
 import { ApiError } from "src/utils/errors";
-import { FinishSetupFunctionType } from "./types";
-import { IntegrationFinishSetupFunctionsToRunMap } from "./lib";
+import { FinishSetupFunctionType, GetIntegrationLogsFxnType } from "./types";
+import {
+  IntegrationFinishSetupFunctionsToRunMap,
+  IntegrationGetLogsMap,
+  integrationsAvailableToConnectTo,
+} from "./lib";
+import _ from "lodash";
+import { SimplifiedLog } from "../ApiService/lib/LogService";
 
 export type PlaintextKey = {
   type: keyTypeEnum;
@@ -23,7 +29,7 @@ export const SecureIntegrationService = {
     integrationType: integrationTypeEnum,
     keys: PlaintextKey[]
   ): Promise<LeanDocument<IntegrationDocument> | IntegrationDocument> => {
-    if (!Object.values(integrationTypeEnum).includes(integrationType)) {
+    if (!integrationsAvailableToConnectTo.includes(integrationType)) {
       throw new ApiError("This integration is not available right now.");
     }
 
@@ -78,7 +84,7 @@ export const SecureIntegrationService = {
   // main reason this is extracted is so we can mock it in a unit test easily
   getCorrectSetupFunctionToRun: (
     integration: IntegrationDocument
-  ): FinishSetupFunctionType | undefined =>
+  ): FinishSetupFunctionType =>
     IntegrationFinishSetupFunctionsToRunMap[integration.type],
   getDecryptedKeysForIntegration: (
     integration: IntegrationDocument
@@ -108,5 +114,36 @@ export const SecureIntegrationService = {
       wasSuccessful = true;
     } catch (e) {}
     return wasSuccessful;
+  },
+  getCorrectLogsFunctionToRun: (
+    integration: IntegrationDocument
+  ): GetIntegrationLogsFxnType | undefined =>
+    IntegrationGetLogsMap[integration.type],
+  getLogsFromIntegrations: async (
+    organizationId: string,
+    query: string
+  ): Promise<SimplifiedLog[]> => {
+    const integrations = await Integration.find({ organizationId })
+      .lean()
+      .exec();
+    const logResults = await Promise.all(
+      integrations.map(async (integration) => {
+        try {
+          const getLogsFxnToRun =
+            SecureIntegrationService.getCorrectLogsFunctionToRun(integration);
+          if (getLogsFxnToRun) {
+            const results = await getLogsFxnToRun(integration, query);
+            return results;
+          }
+          return [];
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const flattenedResults = _.flatten(logResults);
+
+    return flattenedResults;
   },
 };

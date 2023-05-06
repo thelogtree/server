@@ -8,6 +8,7 @@ import { SecureIntegrationService } from "src/services/integrations/SecureIntegr
 import { Integration } from "src/models/Integration";
 import { OrganizationFactory } from "../factories/OrganizationFactory";
 import faker from "faker";
+import { simplifiedLogTagEnum } from "src/services/ApiService/lib/LogService";
 
 describe("AddOrUpdateIntegration", () => {
   beforeEach(() => {
@@ -231,7 +232,7 @@ describe("FinishConnection", () => {
       .mockImplementation(() => undefined);
     const integration = await IntegrationFactory.create();
 
-    let wasSuccessful = await SecureIntegrationService.finishConnection(
+    const wasSuccessful = await SecureIntegrationService.finishConnection(
       integration
     );
 
@@ -250,7 +251,7 @@ describe("FinishConnection", () => {
       .mockImplementation(() => innerFxn);
     const integration = await IntegrationFactory.create();
 
-    let wasSuccessful = await SecureIntegrationService.finishConnection(
+    const wasSuccessful = await SecureIntegrationService.finishConnection(
       integration
     );
 
@@ -273,7 +274,7 @@ describe("FinishConnection", () => {
       .mockImplementation(() => innerFxn);
     const integration = await IntegrationFactory.create();
 
-    let wasSuccessful = await SecureIntegrationService.finishConnection(
+    const wasSuccessful = await SecureIntegrationService.finishConnection(
       integration
     );
 
@@ -286,5 +287,66 @@ describe("FinishConnection", () => {
     expect(innerFxn).toBeCalledTimes(1);
     expect(innerFxn.mock.calls[0][0]._id.toString()).toBe(integration.id);
     expect(wasSuccessful).toBe(false);
+  });
+});
+
+describe("GetLogsFromIntegrations", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly gets the logs from integrations", async () => {
+    const innerFxn = jest.fn(
+      (integration: IntegrationDocument, _query: string) =>
+        Promise.resolve([
+          {
+            _id: "abc",
+            content: "def",
+            createdAt: integration["createdAt"],
+            tag: simplifiedLogTagEnum.Error,
+          },
+        ])
+    );
+    const getLogsFunctionToRunSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectLogsFunctionToRun")
+      .mockImplementation(() => innerFxn);
+
+    const organization = await OrganizationFactory.create();
+    const integration1 = await IntegrationFactory.create({
+      type: integrationTypeEnum.Sentry,
+      organizationId: organization._id,
+    });
+    const integration2 = await IntegrationFactory.create({
+      type: integrationTypeEnum.Sentry,
+      organizationId: organization._id,
+    });
+    await IntegrationFactory.create({
+      type: integrationTypeEnum.Sentry,
+    });
+
+    const logs = await SecureIntegrationService.getLogsFromIntegrations(
+      organization._id.toString(),
+      "something"
+    );
+
+    expect(getLogsFunctionToRunSpy).toBeCalledTimes(2);
+    expect(innerFxn).toBeCalledTimes(2);
+
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        {
+          _id: "abc",
+          content: "def",
+          createdAt: integration1["createdAt"],
+          tag: simplifiedLogTagEnum.Error,
+        },
+        {
+          _id: "abc",
+          content: "def",
+          createdAt: integration2["createdAt"],
+          tag: simplifiedLogTagEnum.Error,
+        },
+      ])
+    );
   });
 });
