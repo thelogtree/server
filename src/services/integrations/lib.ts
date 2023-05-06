@@ -32,6 +32,7 @@ export const IntegrationGetLogsMap: {
 };
 
 // functions for getting the functions to run when finishing connecting an integration
+// these can be used for doing additional setup work or for testing that the api key(s) provided are valid.
 export const IntegrationFinishSetupFunctionsToRunMap: {
   [key in integrationTypeEnum]: FinishSetupFunctionType;
 } = {
