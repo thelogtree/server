@@ -150,6 +150,33 @@ describe("AddOrUpdateIntegration", () => {
 
     expect(projectConnectionsSpy).toBeCalledTimes(1);
   });
+  it("fails to create a new integration for an integration that is not supported anymore.", async () => {
+    const organization = await OrganizationFactory.create();
+
+    let errorMsg = "";
+    try {
+      await SecureIntegrationService.addOrUpdateIntegration(
+        organization._id.toString(),
+        // @ts-ignore
+        "some-random-integration",
+        [
+          {
+            plaintextValue: "aaaaa",
+            type: keyTypeEnum.AuthToken,
+          },
+        ]
+      );
+    } catch (e: any) {
+      errorMsg = e.message;
+    }
+
+    const integrationsForOrganizationAfter = await Integration.find({
+      organizationId: organization._id,
+    }).exec();
+    expect(integrationsForOrganizationAfter.length).toBe(0);
+
+    expect(errorMsg).toBe("This integration is not available right now.");
+  });
 });
 
 describe("GetDecryptedKeysForIntegration (also e2e)", () => {

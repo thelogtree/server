@@ -8,21 +8,13 @@ import {
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import { config } from "src/utils/config";
-import { SentryService } from "./components/SentryService";
 import { ApiError } from "src/utils/errors";
+import { FinishSetupFunctionType } from "./types";
+import { IntegrationFinishSetupFunctionsToRunMap } from "./lib";
 
 export type PlaintextKey = {
   type: keyTypeEnum;
   plaintextValue: string;
-};
-
-type FinishSetupFunctionType = (
-  integration: IntegrationDocument
-) => Promise<any> | void;
-const _finishSetupFunctionsToRun: {
-  [key in integrationTypeEnum]: FinishSetupFunctionType;
-} = {
-  sentry: SentryService.refreshProjectConnections,
 };
 
 export const SecureIntegrationService = {
@@ -31,6 +23,10 @@ export const SecureIntegrationService = {
     integrationType: integrationTypeEnum,
     keys: PlaintextKey[]
   ): Promise<LeanDocument<IntegrationDocument> | IntegrationDocument> => {
+    if (!Object.keys(integrationTypeEnum).includes(integrationType)) {
+      throw new ApiError("This integration is not available right now.");
+    }
+
     const encryptedKeys: Key[] = keys.map((key) => {
       const encryptedValue = CryptoJS.AES.encrypt(
         key.plaintextValue,
@@ -83,7 +79,7 @@ export const SecureIntegrationService = {
   getCorrectSetupFunctionToRun: (
     integration: IntegrationDocument
   ): FinishSetupFunctionType | undefined =>
-    _finishSetupFunctionsToRun[integration.type],
+    IntegrationFinishSetupFunctionsToRunMap[integration.type],
   getDecryptedKeysForIntegration: (
     integration: IntegrationDocument
   ): PlaintextKey[] => {

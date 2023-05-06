@@ -7,41 +7,65 @@ import { Integration } from "src/models/Integration";
 import { ApiError } from "src/utils/errors";
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import axios from "axios";
-import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import {
+  SimplifiedLog,
+  simplifiedLogTagEnum,
+} from "src/services/ApiService/lib/LogService";
 import _ from "lodash";
+import { IntegrationServiceType } from "../types";
 
 const BASE_URL = "https://sentry.io/api/0/";
 
-export const SentryService = {
-  getAuthorizationHeader: async (organizationId: string) => {
-    const NO_KEY_MESSAGE = "No Sentry key exists for this organization.";
-    const integration = await Integration.findOne({
-      organizationId,
-      type: integrationTypeEnum.Sentry,
-    })
-      .lean()
-      .exec();
-    if (!integration) {
-      throw new ApiError(NO_KEY_MESSAGE);
-    }
-
+export const SentryService: IntegrationServiceType = {
+  getHeaders: async (integration: IntegrationDocument) => {
     const decryptedValue =
       SecureIntegrationService.getDecryptedKeysForIntegration(integration);
     const key = decryptedValue.find(
       (key) => key.type === keyTypeEnum.AuthToken
     );
     if (!key) {
-      throw new ApiError(NO_KEY_MESSAGE);
+      throw new ApiError("No Sentry key exists for this organization.");
     }
 
     return {
       Authorization: `Bearer ${key.plaintextValue}`,
     };
   },
-  refreshProjectConnections: async (integration: IntegrationDocument) => {
-    const authHeaders = await SentryService.getAuthorizationHeader(
-      integration.organizationId.toString()
+  getLogs: async (
+    integration: IntegrationDocument,
+    query: string
+  ): Promise<SimplifiedLog[]> => {
+    const issuesForEachProject: SimplifiedLog[][] = await Promise.all(
+      integration.additionalProperties["projectSlugs"].map(
+        async (projectSlug) => {
+          const issuesRes = await axios.get(
+            `projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
+            {
+              params: {
+                query: `user.email:${query}`,
+              },
+            }
+          );
+          const issuesArray = issuesRes.data;
+          return issuesArray.map(
+            (issue) =>
+              ({
+                _id: issue.id,
+                content: issue.title,
+                createdAt: new Date(issue.lastSeen),
+                externalLink: issue.permalink,
+                tag: simplifiedLogTagEnum.Error,
+              } as SimplifiedLog)
+          );
+        }
+      )
     );
+    const logsForUser = _.flatten(issuesForEachProject);
+
+    return logsForUser;
+  },
+  finishConnection: async (integration: IntegrationDocument) => {
+    const authHeaders = await SentryService.getHeaders(integration);
     const res = await axios.get(BASE_URL + "projects/", {
       headers: authHeaders,
     });
@@ -61,38 +85,5 @@ export const SentryService = {
         },
       }
     );
-  },
-  getLogsForUser: async (
-    integration: IntegrationDocument,
-    referenceId: string
-  ): Promise<SimplifiedLog[]> => {
-    const issuesForEachProject: SimplifiedLog[][] = await Promise.all(
-      integration.additionalProperties["projectSlugs"].map(
-        async (projectSlug) => {
-          const issuesRes = await axios.get(
-            `projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
-            {
-              params: {
-                query: `user.email:${referenceId}`,
-              },
-            }
-          );
-          const issuesArray = issuesRes.data;
-          return issuesArray.map(
-            (issue) =>
-              ({
-                _id: issue.id,
-                content: issue.title,
-                createdAt: new Date(issue.lastSeen),
-                referenceId,
-                externalLink: issue.permalink,
-              } as SimplifiedLog)
-          );
-        }
-      )
-    );
-    const logsForUser = _.flatten(issuesForEachProject);
-
-    return logsForUser;
   },
 };

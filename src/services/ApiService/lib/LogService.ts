@@ -7,6 +7,10 @@ import { ApiError, AuthError } from "src/utils/errors";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
+export enum simplifiedLogTagEnum {
+  Error = "error",
+}
+
 export type SimplifiedLog = {
   _id: ObjectId | string;
   content: string;
@@ -14,6 +18,7 @@ export type SimplifiedLog = {
   folderId?: ObjectId | string;
   referenceId?: string;
   externalLink?: string;
+  tag?: simplifiedLogTagEnum;
 };
 
 export const LogService = {
