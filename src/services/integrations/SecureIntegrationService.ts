@@ -23,7 +23,7 @@ export const SecureIntegrationService = {
     integrationType: integrationTypeEnum,
     keys: PlaintextKey[]
   ): Promise<LeanDocument<IntegrationDocument> | IntegrationDocument> => {
-    if (!Object.keys(integrationTypeEnum).includes(integrationType)) {
+    if (!Object.values(integrationTypeEnum).includes(integrationType)) {
       throw new ApiError("This integration is not available right now.");
     }
 
