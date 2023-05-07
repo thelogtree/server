@@ -2,6 +2,7 @@ import CryptoJS from "crypto-js";
 import {
   IntegrationDocument,
   Key,
+  OrganizationDocument,
   integrationTypeEnum,
   keyTypeEnum,
 } from "logtree-types";
@@ -121,10 +122,12 @@ export const SecureIntegrationService = {
   ): GetIntegrationLogsFxnType | undefined =>
     IntegrationGetLogsMap[integration.type],
   getLogsFromIntegrations: async (
-    organizationId: string,
+    organization: OrganizationDocument,
     query: string
   ): Promise<SimplifiedLog[]> => {
-    const integrations = await Integration.find({ organizationId })
+    const integrations = await Integration.find({
+      organizationId: organization._id,
+    })
       .lean()
       .exec();
 
@@ -134,7 +137,11 @@ export const SecureIntegrationService = {
           const getLogsFxnToRun =
             SecureIntegrationService.getCorrectLogsFunctionToRun(integration);
           if (getLogsFxnToRun) {
-            const results = await getLogsFxnToRun(integration, query);
+            const results = await getLogsFxnToRun(
+              organization,
+              integration,
+              query
+            );
             return results;
           }
           return [];

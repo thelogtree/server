@@ -1,7 +1,8 @@
-import { IntegrationDocument, integrationTypeEnum } from "logtree-types";
+import { IntegrationDocument, OrganizationDocument } from "logtree-types";
 import { SimplifiedLog } from "../ApiService/lib/LogService";
 
 export type GetIntegrationLogsFxnType = (
+  organization: OrganizationDocument,
   integration: IntegrationDocument,
   query: string
 ) => Promise<SimplifiedLog[]>;

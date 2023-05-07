@@ -2179,7 +2179,7 @@ describe("GetSupportLogs", () => {
     expect(logs.length).toBe(4);
 
     expect(integrationLogsSpy).toBeCalledTimes(1);
-    expect(integrationLogsSpy.mock.calls[0][0].toString()).toBe(
+    expect(integrationLogsSpy.mock.calls[0][0]._id.toString()).toBe(
       organization._id.toString()
     );
     expect(integrationLogsSpy.mock.calls[0][1]).toBe(query);

@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import _ from "lodash";
 
 import admin from "../../firebaseConfig";
+import { OrganizationDocument } from "logtree-types";
+import { DateTime } from "luxon";
 
 // Converts boolean in query string to boolean value
 export const queryBool = (str: string): boolean =>
@@ -29,3 +31,23 @@ export const getErrorMessage = (e: AxiosError) =>
 
 export const wrapWords = (words: string) =>
   words.split(" ").join("-").split("/").join("-");
+
+export const partitionArray = (arr: any[], sliceSize: number) => {
+  const slicedArray: any[] = [];
+  for (let i = 0; i < arr.length; i += sliceSize) {
+    slicedArray.push(arr.slice(i, i + sliceSize));
+  }
+  return slicedArray;
+};
+
+export const getFloorLogRetentionDateForOrganization = (
+  organization: OrganizationDocument
+) => {
+  const floorDate = DateTime.now()
+    .minus({
+      days: organization.logRetentionInDays,
+    })
+    .toJSDate();
+
+  return floorDate;
+};

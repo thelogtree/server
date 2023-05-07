@@ -2,7 +2,11 @@ import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 import { FolderService } from "./FolderService";
-import { UserDocument, simplifiedLogTagEnum } from "logtree-types";
+import {
+  OrganizationDocument,
+  UserDocument,
+  simplifiedLogTagEnum,
+} from "logtree-types";
 import { ApiError, AuthError } from "src/utils/errors";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import moment from "moment";
@@ -160,11 +164,11 @@ export const LogService = {
 
     await Log.deleteOne({ _id: logId });
   },
-  getSupportLogs: async (organizationId: string, query: string) => {
+  getSupportLogs: async (organization: OrganizationDocument, query: string) => {
     const [logs, integrationLogs] = await Promise.all([
       Log.find(
         {
-          organizationId,
+          organizationId: organization._id,
           referenceId: query,
         },
         {
@@ -180,7 +184,7 @@ export const LogService = {
         .limit(300)
         .lean()
         .exec() as Promise<SimplifiedLog[]>,
-      SecureIntegrationService.getLogsFromIntegrations(organizationId, query),
+      SecureIntegrationService.getLogsFromIntegrations(organization, query),
     ]);
 
     const combinedLogs = logs.concat(integrationLogs);

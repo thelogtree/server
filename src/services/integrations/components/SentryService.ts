@@ -1,5 +1,6 @@
 import {
   IntegrationDocument,
+  OrganizationDocument,
   integrationTypeEnum,
   keyTypeEnum,
   simplifiedLogTagEnum,
@@ -11,6 +12,13 @@ import axios from "axios";
 import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
 import _ from "lodash";
 import { IntegrationServiceType } from "../types";
+import {
+  getFloorLogRetentionDateForOrganization,
+  partitionArray,
+} from "src/utils/helpers";
+import { DateTime } from "luxon";
+import { Organization } from "src/models/Organization";
+import moment from "moment";
 
 const BASE_URL = "https://sentry.io/api/0/";
 
@@ -30,6 +38,7 @@ export const SentryService: IntegrationServiceType = {
     };
   },
   getLogs: async (
+    organization: OrganizationDocument,
     integration: IntegrationDocument,
     query: string
   ): Promise<SimplifiedLog[]> => {
@@ -37,7 +46,7 @@ export const SentryService: IntegrationServiceType = {
     // right now it only does the request for the first 3 connected projects because of sentry's rate limit.
     // todo: make it so it does 3 requests every 1 second (spaces out the requests to adhere to the rate limit)
     // make that a fxn too so you can reuse it for other integrations
-    const issuesForEachProject: SimplifiedLog[][] = await Promise.all(
+    const issuesForEachProject: string[][] = await Promise.all(
       integration.additionalProperties["projectSlugs"]
         .slice(0, 3)
         .map(async (projectSlug) => {
@@ -51,22 +60,44 @@ export const SentryService: IntegrationServiceType = {
             }
           );
           const issuesArray = issuesRes.data;
-          return issuesArray.map(
-            (issue) =>
-              ({
-                _id: issue.id,
-                content: issue.title,
-                createdAt: new Date(issue.lastSeen),
-                externalLink: issue.permalink,
-                tag: simplifiedLogTagEnum.Error,
-                sourceTitle: `Sentry (${projectSlug})`,
-              } as SimplifiedLog)
-          );
+          return issuesArray;
         })
     );
-    const logsForUser = _.flatten(issuesForEachProject);
+    const issuesThatApplyToUser = _.flatten(issuesForEachProject);
+    const issueBatches = partitionArray(issuesThatApplyToUser, 5);
 
-    return logsForUser;
+    let allEvents: SimplifiedLog[] = [];
+    for (const batch of issueBatches) {
+      const events: SimplifiedLog[][] = await Promise.all(
+        batch.map(async (issue: any) => {
+          const eventsRes = await axios.get(
+            `${BASE_URL}issues/${issue["id"]}/events/`,
+            {
+              headers,
+            }
+          );
+          const eventsArray = eventsRes.data;
+          return eventsArray
+            .filter((event) => event.user?.email === query)
+            .map((event) => ({
+              _id: `sentry_${event["id"]}_${event.id}`,
+              content: event.title,
+              createdAt: event.dateCreated,
+              tag: simplifiedLogTagEnum.Error,
+              externalLink: issue["permalink"],
+              sourceTitle: `Sentry (${issue.project.slug})`,
+            }));
+        })
+      );
+      const logsForUser = _.flatten(events);
+      allEvents.push(...logsForUser);
+    }
+
+    const floorDate = getFloorLogRetentionDateForOrganization(organization);
+
+    return allEvents.filter((event) =>
+      moment(event["createdAt"]).isSameOrAfter(floorDate)
+    );
   },
   finishConnection: async (integration: IntegrationDocument) => {
     const authHeaders = await SentryService.getHeaders(integration);

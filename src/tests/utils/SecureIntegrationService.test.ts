@@ -1,5 +1,6 @@
 import {
   IntegrationDocument,
+  OrganizationDocument,
   integrationTypeEnum,
   keyTypeEnum,
   simplifiedLogTagEnum,
@@ -297,7 +298,11 @@ describe("GetLogsFromIntegrations", () => {
   });
   it("correctly gets the logs from integrations", async () => {
     const innerFxn = jest.fn(
-      (integration: IntegrationDocument, _query: string) =>
+      (
+        _organization: OrganizationDocument,
+        integration: IntegrationDocument,
+        _query: string
+      ) =>
         Promise.resolve([
           {
             _id: "abc",
@@ -325,7 +330,7 @@ describe("GetLogsFromIntegrations", () => {
     });
 
     const logs = await SecureIntegrationService.getLogsFromIntegrations(
-      organization._id.toString(),
+      organization,
       "something"
     );
 

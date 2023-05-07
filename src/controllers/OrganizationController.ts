@@ -403,10 +403,7 @@ export const OrganizationController = {
     const organization = req["organization"];
     const user = req["user"];
     const { query } = req.query;
-    const logs = await LogService.getSupportLogs(
-      organization._id,
-      query as string
-    );
+    const logs = await LogService.getSupportLogs(organization, query as string);
 
     LoggerHelpers.recordSearch(
       organization,
