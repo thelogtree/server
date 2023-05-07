@@ -17,6 +17,7 @@ import {
 } from "./lib";
 import _ from "lodash";
 import { SimplifiedLog } from "../ApiService/lib/LogService";
+import { getErrorMessage } from "src/utils/helpers";
 
 export type PlaintextKey = {
   type: keyTypeEnum;
@@ -126,6 +127,7 @@ export const SecureIntegrationService = {
     const integrations = await Integration.find({ organizationId })
       .lean()
       .exec();
+
     const logResults = await Promise.all(
       integrations.map(async (integration) => {
         try {
@@ -136,7 +138,8 @@ export const SecureIntegrationService = {
             return results;
           }
           return [];
-        } catch {
+        } catch (e: any) {
+          console.log(getErrorMessage(e));
           return [];
         }
       })
