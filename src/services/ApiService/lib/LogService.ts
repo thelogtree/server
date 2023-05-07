@@ -17,6 +17,7 @@ export type SimplifiedLog = {
   referenceId?: string;
   externalLink?: string;
   tag?: simplifiedLogTagEnum;
+  sourceTitle?: string;
 };
 
 export const LogService = {

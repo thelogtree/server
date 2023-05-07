@@ -59,6 +59,7 @@ export const SentryService: IntegrationServiceType = {
                 createdAt: new Date(issue.lastSeen),
                 externalLink: issue.permalink,
                 tag: simplifiedLogTagEnum.Error,
+                sourceTitle: `Sentry (${projectSlug})`,
               } as SimplifiedLog)
           );
         })
