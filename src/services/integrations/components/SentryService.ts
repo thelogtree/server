@@ -2,15 +2,13 @@ import {
   IntegrationDocument,
   integrationTypeEnum,
   keyTypeEnum,
+  simplifiedLogTagEnum,
 } from "logtree-types";
 import { Integration } from "src/models/Integration";
 import { ApiError } from "src/utils/errors";
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import axios from "axios";
-import {
-  SimplifiedLog,
-  simplifiedLogTagEnum,
-} from "src/services/ApiService/lib/LogService";
+import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
 import _ from "lodash";
 import { IntegrationServiceType } from "../types";
 

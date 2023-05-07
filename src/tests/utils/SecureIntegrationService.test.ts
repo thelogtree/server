@@ -2,13 +2,13 @@ import {
   IntegrationDocument,
   integrationTypeEnum,
   keyTypeEnum,
+  simplifiedLogTagEnum,
 } from "logtree-types";
 import { IntegrationFactory } from "../factories/IntegrationFactory";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import { Integration } from "src/models/Integration";
 import { OrganizationFactory } from "../factories/OrganizationFactory";
 import faker from "faker";
-import { simplifiedLogTagEnum } from "src/services/ApiService/lib/LogService";
 
 describe("AddOrUpdateIntegration", () => {
   beforeEach(() => {

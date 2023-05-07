@@ -2,16 +2,12 @@ import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 import { FolderService } from "./FolderService";
-import { UserDocument } from "logtree-types";
+import { UserDocument, simplifiedLogTagEnum } from "logtree-types";
 import { ApiError, AuthError } from "src/utils/errors";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import moment from "moment";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
-
-export enum simplifiedLogTagEnum {
-  Error = "error",
-}
 
 export type SimplifiedLog = {
   _id: ObjectId | string;

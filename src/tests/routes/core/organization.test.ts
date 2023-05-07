@@ -6,6 +6,7 @@ import {
   keyTypeEnum,
   notificationTypeEnum,
   orgPermissionLevel,
+  simplifiedLogTagEnum,
 } from "logtree-types";
 import { DateTime } from "luxon";
 import moment from "moment-timezone";
@@ -38,7 +39,6 @@ import { UserFactory } from "../../factories/UserFactory";
 import { TestHelper } from "../../TestHelper";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import { integrationsAvailableToConnectTo } from "src/services/integrations/lib";
-import { simplifiedLogTagEnum } from "src/services/ApiService/lib/LogService";
 
 const routeUrl = "/organization";
 
