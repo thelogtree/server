@@ -399,4 +399,24 @@ export const OrganizationController = {
       );
     res.send({ integrations });
   },
+  getSupportLogs: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const user = req["user"];
+    const { query } = req.query;
+    const logs = await LogService.getSupportLogs(
+      organization._id,
+      query as string
+    );
+
+    LoggerHelpers.recordSearch(
+      organization,
+      user,
+      false,
+      query as string,
+      undefined,
+      true
+    );
+
+    res.send({ logs });
+  },
 };

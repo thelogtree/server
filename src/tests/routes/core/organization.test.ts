@@ -38,6 +38,7 @@ import { UserFactory } from "../../factories/UserFactory";
 import { TestHelper } from "../../TestHelper";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import { integrationsAvailableToConnectTo } from "src/services/integrations/lib";
+import { simplifiedLogTagEnum } from "src/services/ApiService/lib/LogService";
 
 const routeUrl = "/organization";
 
@@ -2087,7 +2088,6 @@ describe("GetConnectableIntegrations", () => {
     expect(integrations.length).toBeGreaterThan(0);
     expect(integrations.length).toBe(integrationsAvailableToConnectTo.length);
   });
-
   it("correctly gets the connectable integrations for an organization (none left)", async () => {
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
@@ -2110,5 +2110,87 @@ describe("GetConnectableIntegrations", () => {
 
     const { integrations } = res.body;
     expect(integrations.length).toBe(0);
+  });
+});
+
+describe("GetSupportLogs", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+  });
+  it("correctly gets the support logs", async () => {
+    const query = "ggg";
+
+    const integrationLogsSpy = jest
+      .spyOn(SecureIntegrationService, "getLogsFromIntegrations")
+      .mockImplementation(() =>
+        Promise.resolve([
+          {
+            _id: "b",
+            content: "aaa",
+            createdAt: moment().subtract(7, "days").toDate(),
+            tag: simplifiedLogTagEnum.Error,
+          },
+          {
+            _id: "a",
+            content: "aaa",
+            createdAt: moment().subtract(3, "days").toDate(),
+            tag: simplifiedLogTagEnum.Error,
+          },
+        ])
+      );
+
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(5, "days").toDate(),
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(1, "minute").toDate(),
+    });
+
+    // below logs are decoys
+    await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query + "g",
+      createdAt: moment().subtract(4, "days").toDate(),
+    });
+    await LogFactory.create({
+      referenceId: query,
+      createdAt: moment().subtract(2, "days").toDate(),
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/support-logs`,
+      "GET",
+      {},
+      {
+        query,
+      },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { logs } = res.body;
+    expect(logs.length).toBe(4);
+
+    expect(integrationLogsSpy).toBeCalledTimes(1);
+    expect(integrationLogsSpy.mock.calls[0][0].toString()).toBe(
+      organization._id.toString()
+    );
+    expect(integrationLogsSpy.mock.calls[0][1]).toBe(query);
+
+    expect(logs[0]._id.toString()).toBe(log2.id);
+    expect(logs[0].tag).toBeUndefined();
+    expect(logs[1]._id.toString()).toBe("a");
+    expect(logs[1].tag).toBe(simplifiedLogTagEnum.Error);
+    expect(logs[2]._id.toString()).toBe(log1.id);
+    expect(logs[2].tag).toBeUndefined();
+    expect(logs[3]._id.toString()).toBe("b");
+    expect(logs[3].tag).toBe(simplifiedLogTagEnum.Error);
   });
 });

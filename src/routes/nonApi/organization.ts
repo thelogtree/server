@@ -84,6 +84,14 @@ router.get(
   auth.requiredOrgMember,
   OrganizationController.getConnectableIntegrations
 );
+router.get(
+  "/:id/support-logs",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getSupportLogs,
+  }),
+  OrganizationController.getSupportLogs
+);
 
 router.put(
   "/:id/user-permissions",

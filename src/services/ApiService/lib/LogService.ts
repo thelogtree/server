@@ -4,6 +4,8 @@ import { Log } from "src/models/Log";
 import { FolderService } from "./FolderService";
 import { UserDocument } from "logtree-types";
 import { ApiError, AuthError } from "src/utils/errors";
+import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import moment from "moment";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
@@ -138,7 +140,6 @@ export const LogService = {
         ...(isReferenceId
           ? { referenceId }
           : { content: { $regex: `.*${query}.*`, $options: "i" } }),
-        createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
       {
         content: 1,
@@ -161,5 +162,35 @@ export const LogService = {
     }
 
     await Log.deleteOne({ _id: logId });
+  },
+  getSupportLogs: async (organizationId: string, query: string) => {
+    const [logs, integrationLogs] = await Promise.all([
+      Log.find(
+        {
+          organizationId,
+          referenceId: query,
+        },
+        {
+          content: 1,
+          _id: 1,
+          referenceId: 1,
+          createdAt: 1,
+          folderId: 1,
+          externalLink: 1,
+        }
+      )
+        .sort({ createdAt: -1 })
+        .limit(300)
+        .lean()
+        .exec() as Promise<SimplifiedLog[]>,
+      SecureIntegrationService.getLogsFromIntegrations(organizationId, query),
+    ]);
+
+    const combinedLogs = logs.concat(integrationLogs);
+    const sortedLogs = combinedLogs.sort((a, b) =>
+      moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
+    );
+
+    return sortedLogs;
   },
 };

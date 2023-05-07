@@ -13,6 +13,9 @@ export const OrganizationSchemas = {
     logsNoNewerThanDate: Joi.date(),
     logsNoOlderThanDate: Joi.date(),
   }),
+  getSupportLogs: Joi.object({
+    query: Joi.string().required(),
+  }),
   getInvitationInfo: Joi.object({
     invitationId: Joi.string().custom(objectId).required(),
     orgSlug: Joi.string().required(),

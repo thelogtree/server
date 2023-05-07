@@ -14,7 +14,8 @@ export const LoggerHelpers = {
     user: UserDocument,
     isFavorites: boolean,
     query: string,
-    folderId?: string
+    folderId?: string,
+    isSupportTool?: boolean
   ) => {
     let channelName = isFavorites ? "Favorites" : "Global Search";
     if (folderId) {
@@ -23,7 +24,9 @@ export const LoggerHelpers = {
     }
 
     Logger.sendLog(
-      `searched for logs in ${channelName} with query '${query}'`,
+      `${
+        isSupportTool ? "Support tool: " : ""
+      }searched for logs with query '${query}'`,
       `/searches/${organization.slug}`,
       user.email
     );
