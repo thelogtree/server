@@ -15,7 +15,7 @@ import { IntegrationServiceType } from "../types";
 const BASE_URL = "https://sentry.io/api/0/";
 
 export const SentryService: IntegrationServiceType = {
-  getHeaders: async (integration: IntegrationDocument) => {
+  getHeaders: (integration: IntegrationDocument) => {
     const decryptedValue =
       SecureIntegrationService.getDecryptedKeysForIntegration(integration);
     const key = decryptedValue.find(
@@ -33,15 +33,21 @@ export const SentryService: IntegrationServiceType = {
     integration: IntegrationDocument,
     query: string
   ): Promise<SimplifiedLog[]> => {
+    const headers = SentryService.getHeaders(integration);
+    // right now it only does the request for the first 3 connected projects because of sentry's rate limit.
+    // todo: make it so it does 3 requests every 1 second (spaces out the requests to adhere to the rate limit)
+    // make that a fxn too so you can reuse it for other integrations
     const issuesForEachProject: SimplifiedLog[][] = await Promise.all(
-      integration.additionalProperties["projectSlugs"].map(
-        async (projectSlug) => {
+      integration.additionalProperties["projectSlugs"]
+        .slice(0, 3)
+        .map(async (projectSlug) => {
           const issuesRes = await axios.get(
             `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
             {
               params: {
                 query: `user.email:${query}`,
               },
+              headers,
             }
           );
           const issuesArray = issuesRes.data;
@@ -55,8 +61,7 @@ export const SentryService: IntegrationServiceType = {
                 tag: simplifiedLogTagEnum.Error,
               } as SimplifiedLog)
           );
-        }
-      )
+        })
     );
     const logsForUser = _.flatten(issuesForEachProject);
 
