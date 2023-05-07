@@ -37,7 +37,7 @@ export const SentryService: IntegrationServiceType = {
       integration.additionalProperties["projectSlugs"].map(
         async (projectSlug) => {
           const issuesRes = await axios.get(
-            `projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
+            `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
             {
               params: {
                 query: `user.email:${query}`,
