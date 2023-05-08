@@ -45,10 +45,15 @@ export const SentryService: IntegrationServiceType = {
     // right now it only does the request for the first 3 connected projects because of sentry's rate limit.
     // todo: make it so it does 3 requests every 1 second (spaces out the requests to adhere to the rate limit)
     // make that a fxn too so you can reuse it for other integrations
-    const issuesForEachProject: string[][] = await Promise.all(
-      integration.additionalProperties["projectSlugs"]
-        .slice(0, 3)
-        .map(async (projectSlug) => {
+    const projectBatches = partitionArray(
+      integration.additionalProperties["projectSlugs"],
+      3
+    );
+
+    let issues: any[] = [];
+    for (const batch of projectBatches) {
+      await Promise.all(
+        batch.map(async (projectSlug) => {
           const issuesRes = await axios.get(
             `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
             {
@@ -59,17 +64,19 @@ export const SentryService: IntegrationServiceType = {
             }
           );
           const issuesArray = issuesRes.data;
-          return issuesArray;
+          issues.push(...issuesArray);
         })
-    );
-    const issuesThatApplyToUser = _.flatten(issuesForEachProject).filter(
-      (issue) => moment(issue["lastSeen"]).isSameOrAfter(floorDate)
+      );
+    }
+
+    const issuesThatApplyToUser = _.flatten(issues).filter((issue) =>
+      moment(issue["lastSeen"]).isSameOrAfter(floorDate)
     );
     const issueBatches = partitionArray(issuesThatApplyToUser, 15);
 
     let allEvents: SimplifiedLog[] = [];
     for (const batch of issueBatches) {
-      const events: SimplifiedLog[][] = await Promise.all(
+      await Promise.all(
         batch.map(async (issue: any) => {
           const eventsRes = await axios.get(
             `${BASE_URL}issues/${issue["id"]}/events/`,
@@ -78,20 +85,20 @@ export const SentryService: IntegrationServiceType = {
             }
           );
           const eventsArray = eventsRes.data;
-          return eventsArray
-            .filter((event) => event.user?.email === query)
-            .map((event) => ({
-              _id: `sentry_${event["id"]}_${event.id}`,
-              content: event.title,
-              createdAt: event.dateCreated,
-              tag: simplifiedLogTagEnum.Error,
-              externalLink: issue["permalink"],
-              sourceTitle: `Sentry (${issue.project.slug})`,
-            }));
+          allEvents.push(
+            ...eventsArray
+              .filter((event) => event.user?.email === query)
+              .map((event) => ({
+                _id: `sentry_${event["id"]}_${event.id}`,
+                content: event.title,
+                createdAt: event.dateCreated,
+                tag: simplifiedLogTagEnum.Error,
+                externalLink: issue["permalink"],
+                sourceTitle: `Sentry (${issue.project.slug})`,
+              }))
+          );
         })
       );
-      const logsForUser = _.flatten(events);
-      allEvents.push(...logsForUser);
     }
 
     return allEvents.filter((event) =>
