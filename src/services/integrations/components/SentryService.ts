@@ -9,7 +9,10 @@ import { Integration } from "src/models/Integration";
 import { ApiError } from "src/utils/errors";
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import axios from "axios";
-import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import {
+  MAX_NUM_CHARS_ALLOWED_IN_LOG,
+  SimplifiedLog,
+} from "src/services/ApiService/lib/LogService";
 import _ from "lodash";
 import { IntegrationServiceType } from "../types";
 import {
@@ -88,14 +91,25 @@ export const SentryService: IntegrationServiceType = {
           allEvents.push(
             ...eventsArray
               .filter((event) => event.user?.email === query)
-              .map((event) => ({
-                _id: `sentry_${event["id"]}_${event.id}`,
-                content: event.title,
-                createdAt: event.dateCreated,
-                tag: simplifiedLogTagEnum.Error,
-                externalLink: issue["permalink"],
-                sourceTitle: `Sentry (${issue.project.slug})`,
-              }))
+              .map((event) => {
+                const content = `${event.culprit ? `${event.culprit}\n` : ""}${
+                  event.title
+                }${
+                  issue.metadata.value ? `\n\n${issue.metadata.value}` : ""
+                }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG);
+                console.log(event);
+                return {
+                  _id: `sentry_${event["id"]}_${event.id}`,
+                  content,
+                  createdAt: event.dateCreated,
+                  tag:
+                    event["event.type"] === "error"
+                      ? simplifiedLogTagEnum.Error
+                      : undefined,
+                  externalLink: issue["permalink"],
+                  sourceTitle: `Sentry (${issue.project.slug})`,
+                };
+              })
           );
         })
       );
