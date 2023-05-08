@@ -16,8 +16,6 @@ import {
   getFloorLogRetentionDateForOrganization,
   partitionArray,
 } from "src/utils/helpers";
-import { DateTime } from "luxon";
-import { Organization } from "src/models/Organization";
 import moment from "moment";
 
 const BASE_URL = "https://sentry.io/api/0/";
@@ -63,8 +61,10 @@ export const SentryService: IntegrationServiceType = {
           return issuesArray;
         })
     );
-    const issuesThatApplyToUser = _.flatten(issuesForEachProject);
-    const issueBatches = partitionArray(issuesThatApplyToUser, 5);
+    const issuesThatApplyToUser = _.flatten(issuesForEachProject).filter(
+      (issue) => moment(issue["lastSeen"]).isSameOrAfter(floorDate)
+    );
+    const issueBatches = partitionArray(issuesThatApplyToUser, 15);
 
     let allEvents: SimplifiedLog[] = [];
     for (const batch of issueBatches) {

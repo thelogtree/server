@@ -192,6 +192,6 @@ export const LogService = {
       moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
     );
 
-    return sortedLogs;
+    return sortedLogs.slice(0, 300);
   },
 };
