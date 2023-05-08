@@ -72,7 +72,7 @@ export const SentryService: IntegrationServiceType = {
     const issuesThatApplyToUser = _.flatten(issues).filter((issue) =>
       moment(issue["lastSeen"]).isSameOrAfter(floorDate)
     );
-    const issueBatches = partitionArray(issuesThatApplyToUser, 15);
+    const issueBatches = partitionArray(issuesThatApplyToUser, 40);
 
     let allEvents: SimplifiedLog[] = [];
     for (const batch of issueBatches) {
