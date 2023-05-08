@@ -97,7 +97,7 @@ export const SentryService: IntegrationServiceType = {
                 }${
                   issue.metadata.value ? `\n\n${issue.metadata.value}` : ""
                 }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG);
-                console.log(event);
+
                 return {
                   _id: `sentry_${event["id"]}_${event.id}`,
                   content,
