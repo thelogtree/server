@@ -4,7 +4,10 @@ import {
   OrganizationDocument,
   simplifiedLogTagEnum,
 } from "logtree-types";
-import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import {
+  MAX_NUM_CHARS_ALLOWED_IN_LOG,
+  SimplifiedLog,
+} from "src/services/ApiService/lib/LogService";
 import { ApiError } from "src/utils/errors";
 import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
 
@@ -12,6 +15,7 @@ import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
 import axios from "axios";
 import moment from "moment";
+import _ from "lodash";
 
 const BASE_URL = "https://mixpanel.com/api/2.0";
 
@@ -71,15 +75,36 @@ export const MixpanelService: IntegrationServiceType = {
     });
     const eventsArray = eventsRes.data.results.events;
 
-    return eventsArray.map(
-      (eventObj) =>
-        ({
-          _id: `mixpanel_${eventObj.properties.distinct_id}`,
-          content: eventObj.event,
-          createdAt: new Date(eventObj.properties.time),
+    const fieldsToIgnore = [
+      "time",
+      "distinct_id",
+      "mp_country_code",
+      "mp_lib",
+      "mp_processing_time_ms",
+      "anonymousId",
+    ];
+
+    return eventsArray
+      .filter((eventObj) => eventObj.event[0] !== "$")
+      .map((eventObj) => {
+        let eventPropertiesString = "";
+        Object.keys(eventObj.properties).forEach((propertyKey) => {
+          if (propertyKey[0] !== "$" && !fieldsToIgnore.includes(propertyKey)) {
+            eventPropertiesString +=
+              (eventPropertiesString === "" ? `\n` : "") +
+              `\n${propertyKey}: ${eventObj.properties[propertyKey]}`;
+          }
+        });
+        return {
+          _id: `mixpanel_${eventObj.properties["$insert_id"]}`,
+          content: `${eventObj.event}${eventPropertiesString}`.slice(
+            0,
+            MAX_NUM_CHARS_ALLOWED_IN_LOG
+          ),
+          createdAt: new Date(eventObj.properties.time * 1000),
           tag: simplifiedLogTagEnum.Tracking,
           sourceTitle: "Mixpanel",
-        } as SimplifiedLog)
-    );
+        } as SimplifiedLog;
+      });
   },
 };
