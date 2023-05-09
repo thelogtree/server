@@ -85,6 +85,7 @@ export const OrganizationSchemas = {
   addOrUpdateIntegration: Joi.object({
     keys: Joi.array().required(),
     type: Joi.string().required(),
+    additionalProperties: Joi.object(),
   }),
   deleteIntegration: Joi.object({
     integrationId: Joi.string().custom(objectId).required(),

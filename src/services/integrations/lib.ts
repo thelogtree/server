@@ -1,6 +1,7 @@
 import { integrationTypeEnum } from "logtree-types";
 import { SentryService } from "./components/SentryService";
 import { FinishSetupFunctionType, GetIntegrationLogsFxnType } from "./types";
+import { MixpanelService } from "./components/MixpanelService";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.
@@ -22,6 +23,7 @@ import { FinishSetupFunctionType, GetIntegrationLogsFxnType } from "./types";
 // these are the integrations someone can currently create a new connection to
 export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
   integrationTypeEnum.Sentry,
+  integrationTypeEnum.Mixpanel,
 ];
 
 // functions for getting logs for an integration
@@ -29,6 +31,7 @@ export const IntegrationGetLogsMap: {
   [key in integrationTypeEnum]: GetIntegrationLogsFxnType | undefined;
 } = {
   sentry: SentryService.getLogs,
+  mixpanel: MixpanelService.getLogs,
 };
 
 // functions for getting the functions to run when finishing connecting an integration
@@ -37,4 +40,5 @@ export const IntegrationFinishSetupFunctionsToRunMap: {
   [key in integrationTypeEnum]: FinishSetupFunctionType;
 } = {
   sentry: SentryService.finishConnection,
+  mixpanel: undefined,
 };

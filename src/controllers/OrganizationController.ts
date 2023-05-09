@@ -352,7 +352,7 @@ export const OrganizationController = {
   },
   addOrUpdateIntegration: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
-    const { keys, type } = req.body;
+    const { keys, type, additionalProperties } = req.body;
     if (!keys.length || keys.find((key) => !key.plaintextValue || !key.type)) {
       throw new ApiError(
         "Either no keys were provided, or the keys you provided were sent in an invalid format."
@@ -361,7 +361,8 @@ export const OrganizationController = {
     const integration = await SecureIntegrationService.addOrUpdateIntegration(
       organization._id.toString(),
       type,
-      keys
+      keys,
+      additionalProperties
     );
     res.send({ integration });
   },

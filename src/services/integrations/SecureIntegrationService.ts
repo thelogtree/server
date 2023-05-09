@@ -29,7 +29,8 @@ export const SecureIntegrationService = {
   addOrUpdateIntegration: async (
     organizationId: string,
     integrationType: integrationTypeEnum,
-    keys: PlaintextKey[]
+    keys: PlaintextKey[],
+    additionalProperties: Object = {}
   ): Promise<LeanDocument<IntegrationDocument> | IntegrationDocument> => {
     if (!integrationsAvailableToConnectTo.includes(integrationType)) {
       throw new ApiError("This integration is not available right now.");
@@ -57,6 +58,7 @@ export const SecureIntegrationService = {
         existingIntegration._id,
         {
           keys: encryptedKeys,
+          additionalProperties,
         },
         { new: true }
       )
@@ -67,6 +69,7 @@ export const SecureIntegrationService = {
         organizationId,
         type: integrationType,
         keys: encryptedKeys,
+        additionalProperties,
       });
     }
 

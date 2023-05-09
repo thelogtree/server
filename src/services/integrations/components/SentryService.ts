@@ -45,9 +45,7 @@ export const SentryService: IntegrationServiceType = {
   ): Promise<SimplifiedLog[]> => {
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const headers = SentryService.getHeaders(integration);
-    // right now it only does the request for the first 3 connected projects because of sentry's rate limit.
-    // todo: make it so it does 3 requests every 1 second (spaces out the requests to adhere to the rate limit)
-    // make that a fxn too so you can reuse it for other integrations
+
     const projectBatches = partitionArray(
       integration.additionalProperties["projectSlugs"],
       3

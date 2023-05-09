@@ -107,6 +107,69 @@ describe("AddOrUpdateIntegration", () => {
 
     expect(projectConnectionsSpy).toBeCalledTimes(1);
   });
+  it("correctly creates a new integration with additional properties to start with", async () => {
+    const projectConnectionsSpy = jest
+      .spyOn(SecureIntegrationService, "finishConnection")
+      .mockImplementation(() => Promise.resolve(true));
+    const decoyIntegration = await IntegrationFactory.create({
+      keys: [
+        {
+          encryptedValue: "abc",
+          type: keyTypeEnum.AuthToken,
+        },
+      ],
+    });
+    const organization = await OrganizationFactory.create();
+
+    const integrationsForOrganizationBefore = await Integration.find({
+      organizationId: organization._id,
+    }).exec();
+    expect(integrationsForOrganizationBefore.length).toBe(0);
+
+    await SecureIntegrationService.addOrUpdateIntegration(
+      organization._id.toString(),
+      integrationTypeEnum.Mixpanel,
+      [
+        {
+          plaintextValue: "aaaaa",
+          type: keyTypeEnum.Username,
+        },
+        {
+          plaintextValue: "bbbbb",
+          type: keyTypeEnum.Password,
+        },
+      ],
+      {
+        something: "hi",
+      }
+    );
+
+    const integrationsForOrganizationAfter = await Integration.find({
+      organizationId: organization._id,
+    })
+      .lean()
+      .exec();
+    expect(integrationsForOrganizationAfter.length).toBe(1);
+
+    const createdIntegration = integrationsForOrganizationAfter[0];
+    expect(createdIntegration.type).toBe(integrationTypeEnum.Mixpanel);
+    expect(Object.keys(createdIntegration.additionalProperties).length).toBe(1);
+    expect(createdIntegration.additionalProperties["something"]).toBe("hi");
+    expect(createdIntegration.keys.length).toBe(2);
+    expect(createdIntegration.keys[0].type).toBe(keyTypeEnum.Username);
+    expect(createdIntegration.keys[0].encryptedValue).not.toBe(
+      decoyIntegration.keys[0].encryptedValue
+    );
+    expect(createdIntegration.keys[0].encryptedValue).toBeTruthy();
+
+    expect(createdIntegration.keys[1].type).toBe(keyTypeEnum.Password);
+    expect(createdIntegration.keys[1].encryptedValue).not.toBe(
+      decoyIntegration.keys[0].encryptedValue
+    );
+    expect(createdIntegration.keys[1].encryptedValue).toBeTruthy();
+
+    expect(projectConnectionsSpy).toBeCalledTimes(1);
+  });
   it("correctly creates a new integration but fails to finish the connection", async () => {
     const projectConnectionsSpy = jest
       .spyOn(SecureIntegrationService, "finishConnection")
