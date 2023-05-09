@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "target": "es5",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "outDir": "build",
+    "allowJs": true,
+    "downlevelIteration": true
+  },
+  "exclude": ["node_modules", "src"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}
