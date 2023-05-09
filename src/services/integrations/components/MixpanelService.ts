@@ -85,7 +85,12 @@ export const MixpanelService: IntegrationServiceType = {
     ];
 
     return eventsArray
-      .filter((eventObj) => eventObj.event[0] !== "$")
+      .filter(
+        (eventObj) =>
+          eventObj.event[0] !== "$" &&
+          eventObj.event !== "Loaded a Page" &&
+          eventObj.event !== "Loaded a Screen"
+      )
       .map((eventObj) => {
         let eventPropertiesString = "";
         Object.keys(eventObj.properties).forEach((propertyKey) => {
