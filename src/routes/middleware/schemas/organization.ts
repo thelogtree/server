@@ -13,6 +13,9 @@ export const OrganizationSchemas = {
     logsNoNewerThanDate: Joi.date(),
     logsNoOlderThanDate: Joi.date(),
   }),
+  getSupportLogs: Joi.object({
+    query: Joi.string().required(),
+  }),
   getInvitationInfo: Joi.object({
     invitationId: Joi.string().custom(objectId).required(),
     orgSlug: Joi.string().required(),
@@ -78,5 +81,17 @@ export const OrganizationSchemas = {
   }),
   deleteLog: Joi.object({
     logId: Joi.string().custom(objectId).required(),
+  }),
+  addOrUpdateIntegration: Joi.object({
+    keys: Joi.array().required(),
+    type: Joi.string().required(),
+    additionalProperties: Joi.object(),
+  }),
+  deleteIntegration: Joi.object({
+    integrationId: Joi.string().custom(objectId).required(),
+  }),
+  updateIntegration: Joi.object({
+    integrationId: Joi.string().custom(objectId).required(),
+    additionalProperties: Joi.object(),
   }),
 };

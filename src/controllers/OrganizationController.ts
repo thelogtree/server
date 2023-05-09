@@ -13,6 +13,8 @@ import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
 import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
+import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import _ from "lodash";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -345,7 +347,74 @@ export const OrganizationController = {
   deleteLog: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const { logId } = req.body;
-    await LogService.deleteLog(logId, organization._id.toString())
+    await LogService.deleteLog(logId, organization._id.toString());
     res.send({});
+  },
+  addOrUpdateIntegration: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { keys, type, additionalProperties } = req.body;
+    if (!keys.length || keys.find((key) => !key.plaintextValue || !key.type)) {
+      throw new ApiError(
+        "Either no keys were provided, or the keys you provided were sent in an invalid format."
+      );
+    }
+    const integration = await SecureIntegrationService.addOrUpdateIntegration(
+      organization._id.toString(),
+      type,
+      keys,
+      additionalProperties
+    );
+    res.send({ integration });
+  },
+  getIntegrations: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const integrations = await OrganizationService.getIntegrations(
+      organization._id.toString()
+    );
+    res.send({ integrations });
+  },
+  deleteIntegration: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationId } = req.body;
+    await OrganizationService.deleteIntegration(
+      organization._id.toString(),
+      integrationId
+    );
+    res.send({});
+  },
+  updateIntegration: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationId } = req.body;
+    const integration = await OrganizationService.updateIntegration(
+      organization._id.toString(),
+      integrationId,
+      _.omit(req.body, "integrationId")
+    );
+    res.send({ integration });
+  },
+  getConnectableIntegrations: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const integrations =
+      await SecureIntegrationService.getConnectableIntegrationsForOrganization(
+        organization._id.toString()
+      );
+    res.send({ integrations });
+  },
+  getSupportLogs: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const user = req["user"];
+    const { query } = req.query;
+    const logs = await LogService.getSupportLogs(organization, query as string);
+
+    LoggerHelpers.recordSearch(
+      organization,
+      user,
+      false,
+      query as string,
+      undefined,
+      true
+    );
+
+    res.send({ logs });
   },
 };

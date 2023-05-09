@@ -6137,10 +6137,10 @@ lodash@4.x, lodash@^4.17.14, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, 
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
-logtree-types@1.0.33:
-  version "1.0.33"
-  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.33.tgz#fc0fd3b87fc7609a2076fbef37f1c0ecefcd2abe"
-  integrity sha512-yqyHXsxq8O5OkkxrUXsBR1VqL4ALH5HTPk2kQ278+eH4PRffD2543WSbdPPbvELN/d+7hpm7xkwOBJWX5Kyh2A==
+logtree-types@1.0.42:
+  version "1.0.42"
+  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.42.tgz#3943955bc86bbc074f331830636898831ebd3be5"
+  integrity sha512-v9FPVOfoigqGClUsygJr2j+Za6JuWCPrKDaWOYr2rynORkEAk9iUvGwPOyQtZZ5xlzcTysDxwoCfaiFpDFGljw==
   dependencies:
     lodash "^4.17.20"
     mongodb "^5.1.0"

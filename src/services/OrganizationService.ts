@@ -1,4 +1,5 @@
 import {
+  IntegrationDocument,
   OrganizationDocument,
   UserDocument,
   orgPermissionLevel,
@@ -21,6 +22,7 @@ import { FavoriteFolder } from "src/models/FavoriteFolder";
 import { FolderPreference } from "src/models/FolderPreference";
 import { Rule } from "src/models/Rule";
 import { UsageService } from "./ApiService/lib/UsageService";
+import { Integration } from "src/models/Integration";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -295,4 +297,37 @@ export const OrganizationService = {
       { isMuted },
       { upsert: true }
     ).exec(),
+  getIntegrations: async (organizationId: string) =>
+    Integration.find({
+      organizationId,
+    })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec(),
+  deleteIntegration: async (organizationId: string, integrationId: string) => {
+    const integration = await Integration.exists({
+      _id: integrationId,
+      organizationId,
+    }).exec();
+    if (!integration) {
+      throw new ApiError("Could not find that integration.");
+    }
+
+    await Integration.deleteOne({ _id: integrationId });
+  },
+  updateIntegration: async (
+    organizationId: string,
+    integrationId: string,
+    fields: Partial<IntegrationDocument>
+  ) => {
+    const integration = await Integration.exists({
+      _id: integrationId,
+      organizationId,
+    }).exec();
+    if (!integration) {
+      throw new ApiError("Could not find an integration to update.");
+    }
+
+    return Integration.findByIdAndUpdate(integrationId, fields, { new: true });
+  },
 };

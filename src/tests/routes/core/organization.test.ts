@@ -1,36 +1,44 @@
-import { OrganizationFactory } from "src/tests/factories/OrganizationFactory";
-import { TestHelper } from "../../TestHelper";
-import { UserFactory } from "../../factories/UserFactory";
 import bcrypt from "bcrypt";
-import { config } from "src/utils/config";
-import { OrgInvitation } from "src/models/OrgInvitation";
-import { Organization } from "src/models/Organization";
-import { FolderFactory } from "src/tests/factories/FolderFactory";
-import { LogFactory } from "src/tests/factories/LogFactory";
-import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
 import faker from "faker";
-import { DateTime } from "luxon";
-import moment from "moment-timezone";
-import { Log } from "src/models/Log";
-import { Folder } from "src/models/Folder";
 import {
   comparisonTypeEnum,
+  integrationTypeEnum,
+  keyTypeEnum,
   notificationTypeEnum,
   orgPermissionLevel,
+  simplifiedLogTagEnum,
 } from "logtree-types";
-import { User } from "src/models/User";
-import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
+import { DateTime } from "luxon";
+import moment from "moment-timezone";
 import { FavoriteFolder } from "src/models/FavoriteFolder";
-import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory";
-import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderFactory";
-import { FolderService } from "src/services/ApiService/lib/FolderService";
-import { LastCheckedFolder } from "src/models/LastCheckedFolder";
-import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
+import { Folder } from "src/models/Folder";
 import { FolderPreference } from "src/models/FolderPreference";
-import { RuleFactory } from "src/tests/factories/RuleFactory";
+import { Integration } from "src/models/Integration";
+import { LastCheckedFolder } from "src/models/LastCheckedFolder";
+import { Log } from "src/models/Log";
+import { Organization } from "src/models/Organization";
+import { OrgInvitation } from "src/models/OrgInvitation";
 import { Rule } from "src/models/Rule";
-import { MyTwilio, TwilioUtil } from "src/utils/twilio";
+import { User } from "src/models/User";
+import { FolderService } from "src/services/ApiService/lib/FolderService";
+import { FavoriteFolderFactory } from "src/tests/factories/FavoriteFolderFactory";
+import { FolderFactory } from "src/tests/factories/FolderFactory";
+import { FolderPreferenceFactory } from "src/tests/factories/FolderPreferenceFactory";
+import { IntegrationFactory } from "src/tests/factories/IntegrationFactory";
+import { LastCheckedFolderFactory } from "src/tests/factories/LastCheckedFolderFactory";
+import { LogFactory } from "src/tests/factories/LogFactory";
+import { OrganizationFactory } from "src/tests/factories/OrganizationFactory";
+import { OrgInvitationFactory } from "src/tests/factories/OrgInvitationFactory";
+import { RuleFactory } from "src/tests/factories/RuleFactory";
 import { fakePromise } from "src/tests/mockHelpers";
+import { FirebaseMock } from "src/tests/mocks/FirebaseMock";
+import { config } from "src/utils/config";
+import { TwilioUtil } from "src/utils/twilio";
+
+import { UserFactory } from "../../factories/UserFactory";
+import { TestHelper } from "../../TestHelper";
+import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import { integrationsAvailableToConnectTo } from "src/services/integrations/lib";
 
 const routeUrl = "/organization";
 
@@ -1815,5 +1823,374 @@ describe("DeleteLog", () => {
 
     const log2Exists = await Log.exists({ _id: log2._id });
     expect(log2Exists).toBeTruthy();
+  });
+});
+
+describe("AddOrUpdateIntegration", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it("correctly adds an integration", async () => {
+    const projectConnectionsSpy = jest
+      .spyOn(SecureIntegrationService, "finishConnection")
+      .mockImplementation(() => Promise.resolve(true));
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [
+          {
+            plaintextValue: "abc",
+            type: keyTypeEnum.ApiKey,
+          },
+        ],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integration } = res.body;
+    expect(integration).toBeTruthy();
+    expect(integration.organizationId.toString()).toBe(
+      organization._id.toString()
+    );
+    expect(projectConnectionsSpy).toBeCalledTimes(1);
+  });
+  it("correctly updates an integration's keys", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const oldIntegration = await IntegrationFactory.create({
+      organizationId: organization._id,
+      type: integrationTypeEnum.Sentry,
+      keys: [],
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [
+          {
+            plaintextValue: "abc",
+            type: keyTypeEnum.ApiKey,
+          },
+        ],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integration } = res.body;
+    expect(integration).toBeTruthy();
+    expect(integration.organizationId.toString()).toBe(
+      organization._id.toString()
+    );
+    expect(integration.keys.length).toBe(1);
+    expect(integration._id.toString()).toBe(oldIntegration._id.toString());
+  });
+  it("fails to create or update an integration because the keys are incorrectly formatted.", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [
+          {
+            someKey: "abc",
+            type: keyTypeEnum.ApiKey,
+          },
+        ],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Either no keys were provided, or the keys you provided were sent in an invalid format."
+    );
+  });
+  it("fails to create or update an integration because no keys were provided.", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "POST",
+      {
+        keys: [],
+        type: integrationTypeEnum.Sentry,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Either no keys were provided, or the keys you provided were sent in an invalid format."
+    );
+  });
+});
+
+describe("GetIntegrations", () => {
+  it("correctly gets the integrations for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration1 = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+    await IntegrationFactory.create();
+    const integration2 = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integrations`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integrations } = res.body;
+    expect(integrations.length).toBe(2);
+    expect(integrations[0]._id.toString()).toBe(integration2.id);
+    expect(integrations[1]._id.toString()).toBe(integration1.id);
+  });
+});
+
+describe("DeleteIntegration", () => {
+  it("correctly deletes an integration", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-integration`,
+      "POST",
+      {
+        integrationId: integration._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const integrationStillExists = await Integration.exists({
+      _id: integration._id,
+    });
+    expect(integrationStillExists).toBeFalsy();
+  });
+  it("fails to delete an integration from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration = await IntegrationFactory.create();
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-integration`,
+      "POST",
+      {
+        integrationId: integration._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Could not find that integration.");
+
+    const integrationStillExists = await Integration.exists({
+      _id: integration._id,
+    });
+    expect(integrationStillExists).toBeTruthy();
+  });
+});
+
+describe("UpdateIntegration", () => {
+  it("correctly updates an integration", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const oldIntegration = await IntegrationFactory.create({
+      organizationId: organization._id,
+      additionalProperties: {},
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "PUT",
+      {
+        integrationId: oldIntegration._id,
+        additionalProperties: { test: "hi", test2: "yo" },
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integration } = res.body;
+    expect(integration._id.toString()).toBe(oldIntegration.id);
+    expect(integration.additionalProperties).toEqual({
+      test: "hi",
+      test2: "yo",
+    });
+  });
+  it("fails to update an integration from a different organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const oldIntegration = await IntegrationFactory.create({
+      additionalProperties: {},
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration`,
+      "PUT",
+      {
+        integrationId: oldIntegration._id,
+        additionalProperties: { test: "hi", test2: "yo" },
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Could not find an integration to update.");
+
+    const integration = await Integration.findById(oldIntegration._id)
+      .lean()
+      .exec();
+    expect(integration._id.toString()).toBe(oldIntegration.id);
+    expect(integration.additionalProperties).toEqual({});
+  });
+});
+
+describe("GetConnectableIntegrations", () => {
+  it("correctly gets the connectable integrations for an organization (at least one exists)", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    await IntegrationFactory.create(); // decoy
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/connectable-integrations`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integrations } = res.body;
+    expect(integrations.length).toBeGreaterThan(0);
+    expect(integrations.length).toBe(integrationsAvailableToConnectTo.length);
+  });
+  it("correctly gets the connectable integrations for an organization (none left)", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    for (const type of integrationsAvailableToConnectTo) {
+      await IntegrationFactory.create({
+        type,
+        organizationId: organization._id.toString(),
+      });
+    }
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/connectable-integrations`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { integrations } = res.body;
+    expect(integrations.length).toBe(0);
+  });
+});
+
+describe("GetSupportLogs", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+  });
+  it("correctly gets the support logs", async () => {
+    const query = "ggg";
+
+    const integrationLogsSpy = jest
+      .spyOn(SecureIntegrationService, "getLogsFromIntegrations")
+      .mockImplementation(() =>
+        Promise.resolve([
+          {
+            _id: "b",
+            content: "aaa",
+            createdAt: moment().subtract(7, "days").toDate(),
+            tag: simplifiedLogTagEnum.Error,
+          },
+          {
+            _id: "a",
+            content: "aaa",
+            createdAt: moment().subtract(3, "days").toDate(),
+            tag: simplifiedLogTagEnum.Error,
+          },
+        ])
+      );
+
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const log1 = await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(5, "days").toDate(),
+    });
+    const log2 = await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(1, "minute").toDate(),
+    });
+
+    // below logs are decoys
+    await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query + "g",
+      createdAt: moment().subtract(4, "days").toDate(),
+    });
+    await LogFactory.create({
+      referenceId: query,
+      createdAt: moment().subtract(2, "days").toDate(),
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/support-logs`,
+      "GET",
+      {},
+      {
+        query,
+      },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { logs } = res.body;
+    expect(logs.length).toBe(4);
+
+    expect(integrationLogsSpy).toBeCalledTimes(1);
+    expect(integrationLogsSpy.mock.calls[0][0]._id.toString()).toBe(
+      organization._id.toString()
+    );
+    expect(integrationLogsSpy.mock.calls[0][1]).toBe(query);
+
+    expect(logs[0]._id.toString()).toBe(log2.id);
+    expect(logs[0].tag).toBeUndefined();
+    expect(logs[1]._id.toString()).toBe("a");
+    expect(logs[1].tag).toBe(simplifiedLogTagEnum.Error);
+    expect(logs[2]._id.toString()).toBe(log1.id);
+    expect(logs[2].tag).toBeUndefined();
+    expect(logs[3]._id.toString()).toBe("b");
+    expect(logs[3].tag).toBe(simplifiedLogTagEnum.Error);
   });
 });

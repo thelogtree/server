@@ -1,9 +1,14 @@
-import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { Log } from "src/models/Log";
 import { FolderService } from "./FolderService";
-import { UserDocument } from "logtree-types";
+import {
+  OrganizationDocument,
+  UserDocument,
+  simplifiedLogTagEnum,
+} from "logtree-types";
 import { ApiError, AuthError } from "src/utils/errors";
+import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import moment from "moment";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
@@ -14,6 +19,8 @@ export type SimplifiedLog = {
   folderId?: ObjectId | string;
   referenceId?: string;
   externalLink?: string;
+  tag?: simplifiedLogTagEnum;
+  sourceTitle?: string;
 };
 
 export const LogService = {
@@ -133,7 +140,6 @@ export const LogService = {
         ...(isReferenceId
           ? { referenceId }
           : { content: { $regex: `.*${query}.*`, $options: "i" } }),
-        createdAt: { $gt: DateTime.now().minus({ days: 14 }) },
       },
       {
         content: 1,
@@ -156,5 +162,35 @@ export const LogService = {
     }
 
     await Log.deleteOne({ _id: logId });
+  },
+  getSupportLogs: async (organization: OrganizationDocument, query: string) => {
+    const [logs, integrationLogs] = await Promise.all([
+      Log.find(
+        {
+          organizationId: organization._id,
+          referenceId: query,
+        },
+        {
+          content: 1,
+          _id: 1,
+          referenceId: 1,
+          createdAt: 1,
+          folderId: 1,
+          externalLink: 1,
+        }
+      )
+        .sort({ createdAt: -1 })
+        .limit(300)
+        .lean()
+        .exec() as Promise<SimplifiedLog[]>,
+      SecureIntegrationService.getLogsFromIntegrations(organization, query),
+    ]);
+
+    const combinedLogs = logs.concat(integrationLogs);
+    const sortedLogs = combinedLogs.sort((a, b) =>
+      moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
+    );
+
+    return sortedLogs.slice(0, 300);
   },
 };

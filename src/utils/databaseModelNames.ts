@@ -8,4 +8,5 @@ export enum DatabaseModelNames {
   LastCheckedFolder = "LastCheckedFolder",
   FolderPreference = "FolderPreference",
   Rule = "Rule",
+  Integration = "Integration",
 }

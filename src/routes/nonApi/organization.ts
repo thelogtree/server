@@ -74,6 +74,24 @@ router.get(
   auth.requiredOrgMember,
   OrganizationController.getRulesForUser
 );
+router.get(
+  "/:id/integrations",
+  auth.requiredOrgMember,
+  OrganizationController.getIntegrations
+);
+router.get(
+  "/:id/connectable-integrations",
+  auth.requiredOrgMember,
+  OrganizationController.getConnectableIntegrations
+);
+router.get(
+  "/:id/support-logs",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getSupportLogs,
+  }),
+  OrganizationController.getSupportLogs
+);
 
 router.put(
   "/:id/user-permissions",
@@ -90,6 +108,14 @@ router.put(
     bodySchema: OrganizationSchemas.updateFolder,
   }),
   OrganizationController.updateFolder
+);
+router.put(
+  "/:id/integration",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.updateIntegration,
+  }),
+  OrganizationController.updateIntegration
 );
 
 router.post(
@@ -181,6 +207,22 @@ router.post(
     bodySchema: OrganizationSchemas.deleteLog,
   }),
   OrganizationController.deleteLog
+);
+router.post(
+  "/:id/integration",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.addOrUpdateIntegration,
+  }),
+  OrganizationController.addOrUpdateIntegration
+);
+router.post(
+  "/:id/delete-integration",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteIntegration,
+  }),
+  OrganizationController.deleteIntegration
 );
 router.post(
   "/waitlist",
