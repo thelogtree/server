@@ -11,6 +11,10 @@ export type IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => Promise<any> | any;
   getLogs: GetIntegrationLogsFxnType;
   finishConnection?: (integration: IntegrationDocument) => Promise<any> | void;
+  exchangeOAuthTokenAndConnect?: (
+    sessionId: string,
+    code: string
+  ) => Promise<any>;
 };
 
 export type FinishSetupFunctionType =

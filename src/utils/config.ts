@@ -48,4 +48,8 @@ export const config = {
     publishableApiKey: process.env.LOGTREE_PUBLISHABLE_API_KEY || "",
     plaintextSecretKey: process.env.LOGTREE_SECRET_KEY || "",
   },
+  intercom: {
+    appClientId: process.env.INTERCOM_APP_CLIENT_ID,
+    appClientSecret: process.env.INTERCOM_APP_CLIENT_SECRET,
+  },
 };

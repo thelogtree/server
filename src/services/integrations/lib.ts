@@ -24,6 +24,7 @@ import { MixpanelService } from "./components/MixpanelService";
 export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
   integrationTypeEnum.Sentry,
   integrationTypeEnum.Mixpanel,
+  integrationTypeEnum.Intercom,
 ];
 
 // functions for getting logs for an integration
@@ -41,4 +42,5 @@ export const IntegrationFinishSetupFunctionsToRunMap: {
 } = {
   sentry: SentryService.finishConnection,
   mixpanel: undefined,
+  intercom: undefined,
 };
