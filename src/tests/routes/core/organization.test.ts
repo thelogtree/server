@@ -2343,7 +2343,9 @@ describe("ExchangeIntegrationOAuthToken", () => {
     const code = faker.datatype.uuid();
     const axiosSpy = jest
       .spyOn(axios, "post")
-      .mockImplementation(() => Promise.reject("something wrong!"));
+      .mockImplementation(() =>
+        Promise.reject({ message: "something wrong!" })
+      );
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
 
