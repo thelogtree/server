@@ -94,4 +94,8 @@ export const OrganizationSchemas = {
     integrationId: Joi.string().custom(objectId).required(),
     additionalProperties: Joi.object(),
   }),
+  exchangeIntegrationOAuthToken: Joi.object({
+    sessionId: Joi.string().custom(objectId).required(),
+    code: Joi.string().required(),
+  }),
 };

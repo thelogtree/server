@@ -401,7 +401,7 @@ export const OrganizationController = {
     res.send({ integrations });
   },
   getSupportLogs: async (req: Request, res: Response) => {
-    const organization = req["organization"];
+    const organization: OrganizationDocument = req["organization"];
     const user = req["user"];
     const { query } = req.query;
     const logs = await LogService.getSupportLogs(organization, query as string);
@@ -416,5 +416,17 @@ export const OrganizationController = {
     );
 
     res.send({ logs });
+  },
+  exchangeIntegrationOAuthToken: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { sessionId, code } = req.body;
+
+    await SecureIntegrationService.exchangeOAuthTokenAndConnect(
+      organization._id.toString(),
+      sessionId,
+      code
+    );
+
+    res.send({});
   },
 };

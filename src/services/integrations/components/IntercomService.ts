@@ -2,6 +2,7 @@ import {
   IntegrationDocument,
   integrationTypeEnum,
   keyTypeEnum,
+  OAuthRequestDocument,
   OrganizationDocument,
   simplifiedLogTagEnum,
 } from "logtree-types";
@@ -19,6 +20,7 @@ import moment from "moment";
 import _ from "lodash";
 import { config } from "src/utils/config";
 import { OAuthRequest } from "src/models/OAuthRequest";
+import { LeanDocument } from "mongoose";
 
 const BASE_URL = "https://mixpanel.com/api/2.0";
 
@@ -44,20 +46,10 @@ export const IntercomService: IntegrationServiceType = {
   ): Promise<SimplifiedLog[]> => {
     return [];
   },
-  exchangeOAuthTokenAndConnect: async (sessionId: string, code: string) => {
-    const openOAuthRequest = await OAuthRequest.findOne({
-      _id: sessionId,
-      isComplete: false,
-      source: integrationTypeEnum.Intercom,
-    })
-      .lean()
-      .exec();
-    if (!openOAuthRequest) {
-      throw new AuthError(
-        "Could not find a pending OAuth request for Intercom."
-      );
-    }
-
+  exchangeOAuthTokenAndConnect: async (
+    openOAuthRequest: LeanDocument<OAuthRequestDocument>,
+    code: string
+  ) => {
     const res = await axios.post("https://api.intercom.io/auth/eagle/token", {
       code,
       client_id: config.intercom.appClientId,

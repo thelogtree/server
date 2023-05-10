@@ -39,6 +39,9 @@ import { UserFactory } from "../../factories/UserFactory";
 import { TestHelper } from "../../TestHelper";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import { integrationsAvailableToConnectTo } from "src/services/integrations/lib";
+import { OAuthRequestFactory } from "src/tests/factories/OAuthRequestFactory";
+import axios from "axios";
+import { OAuthRequest } from "src/models/OAuthRequest";
 
 const routeUrl = "/organization";
 
@@ -2192,5 +2195,184 @@ describe("GetSupportLogs", () => {
     expect(logs[2].tag).toBeUndefined();
     expect(logs[3]._id.toString()).toBe("b");
     expect(logs[3].tag).toBe(simplifiedLogTagEnum.Error);
+  });
+});
+
+describe("ExchangeIntegrationOAuthToken", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    OAuthRequest.deleteMany();
+  });
+  it("correctly exchanges an oauth token and connects (intercom mocked)", async () => {
+    const plaintextToken = faker.datatype.uuid();
+    const code = faker.datatype.uuid();
+    const axiosSpy = jest.spyOn(axios, "post").mockImplementation(() =>
+      Promise.resolve({
+        data: {
+          token: plaintextToken,
+        },
+      })
+    );
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const oauthRequest = await OAuthRequestFactory.create({
+      organizationId: organization._id,
+      isComplete: false,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      "POST",
+      {
+        sessionId: oauthRequest._id.toString(),
+        code,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    expect(axiosSpy).toBeCalledTimes(1);
+    expect(axiosSpy.mock.calls[0][1].code).toBe(code);
+
+    const updatedOAuthRequest = await OAuthRequest.findById(oauthRequest._id);
+    expect(updatedOAuthRequest!.isComplete).toBe(true);
+
+    const createdIntegrations = await Integration.find({
+      organizationId: organization._id,
+    });
+    expect(createdIntegrations.length).toBe(1);
+    expect(createdIntegrations[0].type).toBe(integrationTypeEnum.Intercom);
+
+    const decryptedKeys =
+      SecureIntegrationService.getDecryptedKeysForIntegration(
+        createdIntegrations[0]
+      );
+    expect(decryptedKeys.length).toBe(1);
+    expect(decryptedKeys[0].type).toBe(keyTypeEnum.AuthToken);
+    expect(decryptedKeys[0].plaintextValue).toBe(plaintextToken);
+  });
+  it("fails to exchange an oauth token since the session ID isn't valid for this organization", async () => {
+    const plaintextToken = faker.datatype.uuid();
+    const code = faker.datatype.uuid();
+    const axiosSpy = jest.spyOn(axios, "post").mockImplementation(() =>
+      Promise.resolve({
+        data: {
+          token: plaintextToken,
+        },
+      })
+    );
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const oauthRequest = await OAuthRequestFactory.create({
+      isComplete: false,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      "POST",
+      {
+        sessionId: oauthRequest._id.toString(),
+        code,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Could not find a pending OAuth request with this session ID."
+    );
+
+    expect(axiosSpy).toBeCalledTimes(0);
+
+    const updatedOAuthRequest = await OAuthRequest.findById(oauthRequest._id);
+    expect(updatedOAuthRequest!.isComplete).toBe(false);
+
+    const createdIntegrations = await Integration.find({
+      organizationId: organization._id,
+    });
+    expect(createdIntegrations.length).toBe(0);
+  });
+  it("fails to exchange an oauth token since the session ID doesn't exist", async () => {
+    const plaintextToken = faker.datatype.uuid();
+    const code = faker.datatype.uuid();
+    const axiosSpy = jest.spyOn(axios, "post").mockImplementation(() =>
+      Promise.resolve({
+        data: {
+          token: plaintextToken,
+        },
+      })
+    );
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const oauthRequest = await OAuthRequestFactory.create({
+      organizationId: organization._id,
+      isComplete: false,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      "POST",
+      {
+        sessionId: organization._id.toString(),
+        code,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Could not find a pending OAuth request with this session ID."
+    );
+
+    expect(axiosSpy).toBeCalledTimes(0);
+
+    const updatedOAuthRequest = await OAuthRequest.findById(oauthRequest._id);
+    expect(updatedOAuthRequest!.isComplete).toBe(false);
+
+    const createdIntegrations = await Integration.find({
+      organizationId: organization._id,
+    });
+    expect(createdIntegrations.length).toBe(0);
+  });
+  it("fails to exchange an oauth token since the integration failed (intercom mocked)", async () => {
+    const code = faker.datatype.uuid();
+    const axiosSpy = jest
+      .spyOn(axios, "post")
+      .mockImplementation(() => Promise.reject("something wrong!"));
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const oauthRequest = await OAuthRequestFactory.create({
+      organizationId: organization._id,
+      isComplete: false,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      "POST",
+      {
+        sessionId: oauthRequest._id.toString(),
+        code,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "something wrong!");
+
+    expect(axiosSpy).toBeCalledTimes(1);
+    expect(axiosSpy.mock.calls[0][1].code).toBe(code);
+
+    const updatedOAuthRequest = await OAuthRequest.findById(oauthRequest._id);
+    expect(updatedOAuthRequest!.isComplete).toBe(false);
+
+    const createdIntegrations = await Integration.find({
+      organizationId: organization._id,
+    });
+    expect(createdIntegrations.length).toBe(0);
   });
 });

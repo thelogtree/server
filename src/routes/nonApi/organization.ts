@@ -232,5 +232,13 @@ router.post(
   }),
   OrganizationController.addToWaitlist
 );
+router.post(
+  "/:id/integration-oauth",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.exchangeIntegrationOAuthToken,
+  }),
+  OrganizationController.exchangeIntegrationOAuthToken
+);
 
 export default router;
