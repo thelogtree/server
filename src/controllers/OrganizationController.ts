@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { OrganizationDocument, UserDocument } from "logtree-types";
+import {
+  OrganizationDocument,
+  UserDocument,
+  integrationTypeEnum,
+} from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Folder } from "src/models/Folder";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
@@ -428,5 +432,16 @@ export const OrganizationController = {
     );
 
     res.send({});
+  },
+  getIntegrationOAuthLink: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationType } = req.query;
+
+    const url = await SecureIntegrationService.getOAuthLink(
+      organization._id.toString(),
+      integrationType as integrationTypeEnum
+    );
+
+    res.send({ url });
   },
 };

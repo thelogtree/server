@@ -19,6 +19,7 @@ import {
   IntegrationExchangeOAuthTokenAndConnectMap,
   IntegrationFinishSetupFunctionsToRunMap,
   IntegrationGetLogsMap,
+  IntegrationGetOAuthLinkMap,
   integrationsAvailableToConnectTo,
 } from "./lib";
 import _ from "lodash";
@@ -205,5 +206,21 @@ export const SecureIntegrationService = {
     if (oauthFxn) {
       await oauthFxn(openOAuthRequest, code);
     }
+  },
+  getOAuthLink: async (
+    organizationId: string,
+    integrationType: integrationTypeEnum
+  ) => {
+    let getOAuthLinkFxn = IntegrationGetOAuthLinkMap[integrationType];
+
+    if (!getOAuthLinkFxn) {
+      throw new ApiError("OAuth is not an option for this integration.");
+    }
+
+    const oauthRequest = await OAuthRequest.create({
+      organizationId,
+      source: integrationType,
+    });
+    return getOAuthLinkFxn(oauthRequest);
   },
 };

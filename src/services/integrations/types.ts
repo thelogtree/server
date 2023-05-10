@@ -21,9 +21,14 @@ export type ExchangeOAuthTokenAndConnectFxnType = (
   code: string
 ) => Promise<any>;
 
+export type GetOAuthLinkFxnType = (
+  openOAuthRequest: OAuthRequestDocument
+) => string;
+
 export type IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => Promise<any> | any;
   getLogs: GetIntegrationLogsFxnType;
   finishConnection?: (integration: IntegrationDocument) => Promise<any> | void;
   exchangeOAuthTokenAndConnect?: ExchangeOAuthTokenAndConnectFxnType;
+  getIntegrationOAuthLink?: GetOAuthLinkFxnType;
 };

@@ -92,6 +92,14 @@ router.get(
   }),
   OrganizationController.getSupportLogs
 );
+router.get(
+  "/:id/integration-oauth-link",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getIntegrationOAuthLink,
+  }),
+  OrganizationController.getIntegrationOAuthLink
+);
 
 router.put(
   "/:id/user-permissions",
@@ -233,12 +241,11 @@ router.post(
   OrganizationController.addToWaitlist
 );
 router.post(
-  "/:id/integration-oauth",
+  "/:id/integration-oauth-finish",
   auth.requiredOrgMember,
   validateRequestAgainstSchemas({
     bodySchema: OrganizationSchemas.exchangeIntegrationOAuthToken,
   }),
   OrganizationController.exchangeIntegrationOAuthToken
 );
-
 export default router;

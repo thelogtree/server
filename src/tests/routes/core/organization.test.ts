@@ -2202,7 +2202,7 @@ describe("ExchangeIntegrationOAuthToken", () => {
   beforeEach(async () => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
-    OAuthRequest.deleteMany();
+    await OAuthRequest.deleteMany();
   });
   it("correctly exchanges an oauth token and connects (intercom mocked)", async () => {
     const plaintextToken = faker.datatype.uuid();
@@ -2223,7 +2223,7 @@ describe("ExchangeIntegrationOAuthToken", () => {
     });
 
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth-finish`,
       "POST",
       {
         sessionId: oauthRequest._id.toString(),
@@ -2272,7 +2272,7 @@ describe("ExchangeIntegrationOAuthToken", () => {
     });
 
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth-finish`,
       "POST",
       {
         sessionId: oauthRequest._id.toString(),
@@ -2315,7 +2315,7 @@ describe("ExchangeIntegrationOAuthToken", () => {
     });
 
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth-finish`,
       "POST",
       {
         sessionId: organization._id.toString(),
@@ -2355,7 +2355,7 @@ describe("ExchangeIntegrationOAuthToken", () => {
     });
 
     const res = await TestHelper.sendRequest(
-      routeUrl + `/${user.organizationId.toString()}/integration-oauth`,
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth-finish`,
       "POST",
       {
         sessionId: oauthRequest._id.toString(),
@@ -2376,5 +2376,56 @@ describe("ExchangeIntegrationOAuthToken", () => {
       organizationId: organization._id,
     });
     expect(createdIntegrations.length).toBe(0);
+  });
+});
+
+describe("GetIntegrationOAuthLink", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    await OAuthRequest.deleteMany();
+  });
+  it("correctly gets an integration's oauth link (intercom example)", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth-link`,
+      "GET",
+      {},
+      { integrationType: integrationTypeEnum.Intercom },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { url } = res.body;
+    expect(url).toBeTruthy();
+
+    const oauthRequest = await OAuthRequest.findOne({
+      organizationId: organization._id,
+      source: integrationTypeEnum.Intercom,
+      isComplete: false,
+    });
+    expect(oauthRequest).toBeTruthy();
+    expect(url.includes(`state=${oauthRequest?._id.toString()}`)).toBe(true);
+  });
+  it("fails to get an oauth link for an integration that doesn't have oauth", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-oauth-link`,
+      "GET",
+      {},
+      { integrationType: integrationTypeEnum.Sentry },
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "OAuth is not an option for this integration.");
+
+    const oauthRequest = await OAuthRequest.findOne({
+      organizationId: organization._id,
+      source: integrationTypeEnum.Sentry,
+    });
+    expect(oauthRequest).toBeNull();
   });
 });

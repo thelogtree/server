@@ -4,6 +4,7 @@ import {
   ExchangeOAuthTokenAndConnectFxnType,
   FinishSetupFxnType,
   GetIntegrationLogsFxnType,
+  GetOAuthLinkFxnType,
 } from "./types";
 import { MixpanelService } from "./components/MixpanelService";
 import { IntercomService } from "./components/IntercomService";
@@ -58,4 +59,13 @@ export const IntegrationExchangeOAuthTokenAndConnectMap: {
   sentry: undefined,
   mixpanel: undefined,
   intercom: IntercomService.exchangeOAuthTokenAndConnect,
+};
+
+// functions for getting the OAuth redirect link (if the integration connects via OAuth)
+export const IntegrationGetOAuthLinkMap: {
+  [key in integrationTypeEnum]: GetOAuthLinkFxnType | undefined;
+} = {
+  sentry: undefined,
+  mixpanel: undefined,
+  intercom: IntercomService.getIntegrationOAuthLink,
 };

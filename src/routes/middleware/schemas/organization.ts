@@ -98,4 +98,7 @@ export const OrganizationSchemas = {
     sessionId: Joi.string().custom(objectId).required(),
     code: Joi.string().required(),
   }),
+  getIntegrationOAuthLink: Joi.object({
+    integrationType: Joi.string().required(),
+  }),
 };

@@ -73,4 +73,8 @@ export const IntercomService: IntegrationServiceType = {
       { isComplete: true }
     );
   },
+  getIntegrationOAuthLink: (oauthRequest: OAuthRequestDocument) =>
+    `https://app.intercom.com/oauth?client_id=${
+      config.intercom.appClientId
+    }&state=${oauthRequest._id.toString()}`,
 };
