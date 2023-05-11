@@ -92,8 +92,12 @@ export const IntercomService: IntegrationServiceType = {
     });
   },
   verifyWebhookCameFromTrustedSource: (headers: any, body: any) => {
-    Logger.sendLog(JSON.stringify(headers), "/debugging");
-    const requestHmac = headers["X-Hub-Signature"].slice(5);
+    const requestHmac = (
+      headers["x-hub-signature"] as string | undefined
+    )?.slice(5);
+    if (!requestHmac) {
+      return false;
+    }
 
     const replacer = (key: string, value: any) =>
       value instanceof Object && !(value instanceof Array)
