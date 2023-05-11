@@ -159,12 +159,13 @@ export const OrganizationController = {
     const organization: OrganizationDocument = req["organization"];
     const user: UserDocument = req["user"];
     const { folderId } = req.body;
+
+    LoggerHelpers.recordDeletedFolder(user, folderId, organization);
+
     await OrganizationService.deleteFolderAndEverythingInside(
       organization._id.toString(),
       folderId
     );
-
-    LoggerHelpers.recordDeletedFolder(user, folderId, organization);
 
     res.send({});
   },
