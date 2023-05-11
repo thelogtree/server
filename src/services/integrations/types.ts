@@ -29,6 +29,15 @@ export type RemoveOAuthConnectionType = (
   integration: IntegrationDocument
 ) => Promise<void>;
 
+export type RemoveOAuthConnectionElsewhereType = (
+  details: any
+) => Promise<void>;
+
+export type VerifyWebhookCameFromTrustedSourceType = (
+  headers: any,
+  body: any
+) => boolean;
+
 export type IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => Promise<any> | any;
   getLogs: GetIntegrationLogsFxnType;
@@ -36,4 +45,6 @@ export type IntegrationServiceType = {
   exchangeOAuthTokenAndConnect?: ExchangeOAuthTokenAndConnectFxnType;
   getIntegrationOAuthLink?: GetOAuthLinkFxnType;
   removeOAuthConnection?: RemoveOAuthConnectionType;
+  removedOAuthConnectionElsewhereAndNeedToUpdateOurOwnRecords?: RemoveOAuthConnectionElsewhereType;
+  verifyWebhookCameFromTrustedSource?: VerifyWebhookCameFromTrustedSourceType;
 };

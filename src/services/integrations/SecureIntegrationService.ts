@@ -207,6 +207,11 @@ export const SecureIntegrationService = {
     if (oauthFxn) {
       await oauthFxn(openOAuthRequest, code);
     }
+
+    await OAuthRequest.updateOne(
+      { _id: openOAuthRequest._id },
+      { isComplete: true }
+    );
   },
   getOAuthLink: async (
     organizationId: string,
@@ -224,7 +229,9 @@ export const SecureIntegrationService = {
     });
     return getOAuthLinkFxn(oauthRequest);
   },
-  removeAnyOAuthConnectionIfApplicable: async (integration: IntegrationDocument) => {
+  removeAnyOAuthConnectionIfApplicable: async (
+    integration: IntegrationDocument
+  ) => {
     let removeOAuthFxn = IntegrationRemoveOAuthMap[integration.type];
     if (removeOAuthFxn) {
       // was an oauth connection, need to delete it via the integration's API if possible

@@ -21,6 +21,8 @@ import _ from "lodash";
 import { config } from "src/utils/config";
 import { OAuthRequest } from "src/models/OAuthRequest";
 import { LeanDocument } from "mongoose";
+import { Integration } from "src/models/Integration";
+import crypto from "crypto";
 
 const BASE_URL = "https://api.intercom.io";
 
@@ -46,6 +48,19 @@ export const IntercomService: IntegrationServiceType = {
   ): Promise<SimplifiedLog[]> => {
     return [];
   },
+  finishConnection: async (integration: IntegrationDocument) => {
+    const headers = IntercomService.getHeaders(integration);
+    const meRes = await axios.get(BASE_URL + "/me", { headers });
+    const appId = meRes.data.app.id_code;
+    await Integration.updateOne(
+      { _id: integration._id },
+      {
+        additionalProperties: {
+          appId,
+        },
+      }
+    );
+  },
   exchangeOAuthTokenAndConnect: async (
     openOAuthRequest: LeanDocument<OAuthRequestDocument>,
     code: string
@@ -67,11 +82,6 @@ export const IntercomService: IntegrationServiceType = {
         },
       ]
     );
-
-    await OAuthRequest.updateOne(
-      { _id: openOAuthRequest._id },
-      { isComplete: true }
-    );
   },
   getIntegrationOAuthLink: (oauthRequest: OAuthRequestDocument) =>
     `https://app.intercom.com/oauth?client_id=${
@@ -80,5 +90,36 @@ export const IntercomService: IntegrationServiceType = {
   removeOAuthConnection: async (integration: IntegrationDocument) => {
     const headers = IntercomService.getHeaders(integration);
     await axios.post(BASE_URL + "/auth/uninstall", undefined, { headers });
+  },
+  removedOAuthConnectionElsewhereAndNeedToUpdateOurOwnRecords: async (
+    details: any
+  ) => {
+    await Integration.deleteOne({
+      "additionalProperties.appId": details.app_id,
+    });
+  },
+  verifyWebhookCameFromTrustedSource: (headers: any, body: any) => {
+    const requestHmac = headers["X-Hub-Signature"].slice(5);
+
+    const replacer = (key: string, value: any) =>
+      value instanceof Object && !(value instanceof Array)
+        ? Object.keys(value)
+            .sort()
+            .reduce((sorted, key) => {
+              sorted[key] = value[key];
+              return sorted;
+            }, {})
+        : value;
+
+    const requestJson = JSON.stringify(body, replacer);
+    const dataHmac = crypto
+      .createHmac("sha1", config.intercom.appClientSecret as any)
+      .update(requestJson)
+      .digest("base64");
+
+    return crypto.timingSafeEqual(
+      Buffer.from(requestHmac),
+      Buffer.from(dataHmac)
+    );
   },
 };

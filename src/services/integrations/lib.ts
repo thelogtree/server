@@ -50,7 +50,7 @@ export const IntegrationFinishSetupFunctionsToRunMap: {
 } = {
   sentry: SentryService.finishConnection,
   mixpanel: undefined,
-  intercom: undefined,
+  intercom: IntercomService.finishConnection,
 };
 
 // functions for connecting the integration if the integration is using OAuth
