@@ -95,14 +95,16 @@ export const IntercomService: IntegrationServiceType = {
     const requestHmac = (
       headers["x-hub-signature"] as string | undefined
     )?.slice(5);
+    Logger.sendLog("look: " + requestHmac?.toString() || "", "/debugging");
     if (!requestHmac) {
       return false;
     }
-
+    Logger.sendLog(JSON.stringify(body), "/debugging");
     const dataHmac = crypto
       .createHmac("sha1", config.intercom.appClientSecret as any)
       .update(JSON.stringify(body))
       .digest("hex");
+    Logger.sendLog(dataHmac + " === " + requestHmac, "/debugging");
 
     return crypto.timingSafeEqual(
       Buffer.from(requestHmac),
