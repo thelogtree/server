@@ -20,6 +20,7 @@ import {
   IntegrationFinishSetupFunctionsToRunMap,
   IntegrationGetLogsMap,
   IntegrationGetOAuthLinkMap,
+  IntegrationRemoveOAuthMap,
   integrationsAvailableToConnectTo,
 } from "./lib";
 import _ from "lodash";
@@ -222,5 +223,12 @@ export const SecureIntegrationService = {
       source: integrationType,
     });
     return getOAuthLinkFxn(oauthRequest);
+  },
+  removeAnyOAuthConnectionIfApplicable: async (integration: IntegrationDocument) => {
+    let removeOAuthFxn = IntegrationRemoveOAuthMap[integration.type];
+    if (removeOAuthFxn) {
+      // was an oauth connection, need to delete it via the integration's API if possible
+      await removeOAuthFxn(integration);
+    }
   },
 };

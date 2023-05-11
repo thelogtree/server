@@ -5,6 +5,7 @@ import {
   FinishSetupFxnType,
   GetIntegrationLogsFxnType,
   GetOAuthLinkFxnType,
+  RemoveOAuthConnectionType,
 } from "./types";
 import { MixpanelService } from "./components/MixpanelService";
 import { IntercomService } from "./components/IntercomService";
@@ -68,4 +69,13 @@ export const IntegrationGetOAuthLinkMap: {
   sentry: undefined,
   mixpanel: undefined,
   intercom: IntercomService.getIntegrationOAuthLink,
+};
+
+// functions for removing an OAuth connection for an integration
+export const IntegrationRemoveOAuthMap: {
+  [key in integrationTypeEnum]: RemoveOAuthConnectionType | undefined;
+} = {
+  sentry: undefined,
+  mixpanel: undefined,
+  intercom: IntercomService.removeOAuthConnection,
 };

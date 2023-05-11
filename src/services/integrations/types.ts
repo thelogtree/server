@@ -25,10 +25,15 @@ export type GetOAuthLinkFxnType = (
   openOAuthRequest: OAuthRequestDocument
 ) => string;
 
+export type RemoveOAuthConnectionType = (
+  integration: IntegrationDocument
+) => Promise<void>;
+
 export type IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => Promise<any> | any;
   getLogs: GetIntegrationLogsFxnType;
   finishConnection?: (integration: IntegrationDocument) => Promise<any> | void;
   exchangeOAuthTokenAndConnect?: ExchangeOAuthTokenAndConnectFxnType;
   getIntegrationOAuthLink?: GetOAuthLinkFxnType;
+  removeOAuthConnection?: RemoveOAuthConnectionType;
 };

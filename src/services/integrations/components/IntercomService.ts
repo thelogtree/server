@@ -22,7 +22,7 @@ import { config } from "src/utils/config";
 import { OAuthRequest } from "src/models/OAuthRequest";
 import { LeanDocument } from "mongoose";
 
-const BASE_URL = "https://mixpanel.com/api/2.0";
+const BASE_URL = "https://api.intercom.io";
 
 export const IntercomService: IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => {
@@ -32,7 +32,7 @@ export const IntercomService: IntegrationServiceType = {
       (key) => key.type === keyTypeEnum.AuthToken
     );
     if (!key) {
-      throw new ApiError("No Sentry key exists for this organization.");
+      throw new ApiError("No Intercom key exists for this organization.");
     }
 
     return {
@@ -50,7 +50,7 @@ export const IntercomService: IntegrationServiceType = {
     openOAuthRequest: LeanDocument<OAuthRequestDocument>,
     code: string
   ) => {
-    const res = await axios.post("https://api.intercom.io/auth/eagle/token", {
+    const res = await axios.post(BASE_URL + "/auth/eagle/token", {
       code,
       client_id: config.intercom.appClientId,
       client_secret: config.intercom.appClientSecret,
@@ -77,4 +77,8 @@ export const IntercomService: IntegrationServiceType = {
     `https://app.intercom.com/oauth?client_id=${
       config.intercom.appClientId
     }&state=${oauthRequest._id.toString()}`,
+  removeOAuthConnection: async (integration: IntegrationDocument) => {
+    const headers = IntercomService.getHeaders(integration);
+    await axios.post(BASE_URL + "/auth/uninstall", undefined, { headers });
+  },
 };

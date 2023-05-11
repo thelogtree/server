@@ -42,6 +42,7 @@ import { integrationsAvailableToConnectTo } from "src/services/integrations/lib"
 import { OAuthRequestFactory } from "src/tests/factories/OAuthRequestFactory";
 import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
+import { IntercomService } from "src/services/integrations/components/IntercomService";
 
 const routeUrl = "/organization";
 
@@ -1970,7 +1971,14 @@ describe("GetIntegrations", () => {
 });
 
 describe("DeleteIntegration", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
   it("correctly deletes an integration", async () => {
+    const integrationOAuthDeleteSpy = jest
+      .spyOn(SecureIntegrationService, "removeAnyOAuthConnectionIfApplicable")
+      .mockImplementation(fakePromise);
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
     const integration = await IntegrationFactory.create({
@@ -1992,6 +2000,72 @@ describe("DeleteIntegration", () => {
       _id: integration._id,
     });
     expect(integrationStillExists).toBeFalsy();
+    expect(integrationOAuthDeleteSpy).toBeCalledTimes(1);
+    expect(integrationOAuthDeleteSpy.mock.calls[0][0]._id.toString()).toBe(
+      integration.id
+    );
+  });
+  it("correctly deletes an integration with an oauth connection (intercom example)", async () => {
+    const integrationOAuthDeleteSpy = jest
+      .spyOn(SecureIntegrationService, "removeAnyOAuthConnectionIfApplicable")
+      .mockImplementation(fakePromise);
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration = await IntegrationFactory.create({
+      organizationId: organization._id,
+      type: integrationTypeEnum.Intercom,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-integration`,
+      "POST",
+      {
+        integrationId: integration._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const integrationStillExists = await Integration.exists({
+      _id: integration._id,
+    });
+    expect(integrationStillExists).toBeFalsy();
+    expect(integrationOAuthDeleteSpy).toBeCalledTimes(1);
+    expect(integrationOAuthDeleteSpy.mock.calls[0][0]._id.toString()).toBe(
+      integration.id
+    );
+  });
+  it("fails to delete an integration because the oauth disconnect failed (intercom example)", async () => {
+    const integrationOAuthDeleteSpy = jest
+      .spyOn(SecureIntegrationService, "removeAnyOAuthConnectionIfApplicable")
+      .mockImplementation(() => Promise.reject({ message: "yolo" }));
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const integration = await IntegrationFactory.create({
+      organizationId: organization._id,
+      type: integrationTypeEnum.Intercom,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-integration`,
+      "POST",
+      {
+        integrationId: integration._id,
+      },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "yolo");
+
+    const integrationStillExists = await Integration.exists({
+      _id: integration._id,
+    });
+    expect(integrationStillExists).toBeTruthy();
+    expect(integrationOAuthDeleteSpy).toBeCalledTimes(1);
+    expect(integrationOAuthDeleteSpy.mock.calls[0][0]._id.toString()).toBe(
+      integration.id
+    );
   });
   it("fails to delete an integration from a different organization", async () => {
     const organization = await OrganizationFactory.create();
