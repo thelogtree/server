@@ -98,8 +98,7 @@ export const IntercomService: IntegrationServiceType = {
     if (!requestHmac) {
       return false;
     }
-    Logger.sendLog(headers["x-hub-signature"], "/debugging");
-    Logger.sendLog(headers["x-hub-signature"]?.slice(5), "/debugging");
+
     const replacer = (key: string, value: any) =>
       value instanceof Object && !(value instanceof Array)
         ? Object.keys(value)
@@ -114,7 +113,7 @@ export const IntercomService: IntegrationServiceType = {
     Logger.sendLog(requestJson, "/debugging");
     const dataHmac = crypto
       .createHmac("sha1", config.intercom.appClientSecret as any)
-      .update(requestJson)
+      .update(body)
       .digest("hex");
 
     Logger.sendLog(dataHmac + "  ===  " + requestHmac, "/debugging");
