@@ -1,7 +1,14 @@
 import { integrationTypeEnum } from "logtree-types";
 import { SentryService } from "./components/SentryService";
-import { FinishSetupFunctionType, GetIntegrationLogsFxnType } from "./types";
+import {
+  ExchangeOAuthTokenAndConnectFxnType,
+  FinishSetupFxnType,
+  GetIntegrationLogsFxnType,
+  GetOAuthLinkFxnType,
+  RemoveOAuthConnectionType,
+} from "./types";
 import { MixpanelService } from "./components/MixpanelService";
+import { IntercomService } from "./components/IntercomService";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.
@@ -24,6 +31,7 @@ import { MixpanelService } from "./components/MixpanelService";
 export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
   integrationTypeEnum.Sentry,
   integrationTypeEnum.Mixpanel,
+  integrationTypeEnum.Intercom,
 ];
 
 // functions for getting logs for an integration
@@ -32,13 +40,42 @@ export const IntegrationGetLogsMap: {
 } = {
   sentry: SentryService.getLogs,
   mixpanel: MixpanelService.getLogs,
+  intercom: IntercomService.getLogs,
 };
 
 // functions for getting the functions to run when finishing connecting an integration
 // these can be used for doing additional setup work or for testing that the api key(s) provided are valid.
 export const IntegrationFinishSetupFunctionsToRunMap: {
-  [key in integrationTypeEnum]: FinishSetupFunctionType;
+  [key in integrationTypeEnum]: FinishSetupFxnType;
 } = {
   sentry: SentryService.finishConnection,
   mixpanel: undefined,
+  intercom: undefined,
+};
+
+// functions for connecting the integration if the integration is using OAuth
+export const IntegrationExchangeOAuthTokenAndConnectMap: {
+  [key in integrationTypeEnum]: ExchangeOAuthTokenAndConnectFxnType | undefined;
+} = {
+  sentry: undefined,
+  mixpanel: undefined,
+  intercom: IntercomService.exchangeOAuthTokenAndConnect,
+};
+
+// functions for getting the OAuth redirect link (if the integration connects via OAuth)
+export const IntegrationGetOAuthLinkMap: {
+  [key in integrationTypeEnum]: GetOAuthLinkFxnType | undefined;
+} = {
+  sentry: undefined,
+  mixpanel: undefined,
+  intercom: IntercomService.getIntegrationOAuthLink,
+};
+
+// functions for removing an OAuth connection for an integration
+export const IntegrationRemoveOAuthMap: {
+  [key in integrationTypeEnum]: RemoveOAuthConnectionType | undefined;
+} = {
+  sentry: undefined,
+  mixpanel: undefined,
+  intercom: IntercomService.removeOAuthConnection,
 };

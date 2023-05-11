@@ -9,16 +9,24 @@ import {
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import { config } from "src/utils/config";
-import { ApiError } from "src/utils/errors";
-import { FinishSetupFunctionType, GetIntegrationLogsFxnType } from "./types";
+import { ApiError, AuthError } from "src/utils/errors";
 import {
+  ExchangeOAuthTokenAndConnectFxnType,
+  FinishSetupFxnType,
+  GetIntegrationLogsFxnType,
+} from "./types";
+import {
+  IntegrationExchangeOAuthTokenAndConnectMap,
   IntegrationFinishSetupFunctionsToRunMap,
   IntegrationGetLogsMap,
+  IntegrationGetOAuthLinkMap,
+  IntegrationRemoveOAuthMap,
   integrationsAvailableToConnectTo,
 } from "./lib";
 import _ from "lodash";
 import { SimplifiedLog } from "../ApiService/lib/LogService";
 import { getErrorMessage } from "src/utils/helpers";
+import { OAuthRequest } from "src/models/OAuthRequest";
 
 export type PlaintextKey = {
   type: keyTypeEnum;
@@ -89,7 +97,7 @@ export const SecureIntegrationService = {
   // main reason this is extracted is so we can mock it in a unit test easily
   getCorrectSetupFunctionToRun: (
     integration: IntegrationDocument
-  ): FinishSetupFunctionType =>
+  ): FinishSetupFxnType =>
     IntegrationFinishSetupFunctionsToRunMap[integration.type],
   getDecryptedKeysForIntegration: (
     integration: IntegrationDocument
@@ -170,5 +178,57 @@ export const SecureIntegrationService = {
       (type) =>
         !connectedIntegrationTypes.find((typeObj) => typeObj.type === type)
     );
+  },
+  getCorrectOAuthFunctionToRun: (
+    integrationType: integrationTypeEnum
+  ): ExchangeOAuthTokenAndConnectFxnType | undefined =>
+    IntegrationExchangeOAuthTokenAndConnectMap[integrationType],
+  exchangeOAuthTokenAndConnect: async (
+    organizationId: string,
+    sessionId: string,
+    code: string
+  ) => {
+    const openOAuthRequest = await OAuthRequest.findOne({
+      _id: sessionId,
+      isComplete: false,
+      organizationId,
+    })
+      .lean()
+      .exec();
+    if (!openOAuthRequest) {
+      throw new AuthError(
+        "Could not find a pending OAuth request with this session ID."
+      );
+    }
+
+    const oauthFxn = SecureIntegrationService.getCorrectOAuthFunctionToRun(
+      openOAuthRequest.source
+    );
+    if (oauthFxn) {
+      await oauthFxn(openOAuthRequest, code);
+    }
+  },
+  getOAuthLink: async (
+    organizationId: string,
+    integrationType: integrationTypeEnum
+  ) => {
+    let getOAuthLinkFxn = IntegrationGetOAuthLinkMap[integrationType];
+
+    if (!getOAuthLinkFxn) {
+      throw new ApiError("OAuth is not an option for this integration.");
+    }
+
+    const oauthRequest = await OAuthRequest.create({
+      organizationId,
+      source: integrationType,
+    });
+    return getOAuthLinkFxn(oauthRequest);
+  },
+  removeAnyOAuthConnectionIfApplicable: async (integration: IntegrationDocument) => {
+    let removeOAuthFxn = IntegrationRemoveOAuthMap[integration.type];
+    if (removeOAuthFxn) {
+      // was an oauth connection, need to delete it via the integration's API if possible
+      await removeOAuthFxn(integration);
+    }
   },
 };

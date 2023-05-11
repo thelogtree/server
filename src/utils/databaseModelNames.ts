@@ -9,4 +9,5 @@ export enum DatabaseModelNames {
   FolderPreference = "FolderPreference",
   Rule = "Rule",
   Integration = "Integration",
+  OAuthRequest = "OAuthRequest",
 }

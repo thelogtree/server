@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { OrganizationDocument, UserDocument } from "logtree-types";
+import {
+  OrganizationDocument,
+  UserDocument,
+  integrationTypeEnum,
+} from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Folder } from "src/models/Folder";
 import { FolderService } from "src/services/ApiService/lib/FolderService";
@@ -401,7 +405,7 @@ export const OrganizationController = {
     res.send({ integrations });
   },
   getSupportLogs: async (req: Request, res: Response) => {
-    const organization = req["organization"];
+    const organization: OrganizationDocument = req["organization"];
     const user = req["user"];
     const { query } = req.query;
     const logs = await LogService.getSupportLogs(organization, query as string);
@@ -416,5 +420,28 @@ export const OrganizationController = {
     );
 
     res.send({ logs });
+  },
+  exchangeIntegrationOAuthToken: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { sessionId, code } = req.body;
+
+    await SecureIntegrationService.exchangeOAuthTokenAndConnect(
+      organization._id.toString(),
+      sessionId,
+      code
+    );
+
+    res.send({});
+  },
+  getIntegrationOAuthLink: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationType } = req.query;
+
+    const url = await SecureIntegrationService.getOAuthLink(
+      organization._id.toString(),
+      integrationType as integrationTypeEnum
+    );
+
+    res.send({ url });
   },
 };

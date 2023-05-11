@@ -23,6 +23,11 @@ import { FolderPreference } from "src/models/FolderPreference";
 import { Rule } from "src/models/Rule";
 import { UsageService } from "./ApiService/lib/UsageService";
 import { Integration } from "src/models/Integration";
+import {
+  IntegrationGetOAuthLinkMap,
+  IntegrationRemoveOAuthMap,
+} from "./integrations/lib";
+import { SecureIntegrationService } from "./integrations/SecureIntegrationService";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -305,13 +310,18 @@ export const OrganizationService = {
       .lean()
       .exec(),
   deleteIntegration: async (organizationId: string, integrationId: string) => {
-    const integration = await Integration.exists({
+    const integration = await Integration.findOne({
       _id: integrationId,
       organizationId,
     }).exec();
     if (!integration) {
       throw new ApiError("Could not find that integration.");
     }
+
+    // does nothing if there is no oauth connection to remove for this integr
+    await SecureIntegrationService.removeAnyOAuthConnectionIfApplicable(
+      integration
+    );
 
     await Integration.deleteOne({ _id: integrationId });
   },
