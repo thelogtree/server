@@ -96,10 +96,10 @@ export const IntercomService: IntegrationServiceType = {
       headers["x-hub-signature"] as string | undefined
     )?.slice(5);
     Logger.sendLog("look: " + JSON.stringify(headers) || "", "/debugging");
+    Logger.sendLog(JSON.stringify(body), "/debugging");
     if (!requestHmac) {
       return false;
     }
-    Logger.sendLog(JSON.stringify(body), "/debugging");
     const dataHmac = crypto
       .createHmac("sha1", config.intercom.appClientSecret as any)
       .update(JSON.stringify(body))
