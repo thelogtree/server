@@ -113,8 +113,11 @@ export const IntercomService: IntegrationServiceType = {
     const dataHmac = crypto
       .createHmac("sha1", config.intercom.appClientSecret as any)
       .update(requestJson)
-      .digest();
+      .digest("hex");
 
-    return crypto.timingSafeEqual(Buffer.from(requestHmac), dataHmac);
+    return crypto.timingSafeEqual(
+      Buffer.from(requestHmac),
+      Buffer.from(dataHmac)
+    );
   },
 };
