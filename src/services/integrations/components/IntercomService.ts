@@ -99,24 +99,10 @@ export const IntercomService: IntegrationServiceType = {
       return false;
     }
 
-    const replacer = (key: string, value: any) =>
-      value instanceof Object && !(value instanceof Array)
-        ? Object.keys(value)
-            .sort()
-            .reduce((sorted, key) => {
-              sorted[key] = value[key];
-              return sorted;
-            }, {})
-        : value;
-
-    const requestJson = JSON.stringify(body, replacer);
-    Logger.sendLog(requestJson, "/debugging");
     const dataHmac = crypto
       .createHmac("sha1", config.intercom.appClientSecret as any)
       .update(JSON.stringify(body))
       .digest("hex");
-
-    Logger.sendLog(dataHmac + "  ===  " + requestHmac, "/debugging");
 
     return crypto.timingSafeEqual(
       Buffer.from(requestHmac),
