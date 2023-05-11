@@ -92,19 +92,21 @@ export const IntercomService: IntegrationServiceType = {
     });
   },
   verifyWebhookCameFromTrustedSource: (headers: any, body: any) => {
-    const requestHmac = (
-      headers["x-hub-signature"] as string | undefined
-    )?.slice(5);
-    Logger.sendLog("look: " + JSON.stringify(headers) || "", "/debugging");
-    Logger.sendLog(JSON.stringify(body), "/debugging");
+    const hasHubSignature = !!headers["x-hub-signature"];
+    const requestHmac =
+      (headers["x-hub-signature"] as string | undefined)?.slice(5) ||
+      (headers["x-body-signature"] as string | undefined);
+
     if (!requestHmac) {
       return false;
     }
     const dataHmac = crypto
-      .createHmac("sha1", config.intercom.appClientSecret as any)
+      .createHmac(
+        hasHubSignature ? "sha1" : "sha256",
+        config.intercom.appClientSecret as any
+      )
       .update(JSON.stringify(body))
       .digest("hex");
-    Logger.sendLog(dataHmac + " === " + requestHmac, "/debugging");
 
     return crypto.timingSafeEqual(
       Buffer.from(requestHmac),
