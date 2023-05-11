@@ -92,7 +92,7 @@ export const IntercomService: IntegrationServiceType = {
       _id: `intercom_${conversationPart.conversationId}_${conversationPart.id}`,
       content: `From ${
         conversationPart.author.name || "user"
-      }:\n\n${conversationPart.body.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
+      }:\n\n${conversationPart.body?.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
       createdAt: new Date(conversationPart.created_at * 1000),
       externalLink: `https://app.intercom.com/a/inbox/${
         (integration.additionalProperties as any).appId as string
