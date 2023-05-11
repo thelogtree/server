@@ -21,6 +21,7 @@ import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
 import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
 import _ from "lodash";
+import moment from "moment";
 
 const BASE_URL = "https://api.intercom.io";
 
@@ -52,19 +53,42 @@ export const IntercomService: IntegrationServiceType = {
       {
         query: {
           field: "source.author.email",
+          operator: "=",
           value: query,
         },
       },
       { headers }
     );
     const { conversations } = res.data;
-    const conversationParts = conversations.map((conversation) => ({
-      ...conversation.conversation_parts,
-      conversationId: conversation.id,
-    }));
-    const flattenedConversationParts = _.flatten(conversationParts);
 
-    return flattenedConversationParts.map((conversationPart: any) => ({
+    let allConversationParts: any[] = [];
+    await Promise.all(
+      conversations.map(async (conversation) => {
+        const res = await axios.get(
+          BASE_URL + "/conversations/" + conversation.id,
+          {
+            params: {
+              display_as: "plaintext",
+            },
+            headers,
+          }
+        );
+        const { conversation_parts } = res.data.conversation_parts;
+        conversation_parts.forEach((part) => {
+          if (
+            ["comment", "open"].includes(part.part_type) &&
+            moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate)
+          ) {
+            allConversationParts.push({
+              ...part,
+              conversationId: conversation.id,
+            });
+          }
+        });
+      })
+    );
+
+    return allConversationParts.map((conversationPart: any) => ({
       _id: `intercom_${conversationPart.conversationId}_${conversationPart.id}`,
       content: `From ${
         conversationPart.author.name || "user"

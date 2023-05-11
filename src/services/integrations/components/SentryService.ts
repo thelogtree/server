@@ -16,6 +16,7 @@ import {
 import _ from "lodash";
 import { IntegrationServiceType } from "../types";
 import {
+  awaitTimeout,
   getFloorLogRetentionDateForOrganization,
   partitionArray,
 } from "src/utils/helpers";
@@ -52,7 +53,8 @@ export const SentryService: IntegrationServiceType = {
     );
 
     let issues: any[] = [];
-    for (const batch of projectBatches) {
+    for (let i = 0; i < projectBatches.length; i++) {
+      const batch = projectBatches[i];
       await Promise.all(
         batch.map(async (projectSlug) => {
           const issuesRes = await axios.get(
@@ -73,10 +75,14 @@ export const SentryService: IntegrationServiceType = {
     const issuesThatApplyToUser = _.flatten(issues).filter((issue) =>
       moment(issue["lastSeen"]).isSameOrAfter(floorDate)
     );
-    const issueBatches = partitionArray(issuesThatApplyToUser, 40);
+    const issueBatches = partitionArray(issuesThatApplyToUser, 20);
 
     let allEvents: SimplifiedLog[] = [];
-    for (const batch of issueBatches) {
+    for (let i = 0; i < issueBatches.length; i++) {
+      if (i > 0) {
+        await awaitTimeout(1000); // helps with rate limit rules
+      }
+      const batch = issueBatches[i];
       await Promise.all(
         batch.map(async (issue: any) => {
           const eventsRes = await axios.get(
@@ -97,7 +103,7 @@ export const SentryService: IntegrationServiceType = {
                 }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG);
 
                 return {
-                  _id: `sentry_${event["id"]}_${event.id}`,
+                  _id: `sentry_${event.id}`,
                   content,
                   createdAt: event.dateCreated,
                   tag:
