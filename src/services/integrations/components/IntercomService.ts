@@ -6,16 +6,21 @@ import {
   keyTypeEnum,
   OAuthRequestDocument,
   OrganizationDocument,
+  simplifiedLogTagEnum,
 } from "logtree-types";
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
-import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import {
+  MAX_NUM_CHARS_ALLOWED_IN_LOG,
+  SimplifiedLog,
+} from "src/services/ApiService/lib/LogService";
 import { config } from "src/utils/config";
 import { ApiError } from "src/utils/errors";
 
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
-import { Logger } from "src/utils/logger";
+import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
+import _ from "lodash";
 
 const BASE_URL = "https://api.intercom.io";
 
@@ -39,7 +44,38 @@ export const IntercomService: IntegrationServiceType = {
     integration: IntegrationDocument,
     query: string
   ): Promise<SimplifiedLog[]> => {
-    return [];
+    const floorDate = getFloorLogRetentionDateForOrganization(organization);
+    const headers = IntercomService.getHeaders(integration);
+
+    const res = await axios.post(
+      BASE_URL + "/conversations/search",
+      {
+        query: {
+          field: "source.author.email",
+          value: query,
+        },
+      },
+      { headers }
+    );
+    const { conversations } = res.data;
+    const conversationParts = conversations.map((conversation) => ({
+      ...conversation.conversation_parts,
+      conversationId: conversation.id,
+    }));
+    const flattenedConversationParts = _.flatten(conversationParts);
+
+    return flattenedConversationParts.map((conversationPart: any) => ({
+      _id: `intercom_${conversationPart.conversationId}_${conversationPart.id}`,
+      content: `From ${
+        conversationPart.author.name || "user"
+      }:\n\n${conversationPart.body.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
+      createdAt: new Date(conversationPart.created_at * 1000),
+      externalLink: `https://app.intercom.com/a/inbox/${
+        (integration.additionalProperties as any).appId as string
+      }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
+      tag: simplifiedLogTagEnum.Support,
+      sourceTitle: "Intercom",
+    }));
   },
   finishConnection: async (integration: IntegrationDocument) => {
     const headers = IntercomService.getHeaders(integration);
