@@ -1,5 +1,6 @@
 import axios from "axios";
 import { config } from "./config";
+import { getErrorMessage } from "./helpers";
 
 const BASE_URL = "https://logtree-server.onrender.com/api/v1";
 
@@ -29,7 +30,8 @@ export const Logger = {
           },
         }
       );
-    } catch (e) {
+    } catch (e: any) {
+      Logger.sendLog(getErrorMessage(e), "/errors")
       // todo: log this error in sentry
     }
   },
