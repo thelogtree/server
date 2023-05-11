@@ -1,28 +1,21 @@
+import axios from "axios";
+import crypto from "crypto";
 import {
   IntegrationDocument,
   integrationTypeEnum,
   keyTypeEnum,
   OAuthRequestDocument,
   OrganizationDocument,
-  simplifiedLogTagEnum,
 } from "logtree-types";
-import {
-  MAX_NUM_CHARS_ALLOWED_IN_LOG,
-  SimplifiedLog,
-} from "src/services/ApiService/lib/LogService";
-import { ApiError, AuthError } from "src/utils/errors";
-import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
+import { LeanDocument } from "mongoose";
+import { Integration } from "src/models/Integration";
+import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import { config } from "src/utils/config";
+import { ApiError } from "src/utils/errors";
 
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
-import axios from "axios";
-import moment from "moment";
-import _ from "lodash";
-import { config } from "src/utils/config";
-import { OAuthRequest } from "src/models/OAuthRequest";
-import { LeanDocument } from "mongoose";
-import { Integration } from "src/models/Integration";
-import crypto from "crypto";
+import { Logger } from "src/utils/logger";
 
 const BASE_URL = "https://api.intercom.io";
 
@@ -99,6 +92,7 @@ export const IntercomService: IntegrationServiceType = {
     });
   },
   verifyWebhookCameFromTrustedSource: (headers: any, body: any) => {
+    Logger.sendLog(JSON.stringify(headers), "/debugging");
     const requestHmac = headers["X-Hub-Signature"].slice(5);
 
     const replacer = (key: string, value: any) =>
