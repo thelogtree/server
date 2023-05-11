@@ -95,7 +95,7 @@ export const IntercomService: IntegrationServiceType = {
     const requestHmac = (
       headers["x-hub-signature"] as string | undefined
     )?.slice(5);
-    Logger.sendLog("look: " + requestHmac?.toString() || "", "/debugging");
+    Logger.sendLog("look: " + JSON.stringify(headers) || "", "/debugging");
     if (!requestHmac) {
       return false;
     }
