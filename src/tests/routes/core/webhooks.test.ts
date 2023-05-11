@@ -5,7 +5,7 @@ import { Integration } from "src/models/Integration";
 
 const routeUrl = "/webhooks";
 
-describe("IntercomWebhook", () => {
+describe("IntercomUninstallWebhook", () => {
   it("correctly removes the intercom connection in our database after it was removed elsewhere", async () => {
     const appId = faker.datatype.uuid();
     const integration = await IntegrationFactory.create({
@@ -19,7 +19,7 @@ describe("IntercomWebhook", () => {
       },
     });
     const res = await TestHelper.sendRequest(
-      routeUrl + "/intercom",
+      routeUrl + "/intercom/uninstall",
       "POST",
       {
         app_id: appId,
@@ -40,7 +40,7 @@ describe("IntercomWebhook", () => {
     const appId = faker.datatype.uuid();
 
     const res = await TestHelper.sendRequest(
-      routeUrl + "/intercom",
+      routeUrl + "/intercom/uninstall",
       "POST",
       {
         app_id: appId,
@@ -49,7 +49,10 @@ describe("IntercomWebhook", () => {
     );
     TestHelper.expectSuccess(res);
   });
-  it("correctly does nothing since we did not detect that it was an oauth removal webhook notification", async () => {
+});
+
+describe("IntercomWebhook", () => {
+  it("correctly hits webhook", async () => {
     const appId = faker.datatype.uuid();
     const integration = await IntegrationFactory.create({
       additionalProperties: {
