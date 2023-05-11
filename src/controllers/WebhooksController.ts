@@ -5,7 +5,7 @@ import { AuthError } from "src/utils/errors";
 
 export const WebhooksController = {
   // when someone removes their logtree <> intercom connection inside intercom instead of logtree.
-  removedIntercomConnection: async (req: Request, res: Response) => {
+  intercomWebhook: async (req: Request, res: Response) => {
     if (
       !config.environment.isTest &&
       !IntercomService.verifyWebhookCameFromTrustedSource!(
@@ -17,9 +17,14 @@ export const WebhooksController = {
         "Could not verify that this request came from Intercom."
       );
     }
-    await IntercomService.removedOAuthConnectionElsewhereAndNeedToUpdateOurOwnRecords!(
-      req.body as any
-    );
+
+    if (Object.keys(req.body).length === 1 && req.body.app_id) {
+      // removing the connection
+      // could not find a better way in intercom docs to detect this action, so i settled on this if statement for now.
+      await IntercomService.removedOAuthConnectionElsewhereAndNeedToUpdateOurOwnRecords!(
+        req.body as any
+      );
+    }
 
     res.send({});
   },

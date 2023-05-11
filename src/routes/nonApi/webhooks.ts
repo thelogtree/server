@@ -3,9 +3,6 @@ import { WebhooksController } from "src/controllers/WebhooksController";
 
 const router = expressRouter();
 
-router.post(
-  "/intercom/removed-connection",
-  WebhooksController.removedIntercomConnection
-);
+router.post("/intercom", WebhooksController.intercomWebhook);
 
 export default router;

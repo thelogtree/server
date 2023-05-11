@@ -2281,6 +2281,9 @@ describe("ExchangeIntegrationOAuthToken", () => {
   it("correctly exchanges an oauth token and connects (intercom mocked)", async () => {
     const plaintextToken = faker.datatype.uuid();
     const code = faker.datatype.uuid();
+    const setupFxnSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectSetupFunctionToRun")
+      .mockImplementation(() => undefined);
     const axiosSpy = jest.spyOn(axios, "post").mockImplementation(() =>
       Promise.resolve({
         data: {
@@ -2294,6 +2297,7 @@ describe("ExchangeIntegrationOAuthToken", () => {
     const oauthRequest = await OAuthRequestFactory.create({
       organizationId: organization._id,
       isComplete: false,
+      source: integrationTypeEnum.Intercom,
     });
 
     const res = await TestHelper.sendRequest(
@@ -2310,6 +2314,11 @@ describe("ExchangeIntegrationOAuthToken", () => {
 
     expect(axiosSpy).toBeCalledTimes(1);
     expect(axiosSpy.mock.calls[0][1].code).toBe(code);
+
+    expect(setupFxnSpy).toBeCalledTimes(1);
+    expect(setupFxnSpy.mock.calls[0][0].type).toBe(
+      integrationTypeEnum.Intercom
+    );
 
     const updatedOAuthRequest = await OAuthRequest.findById(oauthRequest._id);
     expect(updatedOAuthRequest!.isComplete).toBe(true);
