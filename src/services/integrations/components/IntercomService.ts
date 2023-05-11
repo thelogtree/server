@@ -113,7 +113,7 @@ export const IntercomService: IntegrationServiceType = {
     Logger.sendLog(requestJson, "/debugging");
     const dataHmac = crypto
       .createHmac("sha1", config.intercom.appClientSecret as any)
-      .update(body)
+      .update(JSON.stringify(body))
       .digest("hex");
 
     Logger.sendLog(dataHmac + "  ===  " + requestHmac, "/debugging");
