@@ -10,7 +10,7 @@ import {
 import { MixpanelService } from "./components/MixpanelService";
 import { IntercomService } from "./components/IntercomService";
 import { SendgridService } from "./components/SendgridService";
-import { CustomerioService } from "./components/CustomerIoService";
+import { CustomerioService } from "./components/CustomerioService";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.
