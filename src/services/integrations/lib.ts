@@ -9,6 +9,7 @@ import {
 } from "./types";
 import { MixpanelService } from "./components/MixpanelService";
 import { IntercomService } from "./components/IntercomService";
+import { SendgridService } from "./components/SendgridService";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.
@@ -32,6 +33,7 @@ export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
   integrationTypeEnum.Sentry,
   integrationTypeEnum.Mixpanel,
   integrationTypeEnum.Intercom,
+  integrationTypeEnum.Sendgrid,
 ];
 
 // functions for getting logs for an integration
@@ -41,6 +43,7 @@ export const IntegrationGetLogsMap: {
   sentry: SentryService.getLogs,
   mixpanel: MixpanelService.getLogs,
   intercom: IntercomService.getLogs,
+  sendgrid: SendgridService.getLogs,
 };
 
 // functions for getting the functions to run when finishing connecting an integration
@@ -51,6 +54,7 @@ export const IntegrationFinishSetupFunctionsToRunMap: {
   sentry: SentryService.finishConnection,
   mixpanel: undefined,
   intercom: IntercomService.finishConnection,
+  sendgrid: undefined,
 };
 
 // functions for connecting the integration if the integration is using OAuth
@@ -60,6 +64,7 @@ export const IntegrationExchangeOAuthTokenAndConnectMap: {
   sentry: undefined,
   mixpanel: undefined,
   intercom: IntercomService.exchangeOAuthTokenAndConnect,
+  sendgrid: undefined,
 };
 
 // functions for getting the OAuth redirect link (if the integration connects via OAuth)
@@ -69,6 +74,7 @@ export const IntegrationGetOAuthLinkMap: {
   sentry: undefined,
   mixpanel: undefined,
   intercom: IntercomService.getIntegrationOAuthLink,
+  sendgrid: undefined,
 };
 
 // functions for removing an OAuth connection for an integration
@@ -78,4 +84,5 @@ export const IntegrationRemoveOAuthMap: {
   sentry: undefined,
   mixpanel: undefined,
   intercom: IntercomService.removeOAuthConnection,
+  sendgrid: undefined,
 };
