@@ -39,8 +39,8 @@ export const CustomerioService: IntegrationServiceType = {
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const headers = CustomerioService.getHeaders(integration);
 
-    const activitiesRes = await axios.get(
-      `${BASE_URL}/customers/${query}/activities`,
+    const messagesRes = await axios.get(
+      `${BASE_URL}/customers/${query}/messages`,
       {
         params: {
           id_type: "email",
@@ -49,45 +49,34 @@ export const CustomerioService: IntegrationServiceType = {
         headers,
       }
     );
-    const { activities } = activitiesRes.data;
+    const { messages } = messagesRes.data;
 
-    const logs: SimplifiedLog[] = activities
-      .filter(
-        (activity) =>
-          moment(new Date(activity.timestamp * 1000)).isSameOrAfter(
-            floorDate
-          ) &&
-          [
-            "sent_email",
-            "dropped_email",
-            "failed_email",
-            "spammed_email",
-            "bounced_email",
-            "delivered_email",
-            "clicked_email",
-            "opened_email",
-            "unsubscribed_email",
-            "undeliverable_email",
-          ].includes(activity.type) &&
-          activity.delivery_type
-      )
-      .map(
-        (activity) =>
-          ({
-            _id: `customerio_${activity.id}`,
-            content:
-              `New customer.io event for ${activity.delivery_type} intended to go to ${query}: ${activity.type}\n${activity.name}`.slice(
-                0,
-                MAX_NUM_CHARS_ALLOWED_IN_LOG
-              ),
-            createdAt: new Date(activity.timestamp * 1000),
+    let logs: SimplifiedLog[] = [];
+    messages.forEach((message) => {
+      const metricKeys = Object.keys(message.metrics);
+      metricKeys.forEach((metricKey) => {
+        const dateOfLog = new Date(message.metrics[metricKey] * 1000);
+        if (
+          !["drafted"].includes(metricKey) &&
+          moment(dateOfLog).isSameOrAfter(floorDate)
+        ) {
+          logs.push({
+            _id: `customerio_${message.id}_${metricKey}`,
+            content: `${
+              message.type
+            } intended to go to ${query} was ${metricKey}.${
+              message.subject ? `\n\nSubject: ${message.subject}` : ""
+            }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
+            createdAt: dateOfLog,
             externalLink: `https://fly.customer.io/journeys/env/${
               (integration.additionalProperties as any).workspaceId
-            }/people/${activity.customer_identifiers.cio_id}/activity`,
+            }/people/${message.customer_identifiers.cio_id}/activity`,
             tag: simplifiedLogTagEnum.Marketing,
             sourceTitle: "Customer.io",
-          } as SimplifiedLog)
-      );
+          } as SimplifiedLog);
+        }
+      });
+    });
 
     return logs;
   },
