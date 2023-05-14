@@ -76,12 +76,16 @@ export const CustomerioService: IntegrationServiceType = {
           logs.push({
             _id: `customerio_${message.id}_${metricKey}`,
             content: `${message.type} intended to go to ${
-              query || message.recipient || "some user"
+              query ||
+              (message.type === "email" ? message.recipient : undefined) ||
+              "some user"
             } was ${metricKey}.${
               message.subject ? `\n\nSubject: ${message.subject}` : ""
             }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
             createdAt: dateOfLog,
-            referenceId: query || message.recipient,
+            referenceId:
+              query ||
+              (message.type === "email" ? message.recipient : undefined),
             externalLink: `https://fly.customer.io/journeys/env/${
               (integration.additionalProperties as any).workspaceId
             }/people/${message.customer_identifiers.cio_id}/activity`,
