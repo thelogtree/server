@@ -81,6 +81,7 @@ export const CustomerioService: IntegrationServiceType = {
               message.subject ? `\n\nSubject: ${message.subject}` : ""
             }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
             createdAt: dateOfLog,
+            referenceId: query || message.recipient,
             externalLink: `https://fly.customer.io/journeys/env/${
               (integration.additionalProperties as any).workspaceId
             }/people/${message.customer_identifiers.cio_id}/activity`,
