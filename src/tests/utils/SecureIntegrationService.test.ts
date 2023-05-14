@@ -364,7 +364,7 @@ describe("GetLogsFromIntegrations", () => {
       (
         _organization: OrganizationDocument,
         integration: IntegrationDocument,
-        _query: string
+        _query?: string
       ) =>
         Promise.resolve([
           {

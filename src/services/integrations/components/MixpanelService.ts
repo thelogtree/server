@@ -50,7 +50,7 @@ export const MixpanelService: IntegrationServiceType = {
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const auth = MixpanelService.getHeaders(integration);
 
-    const projectId = integration.additionalProperties["projectId"];
+    const projectId = integration.additionalProperties.get("projectId");
     const usersRes = await axios.post(
       BASE_URL + "/engage",
       {
