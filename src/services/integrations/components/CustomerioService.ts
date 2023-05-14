@@ -34,25 +34,38 @@ export const CustomerioService: IntegrationServiceType = {
   getLogs: async (
     organization: OrganizationDocument,
     integration: IntegrationDocument,
-    query: string
+    query?: string
   ): Promise<SimplifiedLog[]> => {
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const headers = CustomerioService.getHeaders(integration);
 
-    const messagesRes = await axios.get(
-      `${BASE_URL}/customers/${query}/messages`,
-      {
+    let messagesResult: any[] = [];
+    if (query) {
+      const messagesRes = await axios.get(
+        `${BASE_URL}/customers/${query}/messages`,
+        {
+          params: {
+            id_type: "email",
+            limit: 100,
+          },
+          headers,
+        }
+      );
+      const { messages } = messagesRes.data;
+      messagesResult = messages;
+    } else {
+      const allMessagesRes = await axios.get(`${BASE_URL}/messages`, {
         params: {
-          id_type: "email",
           limit: 100,
         },
         headers,
-      }
-    );
-    const { messages } = messagesRes.data;
+      });
+      const { messages } = allMessagesRes.data;
+      messagesResult = messages;
+    }
 
     let logs: SimplifiedLog[] = [];
-    messages.forEach((message) => {
+    messagesResult.forEach((message) => {
       const metricKeys = Object.keys(message.metrics);
       metricKeys.forEach((metricKey) => {
         const dateOfLog = new Date(message.metrics[metricKey] * 1000);
@@ -62,9 +75,9 @@ export const CustomerioService: IntegrationServiceType = {
         ) {
           logs.push({
             _id: `customerio_${message.id}_${metricKey}`,
-            content: `${
-              message.type
-            } intended to go to ${query} was ${metricKey}.${
+            content: `${message.type} intended to go to ${
+              query || message.recipient || "some user"
+            } was ${metricKey}.${
               message.subject ? `\n\nSubject: ${message.subject}` : ""
             }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
             createdAt: dateOfLog,

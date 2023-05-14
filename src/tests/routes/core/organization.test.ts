@@ -2,9 +2,11 @@ import bcrypt from "bcrypt";
 import faker from "faker";
 import {
   comparisonTypeEnum,
+  IntegrationDocument,
   integrationTypeEnum,
   keyTypeEnum,
   notificationTypeEnum,
+  OrganizationDocument,
   orgPermissionLevel,
   simplifiedLogTagEnum,
 } from "logtree-types";
@@ -2510,5 +2512,148 @@ describe("GetIntegrationOAuthLink", () => {
       source: integrationTypeEnum.Sentry,
     });
     expect(oauthRequest).toBeNull();
+  });
+});
+
+describe("GetIntegrationLogs", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+  });
+  it("correctly gets the integration logs without a query", async () => {
+    const query = "";
+
+    const integrationLogsSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectLogsFunctionToRun")
+      .mockImplementation(
+        () =>
+          (
+            org: OrganizationDocument,
+            integration: IntegrationDocument,
+            query?: string
+          ) =>
+            Promise.resolve([])
+      );
+
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(5, "days").toDate(),
+    });
+
+    const integration = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-logs`,
+      "GET",
+      {},
+      {
+        integrationId: integration._id.toString(),
+        query,
+      },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { logs } = res.body;
+    expect(logs.length).toBe(0);
+
+    expect(integrationLogsSpy).toBeCalledTimes(1);
+    expect(integrationLogsSpy.mock.calls[0][0]._id.toString()).toBe(
+      integration.id
+    );
+  });
+  it("correctly gets the integration logs with a query", async () => {
+    const query = "test";
+
+    const integrationLogsSpy = jest
+      .spyOn(SecureIntegrationService, "getCorrectLogsFunctionToRun")
+      .mockImplementation(
+        () =>
+          (
+            org: OrganizationDocument,
+            integration: IntegrationDocument,
+            query?: string
+          ) =>
+            Promise.resolve([
+              {
+                _id: "bca",
+                content: "aaa",
+                createdAt: moment().subtract(7, "days").toDate(),
+                tag: simplifiedLogTagEnum.Error,
+              },
+            ])
+      );
+
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(5, "days").toDate(),
+    });
+
+    const integration = await IntegrationFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-logs`,
+      "GET",
+      {},
+      {
+        integrationId: integration._id.toString(),
+        query,
+      },
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { logs } = res.body;
+    expect(logs.length).toBe(1);
+    expect(logs[0]._id.toString()).toBe("bca");
+
+    expect(integrationLogsSpy).toBeCalledTimes(1);
+    expect(integrationLogsSpy.mock.calls[0][0]._id.toString()).toBe(
+      integration.id
+    );
+  });
+  it("fails to get the integration logs for an integration not in the organization", async () => {
+    const query = "test";
+
+    const integrationLogsSpy = jest.spyOn(
+      SecureIntegrationService,
+      "getCorrectLogsFunctionToRun"
+    );
+
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    await LogFactory.create({
+      organizationId: organization._id,
+      referenceId: query,
+      createdAt: moment().subtract(5, "days").toDate(),
+    });
+
+    const integration = await IntegrationFactory.create();
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/integration-logs`,
+      "GET",
+      {},
+      {
+        integrationId: integration._id.toString(),
+        query,
+      },
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Could not find an integration with this ID.");
+
+    expect(integrationLogsSpy).toBeCalledTimes(0);
   });
 });

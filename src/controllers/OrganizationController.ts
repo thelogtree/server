@@ -422,6 +422,17 @@ export const OrganizationController = {
 
     res.send({ logs });
   },
+  getIntegrationLogs: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationId, query } = req.query;
+    const logs = await LogService.getIntegrationLogs(
+      organization,
+      integrationId as string,
+      query as string | undefined
+    );
+
+    res.send({ logs });
+  },
   exchangeIntegrationOAuthToken: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const { sessionId, code } = req.body;

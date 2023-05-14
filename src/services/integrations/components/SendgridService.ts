@@ -34,8 +34,12 @@ export const SendgridService: IntegrationServiceType = {
   getLogs: async (
     organization: OrganizationDocument,
     integration: IntegrationDocument,
-    query: string
+    query?: string
   ): Promise<SimplifiedLog[]> => {
+    if (!query) {
+      return [];
+    }
+
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const headers = SendgridService.getHeaders(integration);
 

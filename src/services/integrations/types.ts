@@ -9,7 +9,7 @@ import { LeanDocument } from "mongoose";
 export type GetIntegrationLogsFxnType = (
   organization: OrganizationDocument,
   integration: IntegrationDocument,
-  query: string
+  query?: string
 ) => Promise<SimplifiedLog[]>;
 
 export type FinishSetupFxnType =

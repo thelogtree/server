@@ -100,6 +100,14 @@ router.get(
   }),
   OrganizationController.getIntegrationOAuthLink
 );
+router.get(
+  "/:id/integration-logs",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getIntegrationLogs,
+  }),
+  OrganizationController.getIntegrationLogs
+);
 
 router.put(
   "/:id/user-permissions",

@@ -9,6 +9,8 @@ import {
 import { ApiError, AuthError } from "src/utils/errors";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import moment from "moment";
+import { Integration } from "src/models/Integration";
+import { IntegrationGetLogsMap } from "src/services/integrations/lib";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 
@@ -188,6 +190,29 @@ export const LogService = {
 
     const combinedLogs = logs.concat(integrationLogs);
     const sortedLogs = combinedLogs.sort((a, b) =>
+      moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
+    );
+
+    return sortedLogs.slice(0, 300);
+  },
+  getIntegrationLogs: async (
+    organization: OrganizationDocument,
+    integrationId: string,
+    query?: string
+  ) => {
+    const integration = await Integration.findOne({
+      organizationId: organization._id,
+      _id: integrationId,
+    });
+    if (!integration) {
+      throw new ApiError("Could not find an integration with this ID.");
+    }
+
+    let getLogsFunction =
+      SecureIntegrationService.getCorrectLogsFunctionToRun(integration);
+    const logs = await getLogsFunction!(organization, integration, query);
+
+    const sortedLogs = logs.sort((a, b) =>
       moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
     );
 

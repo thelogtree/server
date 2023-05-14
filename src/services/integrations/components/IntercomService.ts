@@ -43,27 +43,35 @@ export const IntercomService: IntegrationServiceType = {
   getLogs: async (
     organization: OrganizationDocument,
     integration: IntegrationDocument,
-    query: string
+    query?: string
   ): Promise<SimplifiedLog[]> => {
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const headers = IntercomService.getHeaders(integration);
 
-    const res = await axios.post(
-      BASE_URL + "/conversations/search",
-      {
-        query: {
-          field: "source.author.email",
-          operator: "=",
-          value: query,
+    let conversationsResult: any[] = [];
+    if (query) {
+      const res = await axios.post(
+        BASE_URL + "/conversations/search",
+        {
+          query: {
+            field: "source.author.email",
+            operator: "=",
+            value: query,
+          },
         },
-      },
-      { headers }
-    );
-    const { conversations } = res.data;
+        { headers }
+      );
+      const { conversations } = res.data;
+      conversationsResult = conversations;
+    } else {
+      const res = await axios.get(BASE_URL + "/conversations", { headers });
+      const { conversations } = res.data;
+      conversationsResult = conversations;
+    }
 
     let allConversationParts: any[] = [];
     await Promise.all(
-      conversations.map(async (conversation) => {
+      conversationsResult.map(async (conversation) => {
         const res = await axios.get(
           BASE_URL + "/conversations/" + conversation.id,
           {

@@ -101,4 +101,8 @@ export const OrganizationSchemas = {
   getIntegrationOAuthLink: Joi.object({
     integrationType: Joi.string().required(),
   }),
+  getIntegrationLogs: Joi.object({
+    integrationId: Joi.string().custom(objectId).required(),
+    query: Joi.string().allow(""),
+  }),
 };

@@ -193,6 +193,7 @@ export const SecureIntegrationService = {
       isComplete: false,
       organizationId,
     })
+    
       .lean()
       .exec();
     if (!openOAuthRequest) {
