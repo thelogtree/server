@@ -44,9 +44,6 @@ export const SentryService: IntegrationServiceType = {
     integration: IntegrationDocument,
     query?: string
   ): Promise<SimplifiedLog[]> => {
-    if (!query) {
-      return [];
-    }
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const headers = SentryService.getHeaders(integration);
 
@@ -55,71 +52,115 @@ export const SentryService: IntegrationServiceType = {
       3
     );
 
-    let issues: any[] = [];
-    for (let i = 0; i < projectBatches.length; i++) {
-      const batch = projectBatches[i];
-      await Promise.all(
-        batch.map(async (projectSlug) => {
-          const issuesRes = await axios.get(
-            `${BASE_URL}projects/${integration.additionalProperties.get(
-              "organizationSlug"
-            )}/${projectSlug}/issues/`,
-            {
-              params: {
-                query: `user.email:${query}`,
-              },
-              headers,
-            }
-          );
-          const issuesArray = issuesRes.data;
-          issues.push(...issuesArray);
-        })
-      );
-    }
-
-    const issuesThatApplyToUser = _.flatten(issues).filter((issue) =>
-      moment(issue["lastSeen"]).isSameOrAfter(floorDate)
-    );
-    const issueBatches = partitionArray(issuesThatApplyToUser, 20);
-
     let allEvents: SimplifiedLog[] = [];
-    for (let i = 0; i < issueBatches.length; i++) {
-      if (i > 0) {
-        await awaitTimeout(1000); // helps with rate limit rules
-      }
-      const batch = issueBatches[i];
-      await Promise.all(
-        batch.map(async (issue: any) => {
-          const eventsRes = await axios.get(
-            `${BASE_URL}issues/${issue["id"]}/events/`,
-            {
-              headers,
-            }
-          );
-          const eventsArray = eventsRes.data;
-          allEvents.push(
-            ...eventsArray
-              .filter((event) => event.user?.email === query)
-              .map((event) => {
-                const content = `${event.culprit ? `${event.culprit}\n` : ""}${
-                  event.title
-                }${
-                  issue.metadata.value ? `\n\n${issue.metadata.value}` : ""
-                }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG);
 
-                return {
-                  _id: `sentry_${event.id}`,
-                  content,
-                  createdAt: event.dateCreated,
-                  tag:
-                    event["event.type"] === "error"
-                      ? simplifiedLogTagEnum.Error
-                      : undefined,
-                  externalLink: issue["permalink"],
-                  sourceTitle: `Sentry (${issue.project.slug})`,
-                };
-              })
+    if (query) {
+      let issues: any[] = [];
+      for (let i = 0; i < projectBatches.length; i++) {
+        const batch = projectBatches[i];
+        await Promise.all(
+          batch.map(async (projectSlug) => {
+            const issuesRes = await axios.get(
+              `${BASE_URL}projects/${integration.additionalProperties.get(
+                "organizationSlug"
+              )}/${projectSlug}/issues/`,
+              {
+                params: {
+                  query: `user.email:${query}`,
+                },
+                headers,
+              }
+            );
+            const issuesArray = issuesRes.data;
+            issues.push(...issuesArray);
+          })
+        );
+      }
+
+      const issuesThatApplyToUser = _.flatten(issues).filter((issue) =>
+        moment(issue["lastSeen"]).isSameOrAfter(floorDate)
+      );
+      const issueBatches = partitionArray(issuesThatApplyToUser, 20);
+
+      for (let i = 0; i < issueBatches.length; i++) {
+        if (i > 0) {
+          await awaitTimeout(1000); // helps with rate limit rules
+        }
+        const batch = issueBatches[i];
+        await Promise.all(
+          batch.map(async (issue: any) => {
+            const eventsRes = await axios.get(
+              `${BASE_URL}issues/${issue["id"]}/events/`,
+              {
+                headers,
+              }
+            );
+            const eventsArray = eventsRes.data;
+            allEvents.push(
+              ...eventsArray
+                .filter((event) => event.user?.email === query)
+                .map((event) => {
+                  const content = `${
+                    event.culprit ? `${event.culprit}\n` : ""
+                  }${event.title}${
+                    issue.metadata.value ? `\n\n${issue.metadata.value}` : ""
+                  }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG);
+
+                  return {
+                    _id: `sentry_${event.id}`,
+                    content,
+                    createdAt: event.dateCreated,
+                    tag:
+                      event["event.type"] === "error"
+                        ? simplifiedLogTagEnum.Error
+                        : undefined,
+                    externalLink: issue["permalink"],
+                    sourceTitle: `Sentry (${issue.project.slug})`,
+                  };
+                })
+            );
+          })
+        );
+      }
+    } else {
+      let events: any[] = [];
+      for (let i = 0; i < projectBatches.length; i++) {
+        const batch = projectBatches[i];
+        await Promise.all(
+          batch.map(async (projectSlug) => {
+            const eventsRes = await axios.get(
+              `${BASE_URL}projects/${integration.additionalProperties.get(
+                "organizationSlug"
+              )}/${projectSlug}/events/`,
+              {
+                headers,
+              }
+            );
+            const eventsArr = eventsRes.data;
+            events.push(...eventsArr);
+          })
+        );
+      }
+      allEvents.push(
+        ...events.map((event) => {
+          const content = `${event.culprit ? `${event.culprit}\n` : ""}${
+            event.title
+          }${event.message ? `\n\n${event.message}` : ""}`.slice(
+            0,
+            MAX_NUM_CHARS_ALLOWED_IN_LOG
           );
+
+          return {
+            _id: `sentry_${event.id}`,
+            content,
+            createdAt: event.dateCreated,
+            tag:
+              event["event.type"] === "error"
+                ? simplifiedLogTagEnum.Error
+                : undefined,
+            sourceTitle: `Sentry`,
+            referenceId: event.user?.email,
+          };
         })
       );
     }
