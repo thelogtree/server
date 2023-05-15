@@ -11,7 +11,7 @@ import { SecureIntegrationService } from "src/services/integrations/SecureIntegr
 import moment from "moment";
 import { Integration } from "src/models/Integration";
 
-export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
+export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1500;
 
 export type SimplifiedLog = {
   _id: ObjectId | string;
