@@ -10,7 +10,6 @@ import { ApiError, AuthError } from "src/utils/errors";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import moment from "moment";
 import { Integration } from "src/models/Integration";
-import { IntegrationGetLogsMap } from "src/services/integrations/lib";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1000;
 

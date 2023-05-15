@@ -11,6 +11,7 @@ import { MixpanelService } from "./components/MixpanelService";
 import { IntercomService } from "./components/IntercomService";
 import { SendgridService } from "./components/SendgridService";
 import { CustomerioService } from "./components/CustomerioService";
+import { StripeService } from "./components/StripeService";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.
@@ -36,6 +37,7 @@ export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
   integrationTypeEnum.Intercom,
   integrationTypeEnum.Sendgrid,
   integrationTypeEnum.CustomerIO,
+  integrationTypeEnum.Stripe,
 ];
 
 // functions for getting logs for an integration
@@ -47,6 +49,7 @@ export const IntegrationGetLogsMap: {
   intercom: IntercomService.getLogs,
   sendgrid: SendgridService.getLogs,
   customer_io: CustomerioService.getLogs,
+  stripe: StripeService.getLogs,
 };
 
 // functions for getting the functions to run when finishing connecting an integration
@@ -59,6 +62,7 @@ export const IntegrationFinishSetupFunctionsToRunMap: {
   intercom: IntercomService.finishConnection,
   sendgrid: undefined,
   customer_io: undefined,
+  stripe: undefined,
 };
 
 // functions for connecting the integration if the integration is using OAuth
@@ -70,6 +74,7 @@ export const IntegrationExchangeOAuthTokenAndConnectMap: {
   intercom: IntercomService.exchangeOAuthTokenAndConnect,
   sendgrid: undefined,
   customer_io: undefined,
+  stripe: undefined,
 };
 
 // functions for getting the OAuth redirect link (if the integration connects via OAuth)
@@ -81,6 +86,7 @@ export const IntegrationGetOAuthLinkMap: {
   intercom: IntercomService.getIntegrationOAuthLink,
   sendgrid: undefined,
   customer_io: undefined,
+  stripe: undefined,
 };
 
 // functions for removing an OAuth connection for an integration
@@ -92,4 +98,5 @@ export const IntegrationRemoveOAuthMap: {
   intercom: IntercomService.removeOAuthConnection,
   sendgrid: undefined,
   customer_io: undefined,
+  stripe: undefined,
 };
