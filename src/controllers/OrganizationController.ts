@@ -458,10 +458,12 @@ export const OrganizationController = {
     res.send({ url });
   },
   askQuestion: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
     const organization: OrganizationDocument = req["organization"];
     const { integrationId, question } = req.body;
 
     const response = await QuestionAnswerService.askQuestion(
+      user,
       organization,
       integrationId,
       question

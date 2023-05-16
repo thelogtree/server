@@ -1,9 +1,10 @@
-import { OrganizationDocument } from "logtree-types";
+import { OrganizationDocument, UserDocument } from "logtree-types";
 import { Integration } from "src/models/Integration";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import { ApiError } from "src/utils/errors";
 import { Configuration, OpenAIApi } from "openai";
 import { config } from "src/utils/config";
+import { Logger } from "src/utils/logger";
 
 const configuration = new Configuration({
   apiKey: config.openai.apiKey,
@@ -12,6 +13,7 @@ const OpenAI = new OpenAIApi(configuration);
 
 export const QuestionAnswerService = {
   askQuestion: async (
+    user: UserDocument,
     organization: OrganizationDocument,
     integrationId: string,
     question: string
@@ -40,6 +42,12 @@ export const QuestionAnswerService = {
 
     const response = await QuestionAnswerService.getCompletionResponse(
       `${promptPrefix}${promptDataInput}${promptQuestion}`
+    );
+
+    Logger.sendLog(
+      `Asked question for ${integration.type}: ${question}\n\nResponse: ${response}`,
+      `/questions/${organization.slug}`,
+      user.email
     );
 
     return response;
