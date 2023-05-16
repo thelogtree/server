@@ -49,7 +49,10 @@ export const config = {
     plaintextSecretKey: process.env.LOGTREE_SECRET_KEY || "",
   },
   intercom: {
-    appClientId: process.env.INTERCOM_APP_CLIENT_ID,
-    appClientSecret: process.env.INTERCOM_APP_CLIENT_SECRET,
+    appClientId: process.env.INTERCOM_APP_CLIENT_ID || "",
+    appClientSecret: process.env.INTERCOM_APP_CLIENT_SECRET || "",
+  },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || "",
   },
 };

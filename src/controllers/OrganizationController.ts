@@ -19,6 +19,7 @@ import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import _ from "lodash";
+import { QuestionAnswerService } from "src/services/ApiService/lib/QuestionAnswerService";
 
 export const OrganizationController = {
   getMe: async (req: Request, res: Response) => {
@@ -455,5 +456,17 @@ export const OrganizationController = {
     );
 
     res.send({ url });
+  },
+  askQuestion: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { integrationId, question } = req.body;
+
+    const response = await QuestionAnswerService.askQuestion(
+      organization,
+      integrationId,
+      question
+    );
+
+    res.send({ response });
   },
 };

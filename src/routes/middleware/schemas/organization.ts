@@ -105,4 +105,8 @@ export const OrganizationSchemas = {
     integrationId: Joi.string().custom(objectId).required(),
     query: Joi.string().allow(""),
   }),
+  askQuestion: Joi.object({
+    integrationId: Joi.string().custom(objectId).required(),
+    question: Joi.string().required(),
+  }),
 };

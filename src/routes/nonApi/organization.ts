@@ -256,4 +256,12 @@ router.post(
   }),
   OrganizationController.exchangeIntegrationOAuthToken
 );
+router.post(
+  "/:id/question",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.askQuestion,
+  }),
+  OrganizationController.askQuestion
+);
 export default router;
