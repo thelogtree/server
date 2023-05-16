@@ -25,9 +25,7 @@ export const QuestionAnswerService = {
     const integration = await Integration.findOne({
       _id: integrationId,
       organizationId: organization._id,
-    })
-      .lean()
-      .exec();
+    }).exec();
     if (!integration) {
       throw new ApiError("This integration could not be found.");
     }
