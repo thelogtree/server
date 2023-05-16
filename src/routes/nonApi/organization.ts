@@ -258,6 +258,7 @@ router.post(
 );
 router.post(
   "/:id/question",
+  rateLimiterP1,
   auth.requiredOrgMember,
   validateRequestAgainstSchemas({
     bodySchema: OrganizationSchemas.askQuestion,
