@@ -43,15 +43,14 @@ export const QuestionAnswerService = {
     const response = await QuestionAnswerService.getCompletionResponse(
       `${promptPrefix}${promptDataInput}${promptQuestion}`
     );
-    console.log(response);
 
     return response;
   },
   getCompletionResponse: async (prompt: string) => {
-    const completion = await OpenAI.createCompletion({
+    const completion = await OpenAI.createChatCompletion({
       model: "gpt-3.5-turbo",
-      prompt,
+      messages: [{ role: "user", content: prompt }],
     });
-    return completion.data.choices[0]?.text || "";
+    return completion.data.choices[0]?.message?.content || "";
   },
 };
