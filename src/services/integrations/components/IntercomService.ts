@@ -107,6 +107,7 @@ export const IntercomService: IntegrationServiceType = {
       }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
       tag: simplifiedLogTagEnum.Support,
       sourceTitle: "Intercom",
+      referenceId: conversationPart.author.email,
     }));
   },
   finishConnection: async (integration: IntegrationDocument) => {
