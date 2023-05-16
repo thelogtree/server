@@ -34,7 +34,7 @@ export const QuestionAnswerService = {
       SecureIntegrationService.getCorrectLogsFunctionToRun(integration);
     const logsFromIntegration = await getLogsFxn!(organization, integration);
 
-    const promptPrefix = `I am giving you a lot of data from one business's ${integration.type} account. Someone from the business has asked a question about this data and your job is to try your best to answer it. If the question has nothing to do with the data, you have permission to tell them that. Below is their data, represented as a stringified array of objects of recent events from their ${integration.type} account:\n\n`;
+    const promptPrefix = `I am giving you a lot of data from one business's ${integration.type} account. Someone from the business is asking you a question about this data and your job is to try your best to answer it. If the question has nothing to do with the data, you have permission to tell them that. If you think you are unable to answer a question you must ignore data you don't think is related to the question and make reasonable assumptions about all data such as inferring the meaning of certain words. Chances are that you just need to infer the meaning of some things in the data for a question to make more sense. If their question is asking you to provide conclusions from the data or aggregate data from these individual events, you should try your best to do so and do whatever is necessary including mathematical calculations. Below is their data, represented as a stringified array of objects of recent events from their ${integration.type} account:\n\n`;
     const promptDataInput = JSON.stringify(logsFromIntegration).slice(0, 3000);
     const promptQuestion = `\n\nAnd here is their question: ${question}`;
 

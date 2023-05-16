@@ -80,7 +80,7 @@ export const CustomerioService: IntegrationServiceType = {
               (message.type === "email" ? message.recipient : undefined) ||
               "some user"
             } was ${metricKey}.${
-              message.subject ? `\n\nSubject: ${message.subject}` : ""
+              message.subject ? `\n\nEmail subject: ${message.subject}` : ""
             }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
             createdAt: dateOfLog,
             referenceId:
