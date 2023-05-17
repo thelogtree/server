@@ -112,10 +112,19 @@ export const CustomerioService: IntegrationServiceType = {
       message_template_id: message.msg_template_id,
       message_recipient: message.recipient,
       message_subject: message.subject,
-      was_delivered: Boolean(message.metrics.delivered),
+      was_delivered:
+        message.type === "email"
+          ? Boolean(message.metrics.delivered)
+          : "not_collected",
       was_sent: Boolean(message.metrics.sent),
-      was_opened: Boolean(message.metrics.opened),
-      was_clicked: Boolean(message.metrics.clicked),
+      was_opened:
+        message.type === "email"
+          ? Boolean(message.metrics.opened)
+          : "not_collected",
+      was_clicked:
+        message.type === "email"
+          ? Boolean(message.metrics.clicked)
+          : "not_collected",
       message_type: message.type,
       message_created_at: new Date(message.created * 1000).toString(),
     }));
