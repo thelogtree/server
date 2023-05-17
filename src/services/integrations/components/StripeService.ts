@@ -125,4 +125,7 @@ export const StripeService: IntegrationServiceType = {
       moment(event["createdAt"]).isSameOrAfter(floorDate)
     );
   },
+  getQuestionAnswerLogs: async (integration: IntegrationDocument) => {
+    return [];
+  },
 };

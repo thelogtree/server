@@ -14,12 +14,14 @@ import {
   ExchangeOAuthTokenAndConnectFxnType,
   FinishSetupFxnType,
   GetIntegrationLogsFxnType,
+  GetQuestionAnswerLogsFxnType,
 } from "./types";
 import {
   IntegrationExchangeOAuthTokenAndConnectMap,
   IntegrationFinishSetupFunctionsToRunMap,
   IntegrationGetLogsMap,
   IntegrationGetOAuthLinkMap,
+  IntegrationGetQuestionAnswerLogsMap,
   IntegrationRemoveOAuthMap,
   integrationsAvailableToConnectTo,
 } from "./lib";
@@ -193,7 +195,7 @@ export const SecureIntegrationService = {
       isComplete: false,
       organizationId,
     })
-    
+
       .lean()
       .exec();
     if (!openOAuthRequest) {
@@ -239,4 +241,8 @@ export const SecureIntegrationService = {
       await removeOAuthFxn(integration);
     }
   },
+  getCorrectQuestionAnswerLogsFunctionToRun: (
+    integration: IntegrationDocument
+  ): GetQuestionAnswerLogsFxnType =>
+    IntegrationGetQuestionAnswerLogsMap[integration.type],
 };

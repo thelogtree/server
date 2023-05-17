@@ -5,6 +5,7 @@ import {
   FinishSetupFxnType,
   GetIntegrationLogsFxnType,
   GetOAuthLinkFxnType,
+  GetQuestionAnswerLogsFxnType,
   RemoveOAuthConnectionType,
 } from "./types";
 import { MixpanelService } from "./components/MixpanelService";
@@ -42,7 +43,7 @@ export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
 
 // functions for getting logs for an integration
 export const IntegrationGetLogsMap: {
-  [key in integrationTypeEnum]: GetIntegrationLogsFxnType | undefined;
+  [key in integrationTypeEnum]: GetIntegrationLogsFxnType;
 } = {
   sentry: SentryService.getLogs,
   mixpanel: MixpanelService.getLogs,
@@ -50,6 +51,19 @@ export const IntegrationGetLogsMap: {
   sendgrid: SendgridService.getLogs,
   customer_io: CustomerioService.getLogs,
   stripe: StripeService.getLogs,
+};
+
+// functions for getting the question/answer logs for an integration
+// (these are the logs that GPT will look at to respond to a question)
+export const IntegrationGetQuestionAnswerLogsMap: {
+  [key in integrationTypeEnum]: GetQuestionAnswerLogsFxnType;
+} = {
+  sentry: SentryService.getQuestionAnswerLogs,
+  mixpanel: MixpanelService.getQuestionAnswerLogs,
+  intercom: IntercomService.getQuestionAnswerLogs,
+  sendgrid: SendgridService.getQuestionAnswerLogs,
+  customer_io: CustomerioService.getQuestionAnswerLogs,
+  stripe: StripeService.getQuestionAnswerLogs,
 };
 
 // functions for getting the functions to run when finishing connecting an integration

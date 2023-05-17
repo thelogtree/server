@@ -157,4 +157,7 @@ export const SendgridService: IntegrationServiceType = {
 
     return messageEvents;
   },
+  getQuestionAnswerLogs: async (integration: IntegrationDocument) => {
+    return [];
+  },
 };

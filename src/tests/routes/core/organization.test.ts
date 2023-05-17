@@ -2668,23 +2668,21 @@ describe("AskQuestion", () => {
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
 
-    const innerFxn = jest.fn(
-      (
-        _organization: OrganizationDocument,
-        integration: IntegrationDocument,
-        _query?: string
-      ) =>
-        Promise.resolve([
-          {
-            _id: "abc",
-            content: "def",
-            createdAt: integration["createdAt"],
-            tag: simplifiedLogTagEnum.Error,
-          },
-        ])
+    const innerFxn = jest.fn((integration: IntegrationDocument) =>
+      Promise.resolve([
+        {
+          _id: "abc",
+          content: "def",
+          createdAt: integration["createdAt"],
+          tag: simplifiedLogTagEnum.Error,
+        },
+      ])
     );
     const getLogsFunctionToRunSpy = jest
-      .spyOn(SecureIntegrationService, "getCorrectLogsFunctionToRun")
+      .spyOn(
+        SecureIntegrationService,
+        "getCorrectQuestionAnswerLogsFunctionToRun"
+      )
       .mockImplementation(() => innerFxn);
 
     const responseToReturn = "hello there sir!!!";
@@ -2723,23 +2721,21 @@ describe("AskQuestion", () => {
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
 
-    const innerFxn = jest.fn(
-      (
-        _organization: OrganizationDocument,
-        integration: IntegrationDocument,
-        _query?: string
-      ) =>
-        Promise.resolve([
-          {
-            _id: "abc",
-            content: "def",
-            createdAt: integration["createdAt"],
-            tag: simplifiedLogTagEnum.Error,
-          },
-        ])
+    const innerFxn = jest.fn((integration: IntegrationDocument) =>
+      Promise.resolve([
+        {
+          _id: "abc",
+          content: "def",
+          createdAt: integration["createdAt"],
+          tag: simplifiedLogTagEnum.Error,
+        },
+      ])
     );
     const getLogsFunctionToRunSpy = jest
-      .spyOn(SecureIntegrationService, "getCorrectLogsFunctionToRun")
+      .spyOn(
+        SecureIntegrationService,
+        "getCorrectQuestionAnswerLogsFunctionToRun"
+      )
       .mockImplementation(() => innerFxn);
 
     const responseToReturn = "hello there sir!!!";
@@ -2776,23 +2772,21 @@ describe("AskQuestion", () => {
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
 
-    const innerFxn = jest.fn(
-      (
-        _organization: OrganizationDocument,
-        integration: IntegrationDocument,
-        _query?: string
-      ) =>
-        Promise.resolve([
-          {
-            _id: "abc",
-            content: "def",
-            createdAt: integration["createdAt"],
-            tag: simplifiedLogTagEnum.Error,
-          },
-        ])
+    const innerFxn = jest.fn((integration: IntegrationDocument) =>
+      Promise.resolve([
+        {
+          _id: "abc",
+          content: "def",
+          createdAt: integration["createdAt"],
+          tag: simplifiedLogTagEnum.Error,
+        },
+      ])
     );
     const getLogsFunctionToRunSpy = jest
-      .spyOn(SecureIntegrationService, "getCorrectLogsFunctionToRun")
+      .spyOn(
+        SecureIntegrationService,
+        "getCorrectQuestionAnswerLogsFunctionToRun"
+      )
       .mockImplementation(() => innerFxn);
 
     const responseToReturn = "hello there sir!!!";

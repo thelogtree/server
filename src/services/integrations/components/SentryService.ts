@@ -191,4 +191,7 @@ export const SentryService: IntegrationServiceType = {
       }
     );
   },
+  getQuestionAnswerLogs: async (integration: IntegrationDocument) => {
+    return [];
+  },
 };

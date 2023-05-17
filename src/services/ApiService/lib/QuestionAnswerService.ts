@@ -5,11 +5,45 @@ import { ApiError } from "src/utils/errors";
 import { Configuration, OpenAIApi } from "openai";
 import { config } from "src/utils/config";
 import { Logger } from "src/utils/logger";
+import { values } from "lodash";
 
 const configuration = new Configuration({
   apiKey: config.openai.apiKey,
 });
 const OpenAI = new OpenAIApi(configuration);
+
+const _arrayToMarkdown = (array: any[]) => {
+  // Extract the keys from the first object
+  const keys = Object.keys(array[0]);
+
+  // Create the header row
+  const headerRow = `|${keys.join("|")}|\n`;
+
+  // Create the separator row
+  let separatorRow = "|";
+  keys.forEach(() => {
+    separatorRow += "----|";
+  });
+  separatorRow += `\n`;
+
+  // Create the data rows
+  let fullDataStr = "";
+  array.forEach((obj) => {
+    let str = "|";
+    const values = Object.values(obj);
+    values.forEach((value) => {
+      str += `${value}|`;
+    });
+    str += "\n";
+
+    fullDataStr += str;
+  });
+
+  // Join all the rows
+  const markdownString = `${headerRow}${separatorRow}${fullDataStr}`;
+
+  return markdownString;
+};
 
 export const QuestionAnswerService = {
   askQuestion: async (
@@ -33,12 +67,17 @@ export const QuestionAnswerService = {
     }
 
     const getLogsFxn =
-      SecureIntegrationService.getCorrectLogsFunctionToRun(integration);
-    const logsFromIntegration = await getLogsFxn!(organization, integration);
+      SecureIntegrationService.getCorrectQuestionAnswerLogsFunctionToRun(
+        integration
+      );
+    const logsFromIntegration = await getLogsFxn!(integration);
 
-    const promptPrefix = `I am giving you a lot of data from one business's ${integration.type} account. Someone from the business is asking you a question about this data and your job is to try your best to answer it. If the question has nothing to do with the data, you have permission to tell them that. If you think you are unable to answer a question you must ignore data you don't think is related to the question and make reasonable assumptions about all data such as inferring the meaning of certain words. Chances are that you just need to infer the meaning of some things in the data for a question to make more sense. If their question is asking you to provide conclusions from the data or aggregate data from these individual events, you should try your best to do so and do whatever is necessary including mathematical calculations. Below is their data, represented as a stringified array of objects of recent events from their ${integration.type} account:\n\n`;
-    const promptDataInput = JSON.stringify(logsFromIntegration).slice(0, 3000);
-    const promptQuestion = `\n\nAnd here is their question: ${question}`;
+    const promptPrefix = `I am giving you all of the events from one business's ${integration.type} account:\n\n`;
+    const promptDataInput = _arrayToMarkdown(logsFromIntegration).slice(
+      0,
+      3000
+    );
+    const promptQuestion = `\n\nHere is their question: ${question}\n\nYou must use reasoning and possibly math to make a useful and insightful response to the question. It is important to remember that the person asking the question does not know the structure of the data I am giving you, so do not speak too technically. Be nice with your response, and only include the most important details.`;
 
     const response = await QuestionAnswerService.getCompletionResponse(
       `${promptPrefix}${promptDataInput}${promptQuestion}`

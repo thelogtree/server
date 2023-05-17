@@ -116,4 +116,7 @@ export const MixpanelService: IntegrationServiceType = {
         } as SimplifiedLog;
       });
   },
+  getQuestionAnswerLogs: async (integration: IntegrationDocument) => {
+    return [];
+  },
 };

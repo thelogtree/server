@@ -98,4 +98,26 @@ export const CustomerioService: IntegrationServiceType = {
 
     return logs;
   },
+  getQuestionAnswerLogs: async (integration: IntegrationDocument) => {
+    const headers = CustomerioService.getHeaders(integration);
+    const allMessagesRes = await axios.get(`${BASE_URL}/messages`, {
+      params: {
+        limit: 1000,
+      },
+      headers,
+    });
+    const { messages } = allMessagesRes.data;
+
+    return messages.map((message) => ({
+      message_template_id: message.msg_template_id,
+      message_recipient: message.recipient,
+      message_subject: message.subject,
+      was_delivered: Boolean(message.metrics.delivered),
+      was_sent: Boolean(message.metrics.sent),
+      was_opened: Boolean(message.metrics.opened),
+      was_clicked: Boolean(message.metrics.clicked),
+      message_type: message.type,
+      message_created_at: new Date(message.created * 1000).toString(),
+    }));
+  },
 };

@@ -12,6 +12,10 @@ export type GetIntegrationLogsFxnType = (
   query?: string
 ) => Promise<SimplifiedLog[]>;
 
+export type GetQuestionAnswerLogsFxnType = (
+  integration: IntegrationDocument
+) => Promise<any[]>;
+
 export type FinishSetupFxnType =
   | ((integration: IntegrationDocument) => Promise<any> | void)
   | undefined;
@@ -41,6 +45,7 @@ export type VerifyWebhookCameFromTrustedSourceType = (
 export type IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => Promise<any> | any;
   getLogs: GetIntegrationLogsFxnType;
+  getQuestionAnswerLogs: GetQuestionAnswerLogsFxnType;
   finishConnection?: (integration: IntegrationDocument) => Promise<any> | void;
   exchangeOAuthTokenAndConnect?: ExchangeOAuthTokenAndConnectFxnType;
   getIntegrationOAuthLink?: GetOAuthLinkFxnType;

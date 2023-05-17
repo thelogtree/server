@@ -182,4 +182,7 @@ export const IntercomService: IntegrationServiceType = {
       Buffer.from(dataHmac)
     );
   },
+  getQuestionAnswerLogs: async (integration: IntegrationDocument) => {
+    return [];
+  },
 };
