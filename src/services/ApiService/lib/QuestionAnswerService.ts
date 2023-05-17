@@ -91,10 +91,17 @@ export const QuestionAnswerService = {
 
     return response;
   },
-  getCompletionResponse: async (prompt: string) => {
+  getCompletionResponse: async (
+    prompt: string,
+    maxTokens?: number,
+    temperature?: number
+  ) => {
     const completion = await OpenAI.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
+      n: 1,
+      temperature,
+      max_tokens: maxTokens,
     });
     return completion.data.choices[0]?.message?.content || "";
   },
