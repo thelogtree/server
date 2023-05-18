@@ -30,7 +30,7 @@
     "joi": "^17.3.0",
     "jwt-simple": "^0.5.6",
     "lodash": "^4.17.19",
-    "logtree-node": "1.0.1",
+    "logtree-node": "1.0.6",
     "logtree-types": "1.0.50",
     "luxon": "^3.3.0",
     "moment": "^2.29.1",
