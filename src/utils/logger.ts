@@ -1,7 +1,10 @@
-import axios from "axios";
 import { config } from "./config";
+import { Logtree } from "logtree-node";
 
-const BASE_URL = "https://logtree-server.onrender.com/api/v1";
+const MyLogtree = new Logtree(
+  config.logtree.publishableApiKey,
+  config.logtree.plaintextSecretKey
+);
 
 export const Logger = {
   sendLog: async (
@@ -10,27 +13,9 @@ export const Logger = {
     referenceId?: string,
     externalLink?: string
   ) => {
-    try {
-      if (config.environment.isTest) {
-        return;
-      }
-      await axios.post(
-        BASE_URL + "/logs",
-        {
-          content, // what you want to log
-          folderPath, // where you want to log it in logtree. e.g. "/transactions"
-          referenceId,
-          externalLink,
-        },
-        {
-          headers: {
-            "x-logtree-key": config.logtree.publishableApiKey, // this is your publishable api key
-            authorization: config.logtree.plaintextSecretKey,
-          },
-        }
-      );
-    } catch (e: any) {
-      // todo: log this error in sentry
+    if (config.environment.isTest) {
+      return;
     }
+    await MyLogtree.sendLog(content, folderPath, referenceId, externalLink);
   },
 };
