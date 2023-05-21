@@ -82,6 +82,7 @@ export const OrganizationController = {
     ]);
 
     LoggerHelpers.recordCheckingChannel(
+      req,
       user,
       organization,
       isFavoritesBool,
@@ -103,6 +104,7 @@ export const OrganizationController = {
     );
 
     LoggerHelpers.recordSearch(
+      req,
       organization,
       user,
       isFavoritesBool,
@@ -143,7 +145,7 @@ export const OrganizationController = {
       password
     );
 
-    LoggerHelpers.recordNewUserCreated(organizationId, email);
+    LoggerHelpers.recordNewUserCreated(req, organizationId, email);
 
     res.send(user);
   },
@@ -161,7 +163,7 @@ export const OrganizationController = {
     const user: UserDocument = req["user"];
     const { folderId } = req.body;
 
-    LoggerHelpers.recordDeletedFolder(user, folderId, organization);
+    LoggerHelpers.recordDeletedFolder(req, user, folderId, organization);
 
     await OrganizationService.deleteFolderAndEverythingInside(
       organization._id.toString(),
@@ -306,7 +308,7 @@ export const OrganizationController = {
       notificationType
     );
 
-    LoggerHelpers.recordNewRule(user, folderId, organization);
+    LoggerHelpers.recordNewRule(req, user, folderId, organization);
 
     res.send({ rule });
   },
@@ -316,7 +318,7 @@ export const OrganizationController = {
     const { ruleId } = req.body;
     await RuleService.deleteRule(user._id.toString(), ruleId);
 
-    LoggerHelpers.recordDeletedRule(user, ruleId, organization);
+    LoggerHelpers.recordDeletedRule(req, user, ruleId, organization);
 
     res.send({});
   },
@@ -413,6 +415,7 @@ export const OrganizationController = {
     const logs = await LogService.getSupportLogs(organization, query as string);
 
     LoggerHelpers.recordSearch(
+      req,
       organization,
       user,
       false,
