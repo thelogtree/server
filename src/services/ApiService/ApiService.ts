@@ -13,6 +13,7 @@ export const ApiService = {
     content: string,
     referenceId?: string,
     externalLink?: string,
+    additionalContext?: Map<any, any>,
     shouldCharge: boolean = false
   ) => {
     FolderService.validateFolderPath(folderPath);
@@ -26,7 +27,8 @@ export const ApiService = {
       folderIdForThisLog,
       content,
       referenceId,
-      externalLink
+      externalLink,
+      additionalContext
     );
     await Folder.updateOne(
       { _id: folderIdForThisLog },

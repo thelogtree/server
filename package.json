@@ -30,8 +30,8 @@
     "joi": "^17.3.0",
     "jwt-simple": "^0.5.6",
     "lodash": "^4.17.19",
-    "logtree-node": "1.0.6",
-    "logtree-types": "1.0.50",
+    "logtree-node": "1.0.7",
+    "logtree-types": "1.0.51",
     "luxon": "^3.3.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
@@ -43,6 +43,7 @@
     "request": "^2.88.2",
     "rimraf": "^3.0.2",
     "twilio": "^3.54.2",
+    "ua-parser-js": "^1.0.35",
     "uuidv4": "^6.2.6"
   },
   "description": "Server monolith for Logtree",

@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { config } from "./config";
 import { Logtree } from "logtree-node";
 
@@ -11,11 +12,20 @@ export const Logger = {
     content: string,
     folderPath: string,
     referenceId?: string,
-    externalLink?: string
+    externalLink?: string,
+    req?: Request,
+    additionalContext?: Object
   ) => {
     if (config.environment.isTest) {
       return;
     }
-    await MyLogtree.sendLog(content, folderPath, referenceId, externalLink);
+    await MyLogtree.sendLog(
+      content,
+      folderPath,
+      referenceId,
+      externalLink,
+      req,
+      additionalContext
+    );
   },
 };

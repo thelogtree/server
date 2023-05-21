@@ -18,6 +18,7 @@ const LogSchema = new Schema(
     },
     referenceId: { type: String },
     externalLink: { type: String },
+    additionalContext: { type: Map },
   },
   { timestamps: true }
 );
