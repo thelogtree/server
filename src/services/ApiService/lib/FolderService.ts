@@ -174,10 +174,10 @@ export const FolderService = {
         });
         if (existingLogInFolder) {
           const newFolder = await Folder.create({
-            path,
+            name: path,
             organizationId,
             parentFolderId,
-            pathSoFar,
+            fullPath: pathSoFar,
           });
           lastFolderId = newFolder._id.toString();
         }
