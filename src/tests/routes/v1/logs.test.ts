@@ -58,6 +58,54 @@ describe("CreateLog", () => {
     }).countDocuments();
     expect(allLogsInOrg).toBe(1);
   });
+  it("correctly creates a log with additional context", async () => {
+    const logContent = "test 123";
+    const folderName = "transactions";
+    const organization = await OrganizationFactory.create();
+    const res = await TestHelper.sendRequest(
+      routeUrl,
+      "POST",
+      {
+        content: logContent,
+        folderPath: `/${folderName}`,
+        additionalContext: {
+          username: "andrew",
+          country: "us",
+        },
+      },
+      {},
+      ...TestHelper.extractApiKeys(organization)
+    );
+    TestHelper.expectSuccess(res);
+
+    const folder = await Folder.findOne({
+      name: folderName,
+      parentFolderId: null,
+      organizationId: organization._id,
+    });
+    expect(folder).toBeTruthy();
+
+    const allFoldersInOrgNum = await Folder.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allFoldersInOrgNum).toBe(1);
+
+    const logCreatedInsideFolder = await Log.findOne({
+      content: logContent,
+      folderId: folder!._id,
+      organizationId: organization._id,
+    }).lean();
+    expect(logCreatedInsideFolder).toBeTruthy();
+    expect(logCreatedInsideFolder?.additionalContext!["username"]).toBe(
+      "andrew"
+    );
+    expect(logCreatedInsideFolder?.additionalContext!["country"]).toBe("us");
+
+    const allLogsInOrg = await Log.find({
+      organizationId: organization._id,
+    }).countDocuments();
+    expect(allLogsInOrg).toBe(1);
+  });
   it("correctly creates a log with a referenceId and externalLink", async () => {
     const logContent = "test 123";
     const folderName = "transactions";

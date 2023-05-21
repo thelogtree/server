@@ -6,6 +6,7 @@ export const ApiSchemas = {
     folderPath: Joi.string().required(),
     referenceId: Joi.string().allow("").optional(),
     externalLink: Joi.string().allow("").optional(),
+    additionalContext: Joi.object().optional(),
   }),
   getLogs: Joi.object({
     folderPath: Joi.string().allow("").optional(),

@@ -22,6 +22,7 @@ export type SimplifiedLog = {
   externalLink?: string;
   tag?: simplifiedLogTagEnum;
   sourceTitle?: string;
+  additionalContext?: Map<any, any>;
 };
 
 export const LogService = {
@@ -30,7 +31,8 @@ export const LogService = {
     folderId: string,
     content: string,
     referenceId?: string,
-    externalLink?: string
+    externalLink?: string,
+    additionalContext?: Map<any, any>
   ) => {
     let editedContent = content;
     if (content.length > MAX_NUM_CHARS_ALLOWED_IN_LOG) {
@@ -44,6 +46,7 @@ export const LogService = {
       folderId,
       referenceId,
       externalLink,
+      additionalContext,
     });
   },
   getLogs: async (
@@ -80,6 +83,7 @@ export const LogService = {
         ...(user ? { folderId: 1 } : {}),
         referenceId: 1,
         externalLink: 1,
+        additionalContext: 1,
         createdAt: 1,
       }
     )
@@ -149,6 +153,7 @@ export const LogService = {
         createdAt: 1,
         folderId: 1,
         externalLink: 1,
+        additionalContext: 1,
       }
     )
       .sort({ createdAt: -1 })
@@ -178,6 +183,7 @@ export const LogService = {
           createdAt: 1,
           folderId: 1,
           externalLink: 1,
+          additionalContext: 1,
         }
       )
         .sort({ createdAt: -1 })
