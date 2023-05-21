@@ -158,10 +158,9 @@ export const FolderService = {
         continue;
       }
       pathSoFar += `/${path}`;
-      const parentFolderId = lastFolderId;
       lastFolderId = await FolderService.findOrCreateNewFolderId(
         organizationId,
-        parentFolderId,
+        lastFolderId,
         path,
         pathSoFar
       );
@@ -173,13 +172,9 @@ export const FolderService = {
           folderId: lastFolderId,
         });
         if (existingLogInFolder) {
-          const newFolder = await Folder.create({
-            name: path,
-            organizationId,
-            parentFolderId,
-            fullPath: pathSoFar,
-          });
-          lastFolderId = newFolder._id.toString();
+          throw new ApiError(
+            "You cannot create subfolders inside of a folder that already has at least 1 log."
+          );
         }
       }
     }
