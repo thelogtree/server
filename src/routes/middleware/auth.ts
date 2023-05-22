@@ -104,11 +104,7 @@ const requiredApiKey = async (
       throw new AuthError(ErrorMessages.ReachedLimit);
     }
   }
-  void MyLogtree.sendLog({
-    content: `api credentials incorrect?\napiKey: ${publishableApiKey}\norg: ${organization?.name}`,
-    folderPath: "/debugging",
-    req,
-  });
+
   throw new AuthError(ErrorMessages.ApiCredentialsIncorrect);
 };
 
