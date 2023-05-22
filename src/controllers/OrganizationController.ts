@@ -12,7 +12,7 @@ import { OrganizationService } from "src/services/OrganizationService";
 import { StatsService, timeIntervalEnum } from "src/services/StatsService";
 import { ApiError, AuthError } from "src/utils/errors";
 import { queryBool } from "src/utils/helpers";
-import { Logger } from "src/utils/logger";
+import { MyLogtree } from "src/utils/logger";
 import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
 import { TwilioUtil } from "src/utils/twilio";
@@ -195,11 +195,13 @@ export const OrganizationController = {
       isRemoved
     );
 
-    Logger.sendLog(
-      `User ${isRemoved ? "unfavorited" : "favorited"} a channel: ${fullPath}`,
-      `/favorited-channel/${organization?.slug}`,
-      user.email
-    );
+    MyLogtree.sendLog({
+      content: `User ${
+        isRemoved ? "unfavorited" : "favorited"
+      } a channel: ${fullPath}`,
+      folderPath: `/favorited-channel/${organization?.slug}`,
+      referenceId: user.email,
+    });
 
     res.send({});
   },
@@ -220,11 +222,11 @@ export const OrganizationController = {
       isMuted
     );
 
-    Logger.sendLog(
-      `User ${isMuted ? "muted" : "unmuted"} a channel: ${fullPath}`,
-      `/channel-preferences/${organization?.slug}`,
-      user.email
-    );
+    MyLogtree.sendLog({
+      content: `User ${isMuted ? "muted" : "unmuted"} a channel: ${fullPath}`,
+      folderPath: `/channel-preferences/${organization?.slug}`,
+      referenceId: user.email,
+    });
 
     res.send({});
   },
@@ -344,12 +346,12 @@ export const OrganizationController = {
   },
   addToWaitlist: async (req: Request, res: Response) => {
     const { email, websiteUrl, description } = req.body;
-    await Logger.sendLog(
-      `${email} joined the waitlist with ${websiteUrl}.\n\n${description}`,
-      "/waitlist",
-      email,
-      websiteUrl
-    );
+    await MyLogtree.sendLog({
+      content: `${email} joined the waitlist with ${websiteUrl}.\n\n${description}`,
+      folderPath: "/waitlist",
+      referenceId: email,
+      externalLink: websiteUrl,
+    });
     res.send({});
   },
   deleteLog: async (req: Request, res: Response) => {

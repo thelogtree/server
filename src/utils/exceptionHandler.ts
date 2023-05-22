@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { config } from "./config";
-import { Logger } from "./logger";
+import { MyLogtree } from "./logger";
 import { getErrorMessage } from "./helpers";
 
 export const exceptionHandler = (error, req, res, _next) => {
@@ -14,13 +14,15 @@ export const exceptionHandler = (error, req, res, _next) => {
     try {
       const organization = req["organization"];
       const user = req["user"];
-      Logger.sendLog(
-        getErrorMessage(error as any),
-        "/errors",
-        user?.email ||
+      MyLogtree.sendLog({
+        content: getErrorMessage(error as any),
+        folderPath: "/errors",
+        referenceId:
+          user?.email ||
           organization?.slug ||
-          req.headers["x-logtree-key"]?.toString()
-      );
+          req.headers["x-logtree-key"]?.toString(),
+        req,
+      });
     } catch {}
     console.error(error);
     Sentry.captureException(error);

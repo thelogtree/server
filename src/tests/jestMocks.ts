@@ -4,5 +4,6 @@ import { TwilioMock } from "./mocks/TwilioMock";
 
 jest.mock("axios");
 jest.mock("@sendgrid/mail");
+jest.mock("logtree-node")
 jest.mock("twilio", () => TwilioMock);
 jest.mock("firebase-admin", () => FirebaseMock);

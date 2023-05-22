@@ -3,7 +3,7 @@ import { Organization } from "src/models/Organization";
 import _ from "lodash";
 import moment from "moment";
 import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
-import { Logger } from "src/utils/logger";
+import { MyLogtree } from "src/utils/logger";
 import { Log } from "src/models/Log";
 import { SendgridUtil } from "src/utils/sendgrid";
 
@@ -61,11 +61,11 @@ export const UsageService = {
     }).exec();
     await Promise.all(
       organizations.map(async (org) => {
-        void Logger.sendLog(
-          `Just reset usage for ${org.name}.`,
-          "/usage",
-          org.slug
-        );
+        void MyLogtree.sendLog({
+          content: `Just reset usage for ${org.name}.`,
+          folderPath: "/usage",
+          referenceId: org.slug,
+        });
         const { cycleStarts, cycleEnds } = UsageService.getPeriodDates(org);
         await Organization.updateOne(
           { _id: org._id },

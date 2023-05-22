@@ -4,7 +4,7 @@ import {
   UserDocument,
 } from "logtree-types";
 import { Folder } from "src/models/Folder";
-import { Logger } from "./logger";
+import { MyLogtree } from "./logger";
 import { Organization } from "src/models/Organization";
 import { Rule } from "src/models/Rule";
 import { Request } from "express";
@@ -25,16 +25,14 @@ export const LoggerHelpers = {
       channelName = folder?.fullPath || "";
     }
 
-    Logger.sendLog(
-      `${
+    MyLogtree.sendLog({
+      content: `${
         isSupportTool ? "Support tool: " : ""
       }searched for logs with query '${query}'`,
-      `/searches/${organization.slug}`,
-      user.email,
-      undefined,
+      folderPath: `/searches/${organization.slug}`,
+      referenceId: user.email,
       req,
-      { isSupportTool: Boolean(isSupportTool) }
-    );
+    });
   },
   recordNewUserCreated: async (
     req: Request,
@@ -44,13 +42,12 @@ export const LoggerHelpers = {
     const organization = await Organization.findById(organizationId, {
       slug: 1,
     }).exec();
-    Logger.sendLog(
-      `User joined organization: ${organization?.slug}`,
-      `/new-user/${organization?.slug}`,
-      email,
-      undefined,
-      req
-    );
+    MyLogtree.sendLog({
+      content: `User joined organization: ${organization?.slug}`,
+      folderPath: `/new-user/${organization?.slug}`,
+      referenceId: email,
+      req,
+    });
   },
   recordDeletedFolder: async (
     req: Request,
@@ -59,13 +56,12 @@ export const LoggerHelpers = {
     organization: OrganizationDocument
   ) => {
     const folder = await Folder.findById(folderId, { fullPath: 1 }).exec();
-    Logger.sendLog(
-      `Deleted folder or channel: ${folder?.fullPath}`,
-      `/deleted-folder/${organization?.slug}`,
-      user.email,
-      undefined,
-      req
-    );
+    MyLogtree.sendLog({
+      content: `Deleted folder or channel: ${folder?.fullPath}`,
+      folderPath: `/deleted-folder/${organization?.slug}`,
+      referenceId: user.email,
+      req,
+    });
   },
   recordNewRule: async (
     req: Request,
@@ -74,13 +70,12 @@ export const LoggerHelpers = {
     organization: OrganizationDocument
   ) => {
     const folder = await Folder.findById(folderId, { fullPath: 1 }).exec();
-    Logger.sendLog(
-      `User created rule for a channel: ${folder?.fullPath}`,
-      `/rules/${organization?.slug}`,
-      user.email,
-      undefined,
-      req
-    );
+    MyLogtree.sendLog({
+      content: `User created rule for a channel: ${folder?.fullPath}`,
+      folderPath: `/rules/${organization?.slug}`,
+      referenceId: user.email,
+      req,
+    });
   },
   recordDeletedRule: async (
     req: Request,
@@ -90,13 +85,12 @@ export const LoggerHelpers = {
   ) => {
     const rule = await Rule.findById(ruleId).populate("folderId");
     const folder = rule?.folderId as FolderDocument;
-    Logger.sendLog(
-      `User deleted rule for a channel: ${folder?.fullPath}`,
-      `/rules/${organization?.slug}`,
-      user.email,
-      undefined,
-      req
-    );
+    MyLogtree.sendLog({
+      content: `User deleted rule for a channel: ${folder?.fullPath}`,
+      folderPath: `/rules/${organization?.slug}`,
+      referenceId: user.email,
+      req,
+    });
   },
   recordCheckingChannel: async (
     req: Request,
@@ -111,12 +105,11 @@ export const LoggerHelpers = {
       channelName = folder?.fullPath || "";
     }
 
-    Logger.sendLog(
-      `User checked a channel: ${channelName}`,
-      `/fetched-logs/${organization?.slug}`,
-      user.email,
-      undefined,
-      req
-    );
+    MyLogtree.sendLog({
+      content: `User checked a channel: ${channelName}`,
+      folderPath: `/fetched-logs/${organization?.slug}`,
+      referenceId: user.email,
+      req,
+    });
   },
 };

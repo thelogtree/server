@@ -13,7 +13,7 @@ import { Organization } from "src/models/Organization";
 import { config } from "src/utils/config";
 import { SendgridUtil } from "src/utils/sendgrid";
 import moment from "moment";
-import { Logger } from "src/utils/logger";
+import { MyLogtree } from "src/utils/logger";
 import { getErrorMessage } from "src/utils/helpers";
 import { User } from "src/models/User";
 import { TwilioUtil } from "src/utils/twilio";
@@ -191,11 +191,11 @@ export const RuleService = {
             await RuleService.executeTriggeredRule(rule as RuleDocument, user);
           }
         } catch (e: any) {
-          Logger.sendLog(
-            getErrorMessage(e),
-            "/errors",
-            (rule.userId as UserDocument).email
-          );
+          MyLogtree.sendLog({
+            content: getErrorMessage(e),
+            folderPath: "/errors",
+            referenceId: (rule.userId as UserDocument).email,
+          });
         }
       })
     );
