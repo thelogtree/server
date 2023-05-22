@@ -105,7 +105,7 @@ const requiredApiKey = async (
     }
   }
   void MyLogtree.sendLog({
-    content: `api credentials incorrect?\napiKey: ${publishableApiKey}\norg: ${organization.name}`,
+    content: `api credentials incorrect?\napiKey: ${publishableApiKey}\norg: ${organization?.name}`,
     folderPath: "/debugging",
     req,
   });
