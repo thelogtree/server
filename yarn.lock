@@ -6145,10 +6145,10 @@ lodash@4.x, lodash@^4.17.14, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, 
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
-logtree-node@1.0.19:
-  version "1.0.19"
-  resolved "https://registry.yarnpkg.com/logtree-node/-/logtree-node-1.0.19.tgz#1a7f0e22d7e13727f9145b3fe4faa42bcf34581b"
-  integrity sha512-8MDhf1rwyrDquJoMjYgdLsywuNo/paSHeyYK3kJ8EFJ1CQFfHFb2GBhnLApZxh/a71ICAKjXNF+fzAgo0PtF9g==
+logtree-node@1.0.20:
+  version "1.0.20"
+  resolved "https://registry.yarnpkg.com/logtree-node/-/logtree-node-1.0.20.tgz#e36a3343ebfd2593878adfabb0471f08a1ea2d02"
+  integrity sha512-grMIwWaxF4v0XPV9eslbaRgzb+E/s5dXNR1ghvYEIYV2J5K1tM+VaLNRKGa6cSKJ7yyAx1c5ROUc2C2yR6I3Bg==
   dependencies:
     axios "^0.27.2"
     express "^4.18.2"
