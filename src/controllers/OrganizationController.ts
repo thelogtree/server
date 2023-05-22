@@ -413,7 +413,7 @@ export const OrganizationController = {
   getSupportLogs: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const user = req["user"];
-    const { query } = req.query;
+    const query = (req.query.query as string).trim();
     const logs = await LogService.getSupportLogs(organization, query as string);
 
     LoggerHelpers.recordSearch(
@@ -431,10 +431,11 @@ export const OrganizationController = {
   getIntegrationLogs: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const { integrationId, query } = req.query;
+    const trimmedQuery = query ? (query as string).trim() : undefined;
     const logs = await LogService.getIntegrationLogs(
       organization,
       integrationId as string,
-      query as string | undefined
+      trimmedQuery as string | undefined
     );
 
     res.send({ logs });

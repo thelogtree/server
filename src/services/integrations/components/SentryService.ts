@@ -48,7 +48,7 @@ export const SentryService: IntegrationServiceType = {
     const headers = SentryService.getHeaders(integration);
 
     const projectBatches = partitionArray(
-      integration.additionalProperties.get("projectSlugs"),
+      integration.additionalProperties["projectSlugs"],
       3
     );
 
@@ -61,9 +61,7 @@ export const SentryService: IntegrationServiceType = {
         await Promise.all(
           batch.map(async (projectSlug) => {
             const issuesRes = await axios.get(
-              `${BASE_URL}projects/${integration.additionalProperties.get(
-                "organizationSlug"
-              )}/${projectSlug}/issues/`,
+              `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
               {
                 params: {
                   query: `user.email:${query}`,
@@ -129,9 +127,7 @@ export const SentryService: IntegrationServiceType = {
         await Promise.all(
           batch.map(async (projectSlug) => {
             const eventsRes = await axios.get(
-              `${BASE_URL}projects/${integration.additionalProperties.get(
-                "organizationSlug"
-              )}/${projectSlug}/events/`,
+              `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/events/`,
               {
                 headers,
               }

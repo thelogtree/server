@@ -63,6 +63,7 @@ export const IntercomService: IntegrationServiceType = {
       );
       const { conversations } = res.data;
       conversationsResult = conversations;
+      console.log(conversations);
     } else {
       const res = await axios.get(BASE_URL + "/conversations", { headers });
       const { conversations } = res.data;
@@ -96,19 +97,38 @@ export const IntercomService: IntegrationServiceType = {
       })
     );
 
-    return allConversationParts.map((conversationPart: any) => ({
-      _id: `intercom_${conversationPart.conversationId}_${conversationPart.id}`,
-      content: `From ${
-        conversationPart.author.name || "user"
-      }:\n\n${conversationPart.body?.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
-      createdAt: new Date(conversationPart.created_at * 1000),
-      externalLink: `https://app.intercom.com/a/inbox/${
-        (integration.additionalProperties as any).appId as string
-      }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
-      tag: simplifiedLogTagEnum.Support,
-      sourceTitle: "Intercom",
-      referenceId: conversationPart.author.email,
-    }));
+    return allConversationParts
+      .map((conversationPart: any) => ({
+        _id: `intercom_${conversationPart.conversationId}_${conversationPart.id}`,
+        content: `From ${
+          conversationPart.author.name || "user"
+        }:\n\n${conversationPart.body?.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
+        createdAt: new Date(conversationPart.created_at * 1000),
+        externalLink: `https://app.intercom.com/a/inbox/${
+          (integration.additionalProperties as any).appId as string
+        }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
+        tag: simplifiedLogTagEnum.Support,
+        sourceTitle: "Intercom",
+        referenceId: conversationPart.author?.email,
+      }))
+      .concat(
+        conversationsResult.map((conversation) => ({
+          _id: `intercom_${conversation.id}_init`,
+          content: `From ${
+            conversation.source.author.name || "user"
+          }:\n\n${conversation.source.body?.slice(
+            0,
+            MAX_NUM_CHARS_ALLOWED_IN_LOG
+          )}`,
+          createdAt: new Date(conversation.created_at * 1000),
+          externalLink: `https://app.intercom.com/a/inbox/${
+            (integration.additionalProperties as any).appId as string
+          }/inbox/shared/all/conversation/${conversation.id}`,
+          tag: simplifiedLogTagEnum.Support,
+          sourceTitle: "Intercom",
+          referenceId: conversation.source.author?.email,
+        }))
+      );
   },
   finishConnection: async (integration: IntegrationDocument) => {
     const headers = IntercomService.getHeaders(integration);

@@ -208,7 +208,9 @@ export const LogService = {
     const integration = await Integration.findOne({
       organizationId: organization._id,
       _id: integrationId,
-    });
+    })
+      .lean()
+      .exec();
     if (!integration) {
       throw new ApiError("Could not find an integration with this ID.");
     }
