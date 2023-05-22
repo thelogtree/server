@@ -9,6 +9,7 @@ import {
 import { Organization } from "src/models/Organization";
 import { UsageService } from "src/services/ApiService/lib/UsageService";
 import { AuthError, ErrorMessages } from "src/utils/errors";
+import { MyLogtree } from "src/utils/logger";
 
 const requiredOrgMember = async (
   req: Request,
@@ -103,6 +104,11 @@ const requiredApiKey = async (
       throw new AuthError(ErrorMessages.ReachedLimit);
     }
   }
+  void MyLogtree.sendLog({
+    content: `api credentials incorrect?\napiKey: ${publishableApiKey}\norg: ${organization.name}`,
+    folderPath: "/debugging",
+    req,
+  });
   throw new AuthError(ErrorMessages.ApiCredentialsIncorrect);
 };
 
