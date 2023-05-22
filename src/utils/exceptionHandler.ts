@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/node";
 import { config } from "./config";
 import { MyLogtree } from "./logger";
 import { getErrorMessage } from "./helpers";
+import { ErrorMessages } from "./errors";
 
 export const exceptionHandler = (error, req, res, _next) => {
   if (config.environment.isTest) {
@@ -14,15 +15,19 @@ export const exceptionHandler = (error, req, res, _next) => {
     try {
       const organization = req["organization"];
       const user = req["user"];
-      MyLogtree.sendLog({
-        content: getErrorMessage(error as any),
-        folderPath: "/errors",
-        referenceId:
-          user?.email ||
-          organization?.slug ||
-          req.headers["x-logtree-key"]?.toString(),
-        req,
-      });
+      if (
+        !Object.values(ErrorMessages).includes(getErrorMessage(error as any))
+      ) {
+        MyLogtree.sendLog({
+          content: getErrorMessage(error as any),
+          folderPath: "/errors",
+          referenceId:
+            user?.email ||
+            organization?.slug ||
+            req.headers["x-logtree-key"]?.toString(),
+          req,
+        });
+      }
     } catch {}
     console.error(error);
     Sentry.captureException(error);
