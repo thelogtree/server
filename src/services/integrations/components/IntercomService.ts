@@ -63,7 +63,6 @@ export const IntercomService: IntegrationServiceType = {
       );
       const { conversations } = res.data;
       conversationsResult = conversations;
-      console.log(conversations);
     } else {
       const res = await axios.get(BASE_URL + "/conversations", { headers });
       const { conversations } = res.data;
