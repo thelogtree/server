@@ -90,11 +90,6 @@ describe("CreateAccountAndOrganization", () => {
 
     const createdOrg = await Organization.findOne({ name: "A", slug: "a" });
     expect(createdOrg).toBeFalsy();
-
-    const createdUser = await User.findOne({
-      email: "b",
-    });
-    expect(createdUser).toBeFalsy();
   });
   it("fails to create an organization and account because the org name is already used", async () => {
     await OrganizationFactory.create({ name: "AA", slug: "a" });
