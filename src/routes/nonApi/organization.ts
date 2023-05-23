@@ -17,6 +17,13 @@ const router = expressRouter();
 //   OrganizationController.createOrganization
 // );
 
+router.post(
+  "/new",
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createAccountAndOrganization,
+  }),
+  OrganizationController.createAccountAndOrganization
+);
 router.get(
   "/invitation",
   validateRequestAgainstSchemas({

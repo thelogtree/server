@@ -44,9 +44,86 @@ import { integrationsAvailableToConnectTo } from "src/services/integrations/lib"
 import { OAuthRequestFactory } from "src/tests/factories/OAuthRequestFactory";
 import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
-import { IntercomService } from "src/services/integrations/components/IntercomService";
 
 const routeUrl = "/organization";
+
+describe("CreateAccountAndOrganization", () => {
+  beforeEach(async () => {
+    await Organization.deleteMany();
+    await User.deleteMany();
+  });
+  it("correctly creates an organization and user", async () => {
+    const res = await TestHelper.sendRequest(
+      routeUrl + "/new",
+      "POST",
+      {
+        organizationName: "A",
+        email: "b",
+        password: "c",
+      },
+      {}
+    );
+    TestHelper.expectSuccess(res);
+
+    const createdOrg = await Organization.findOne({ name: "A", slug: "a" });
+    expect(createdOrg).toBeTruthy();
+
+    const createdUser = await User.findOne({
+      email: "b",
+      organizationId: createdOrg!._id,
+    });
+    expect(createdUser).toBeTruthy();
+  });
+  it("fails to create an organization and account because the email is already used", async () => {
+    await UserFactory.create({ email: "b" });
+    const res = await TestHelper.sendRequest(
+      routeUrl + "/new",
+      "POST",
+      {
+        organizationName: "A",
+        email: "b",
+        password: "c",
+      },
+      {}
+    );
+    TestHelper.expectError(res, "An account with this email already exists.");
+
+    const createdOrg = await Organization.findOne({ name: "A", slug: "a" });
+    expect(createdOrg).toBeFalsy();
+
+    const createdUser = await User.findOne({
+      email: "b",
+      organizationId: createdOrg!._id,
+    });
+    expect(createdUser).toBeFalsy();
+  });
+  it("fails to create an organization and account because the org name is already used", async () => {
+    await OrganizationFactory.create({ name: "AA", slug: "a" });
+    const res = await TestHelper.sendRequest(
+      routeUrl + "/new",
+      "POST",
+      {
+        organizationName: "A",
+        email: "b",
+        password: "c",
+      },
+      {}
+    );
+    TestHelper.expectError(
+      res,
+      "An organization with this name already exists."
+    );
+
+    const orgs = await Organization.find({ slug: "a" });
+    expect(orgs.length).toBe(1);
+
+    const createdUser = await User.findOne({
+      email: "b",
+      organizationId: orgs[0]!._id,
+    });
+    expect(createdUser).toBeFalsy();
+  });
+});
 
 describe("GetMe", () => {
   it("correctly gets me (the user making the request)", async () => {

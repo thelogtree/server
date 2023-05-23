@@ -51,3 +51,9 @@ export const getFloorLogRetentionDateForOrganization = (
 
   return floorDate;
 };
+
+// example: 50000 -> 50,000
+export const numberToNumberWithCommas = (val: number): string =>
+  Math.trunc(val)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");

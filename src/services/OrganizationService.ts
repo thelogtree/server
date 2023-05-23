@@ -17,7 +17,11 @@ import { Rule } from "src/models/Rule";
 import { User } from "src/models/User";
 import { config } from "src/utils/config";
 import { ApiError, AuthError } from "src/utils/errors";
-import { getHashFromPlainTextKey, wrapWords } from "src/utils/helpers";
+import {
+  getHashFromPlainTextKey,
+  numberToNumberWithCommas,
+  wrapWords,
+} from "src/utils/helpers";
 import { uuid } from "uuidv4";
 
 import firebase from "../../firebaseConfig";
@@ -25,23 +29,58 @@ import { ApiService } from "./ApiService/ApiService";
 import { FolderService } from "./ApiService/lib/FolderService";
 import { UsageService } from "./ApiService/lib/UsageService";
 import { SecureIntegrationService } from "./integrations/SecureIntegrationService";
+import { SendgridUtil } from "src/utils/sendgrid";
 
 export const TRIAL_LOG_LIMIT = 20000;
 
 export const OrganizationService = {
+  createAccountAndOrganization: async (
+    organizationName: string,
+    email: string,
+    password: string
+  ) => {
+    const existingUser = await User.exists({ email });
+    if (existingUser) {
+      throw new ApiError("An account with this email already exists.");
+    }
+
+    const { organization } = await OrganizationService.createOrganization(
+      organizationName
+    );
+    const invitation = await OrgInvitation.findOne({
+      organizationId: organization._id,
+    })
+      .lean()
+      .exec();
+    await OrganizationService.createNewUser(
+      organization._id.toString(),
+      invitation._id.toString(),
+      email,
+      password
+    );
+
+    await SendgridUtil.sendEmail({
+      to: email,
+      subject: "Welcome to Logtree 🎉",
+      text: "",
+      html: `<p>Hey!</p><p>We've already set up your account with ${numberToNumberWithCommas(
+        TRIAL_LOG_LIMIT
+      )} free logs per month and unlimited connections to integrations. You can email us at hello@logtree.co if you want to increase this limit. Also feel free to reach out if you have any questions or requests!</p>`,
+    });
+  },
   createOrganization: async (
     name: string
   ): Promise<{
     organization: OrganizationDocument;
     firstInvitationUrl: string;
   }> => {
-    const isExistingOrg = await Organization.exists({ name });
+    const slug = wrapWords(name).toLowerCase();
+    const isExistingOrg = await Organization.exists({ slug });
     if (isExistingOrg) {
       throw new ApiError("An organization with this name already exists.");
     }
 
     const publishableApiKey = uuid();
-    const slug = wrapWords(name).toLowerCase();
     const { cycleStarts, cycleEnds } = UsageService.getPeriodDates();
     const organization = await Organization.create({
       name,

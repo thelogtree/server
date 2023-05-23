@@ -3,6 +3,11 @@ import { comparisonTypeEnum } from "logtree-types";
 import { objectId } from "src/utils/joiFieldValidators";
 
 export const OrganizationSchemas = {
+  createAccountAndOrganization: Joi.object({
+    organizationName: Joi.string().required(),
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+  }),
   createOrganization: Joi.object({
     name: Joi.string().required(),
   }),

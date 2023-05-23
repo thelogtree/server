@@ -21,6 +21,17 @@ import { SecureIntegrationService } from "src/services/integrations/SecureIntegr
 import _ from "lodash";
 
 export const OrganizationController = {
+  createAccountAndOrganization: async (req: Request, res: Response) => {
+    const { organizationName, email, password } = req.body;
+
+    await OrganizationService.createAccountAndOrganization(
+      organizationName,
+      email,
+      password
+    );
+
+    res.send({});
+  },
   getMe: async (req: Request, res: Response) => {
     const user = req["user"];
     res.send(user);
