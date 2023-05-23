@@ -10,6 +10,7 @@ import { ApiError, AuthError } from "src/utils/errors";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import moment from "moment";
 import { Integration } from "src/models/Integration";
+import { queryBool } from "src/utils/helpers";
 
 export const MAX_NUM_CHARS_ALLOWED_IN_LOG = 1500;
 
@@ -137,14 +138,50 @@ export const LogService = {
       referenceId = query.slice(3);
     }
 
+    const isContextFilter = query.indexOf("context.") === 0; // must include context. in the beginning to query for a tag in the context
+    let tagKey;
+    let tagValue;
+    if (isContextFilter) {
+      const tagStr = query.slice(8);
+      const indexOfTagValue = tagStr.indexOf("=") + 1;
+      tagKey = tagStr.slice(0, indexOfTagValue - 1);
+      tagValue = tagStr.slice(indexOfTagValue);
+      if (tagValue[0] === '"') {
+        // it's a string
+        tagValue = tagValue.slice(1, tagValue.length - 1);
+      } else {
+        // not a string
+        if (isNaN(tagValue)) {
+          // assume it is a boolean
+          tagValue = queryBool(tagValue);
+        } else {
+          // assume it is a number
+          tagValue = Number(tagValue);
+        }
+      }
+    }
+    const isValidContextSearch =
+      isContextFilter && tagKey.length && typeof tagValue !== "undefined";
+    const fullTagKey = isValidContextSearch
+      ? "additionalContext." + tagKey
+      : undefined;
+
     return Log.find(
       {
         organizationId,
         ...(user && { folderId: { $in: favoritedFolderIds } }),
         ...(folderId && { folderId }),
-        ...(isReferenceId
-          ? { referenceId }
-          : { content: { $regex: `.*${query}.*`, $options: "i" } }),
+        ...(isReferenceId ? { referenceId } : {}),
+        ...(isValidContextSearch
+          ? {
+              [`${fullTagKey}`]: { $eq: tagValue },
+            }
+          : {}),
+        ...(!isReferenceId && !isValidContextSearch
+          ? {
+              content: { $regex: `.*${query}.*`, $options: "i" },
+            }
+          : {}),
       },
       {
         content: 1,
