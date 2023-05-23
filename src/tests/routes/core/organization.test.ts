@@ -70,7 +70,7 @@ describe("CreateAccountAndOrganization", () => {
 
     const createdUser = await User.findOne({
       email: "b",
-      organizationId: createdOrg!._id,
+      organizationId: createdOrg!._id.toString(),
     });
     expect(createdUser).toBeTruthy();
   });
@@ -89,7 +89,7 @@ describe("CreateAccountAndOrganization", () => {
     TestHelper.expectError(res, "An account with this email already exists.");
 
     const createdOrg = await Organization.findOne({ name: "A", slug: "a" });
-    expect(createdOrg).toBeFalsy();
+    expect(createdOrg).toBeNull();
   });
   it("fails to create an organization and account because the org name is already used", async () => {
     await OrganizationFactory.create({ name: "AA", slug: "a" });
@@ -113,9 +113,9 @@ describe("CreateAccountAndOrganization", () => {
 
     const createdUser = await User.findOne({
       email: "b",
-      organizationId: orgs[0]!._id,
+      organizationId: orgs[0]!._id.toString(),
     });
-    expect(createdUser).toBeFalsy();
+    expect(createdUser).toBeNull();
   });
 });
 
