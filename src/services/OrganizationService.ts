@@ -1,35 +1,32 @@
 import {
   IntegrationDocument,
   OrganizationDocument,
-  UserDocument,
   orgPermissionLevel,
+  UserDocument,
 } from "logtree-types";
 import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
-import { OrgInvitation } from "src/models/OrgInvitation";
+import { FavoriteFolder } from "src/models/FavoriteFolder";
+import { Folder } from "src/models/Folder";
+import { FolderPreference } from "src/models/FolderPreference";
+import { Integration } from "src/models/Integration";
+import { Log } from "src/models/Log";
 import { Organization } from "src/models/Organization";
+import { OrgInvitation } from "src/models/OrgInvitation";
+import { Rule } from "src/models/Rule";
 import { User } from "src/models/User";
 import { config } from "src/utils/config";
 import { ApiError, AuthError } from "src/utils/errors";
 import { getHashFromPlainTextKey, wrapWords } from "src/utils/helpers";
 import { uuid } from "uuidv4";
+
 import firebase from "../../firebaseConfig";
-import { Folder } from "src/models/Folder";
-import { Log } from "src/models/Log";
 import { ApiService } from "./ApiService/ApiService";
 import { FolderService } from "./ApiService/lib/FolderService";
-import { FavoriteFolder } from "src/models/FavoriteFolder";
-import { FolderPreference } from "src/models/FolderPreference";
-import { Rule } from "src/models/Rule";
 import { UsageService } from "./ApiService/lib/UsageService";
-import { Integration } from "src/models/Integration";
-import {
-  IntegrationGetOAuthLinkMap,
-  IntegrationRemoveOAuthMap,
-} from "./integrations/lib";
 import { SecureIntegrationService } from "./integrations/SecureIntegrationService";
 
-export const TRIAL_LOG_LIMIT = 10000;
+export const TRIAL_LOG_LIMIT = 20000;
 
 export const OrganizationService = {
   createOrganization: async (
