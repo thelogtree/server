@@ -93,7 +93,6 @@ describe("CreateAccountAndOrganization", () => {
 
     const createdUser = await User.findOne({
       email: "b",
-      organizationId: createdOrg!._id,
     });
     expect(createdUser).toBeFalsy();
   });
