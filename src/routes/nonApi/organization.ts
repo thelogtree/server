@@ -19,6 +19,7 @@ const router = expressRouter();
 
 router.post(
   "/new",
+  rateLimiterP1,
   validateRequestAgainstSchemas({
     bodySchema: OrganizationSchemas.createAccountAndOrganization,
   }),
