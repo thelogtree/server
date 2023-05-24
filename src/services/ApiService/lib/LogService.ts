@@ -174,11 +174,6 @@ export const LogService = {
       key: "additionalContext." + tag.key,
       value: tag.value,
     }));
-    console.log(
-      ...hydratedTags.map((tag) => ({
-        [`${tag.key}`]: { $eq: tag.value },
-      }))
-    );
 
     return Log.find(
       {
