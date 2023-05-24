@@ -139,32 +139,46 @@ export const LogService = {
     }
 
     const isContextFilter = query.indexOf("context.") === 0; // must include context. in the beginning to query for a tag in the context
-    let tagKey;
-    let tagValue;
+    let tags: { key: string; value: string | number | boolean }[] = [];
     if (isContextFilter) {
-      const tagStr = query.slice(8);
-      const indexOfTagValue = tagStr.indexOf("=") + 1;
-      tagKey = tagStr.slice(0, indexOfTagValue - 1);
-      tagValue = tagStr.slice(indexOfTagValue);
-      if (tagValue[0] === '"') {
-        // it's a string
-        tagValue = tagValue.slice(1, tagValue.length - 1);
-      } else {
-        // not a string
-        if (isNaN(tagValue)) {
-          // assume it is a boolean
-          tagValue = queryBool(tagValue);
+      query.split("&").forEach((individualTagStr) => {
+        individualTagStr = individualTagStr.slice(8);
+        const indexOfTagValue = individualTagStr.indexOf("=") + 1;
+        let tagKey = individualTagStr.slice(0, indexOfTagValue - 1);
+        let tagValue: string | number | boolean =
+          individualTagStr.slice(indexOfTagValue);
+        if (tagValue[0] === '"') {
+          // it's a string
+          tagValue = tagValue.slice(1, tagValue.length - 1);
         } else {
-          // assume it is a number
-          tagValue = Number(tagValue);
+          // not a string
+          if (isNaN(Number(tagValue))) {
+            // assume it is a boolean
+            tagValue = queryBool(tagValue);
+          } else {
+            // assume it is a number
+            tagValue = Number(tagValue);
+          }
         }
-      }
+        tags.push({
+          key: tagKey,
+          value: tagValue,
+        });
+      });
     }
     const isValidContextSearch =
-      isContextFilter && tagKey.length && typeof tagValue !== "undefined";
-    const fullTagKey = isValidContextSearch
-      ? "additionalContext." + tagKey
-      : undefined;
+      isContextFilter &&
+      tags.length &&
+      !tags.find((tag) => !tag.key.length || typeof tag.value === "undefined");
+    const hydratedTags = tags.map((tag) => ({
+      key: "additionalContext." + tag.key,
+      value: tag.value,
+    }));
+    console.log(
+      ...hydratedTags.map((tag) => ({
+        [`${tag.key}`]: { $eq: tag.value },
+      }))
+    );
 
     return Log.find(
       {
@@ -173,9 +187,12 @@ export const LogService = {
         ...(folderId && { folderId }),
         ...(isReferenceId ? { referenceId } : {}),
         ...(isValidContextSearch
-          ? {
-              [`${fullTagKey}`]: { $eq: tagValue },
-            }
+          ? hydratedTags.reduce((acc, tag) => {
+              return {
+                ...acc,
+                [`${tag.key}`]: { $eq: tag.value },
+              };
+            }, {})
           : {}),
         ...(!isReferenceId && !isValidContextSearch
           ? {
