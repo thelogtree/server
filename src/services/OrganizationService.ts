@@ -59,14 +59,16 @@ export const OrganizationService = {
       password
     );
 
-    await SendgridUtil.sendEmail({
-      to: email,
-      subject: "Welcome to Logtree 🎉",
-      text: "",
-      html: `<p>Hey!</p><p>We've already set up your account with ${numberToNumberWithCommas(
-        TRIAL_LOG_LIMIT
-      )} free logs per month and unlimited connections to integrations. You can email us at hello@logtree.co if you want to increase this limit. Also feel free to reach out if you have any questions or requests!</p>`,
-    });
+    try {
+      await SendgridUtil.sendEmail({
+        to: email,
+        subject: "Welcome to Logtree 🎉",
+        text: "",
+        html: `<p>Hey!</p><p>We've already set up your account with ${numberToNumberWithCommas(
+          TRIAL_LOG_LIMIT
+        )} free logs per month and unlimited connections to integrations. You can email us at hello@logtree.co if you want to increase this limit. Also feel free to reach out if you have any questions or requests!</p>`,
+      });
+    } catch {}
   },
   createOrganization: async (
     name: string

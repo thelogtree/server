@@ -73,6 +73,7 @@ describe("CreateAccountAndOrganization", () => {
       organizationId: createdOrg!._id.toString(),
     });
     expect(createdUser).toBeTruthy();
+    expect(createdUser?.orgPermissionLevel).toBe(orgPermissionLevel.Admin);
   });
   it("fails to create an organization and account because the email is already used", async () => {
     await UserFactory.create({ email: "b" });
