@@ -41,6 +41,10 @@ export const LogService = {
         content.substring(0, MAX_NUM_CHARS_ALLOWED_IN_LOG) + "...";
     }
 
+    if (JSON.stringify(additionalContext).length > 1500) {
+      additionalContext = new Map();
+    }
+
     return Log.create({
       content: editedContent,
       organizationId,
