@@ -11,7 +11,6 @@ import { exceptionHandler } from "./utils/exceptionHandler";
 import { startMongo } from "./utils/mongoConfig";
 import { attachUserDocument } from "./utils/attachUserDocumentToRoute";
 import { rateLimiterP3 } from "./utils/rateLimiters";
-import { MyLogtree } from "./utils/logger";
 
 const SERVER_MSG = `This is the Logtree server.`;
 
@@ -21,7 +20,6 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(rateLimiterP3);
-// app.use(MyLogtree.recordRouteCall.bind(MyLogtree));
 app.use(attachUserDocument);
 app.get("/", (_, res) => res.send(SERVER_MSG));
 app.use("/api", routes);

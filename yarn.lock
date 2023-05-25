@@ -6190,19 +6190,19 @@ lodash@4.x, lodash@^4.17.14, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, 
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
-logtree-node@1.0.22:
-  version "1.0.22"
-  resolved "https://registry.yarnpkg.com/logtree-node/-/logtree-node-1.0.22.tgz#344cf3619f89086f9e8f40f3c4a4bf1c38016969"
-  integrity sha512-ZS//hAEC/KGgdNVSg3ZipDNgt+e+kfR+rxnx994B8SNtZ/+18npdFY3BtcstRNH7bkH11XSEBuaWolYnswxePQ==
+logtree-node@1.0.25:
+  version "1.0.25"
+  resolved "https://registry.yarnpkg.com/logtree-node/-/logtree-node-1.0.25.tgz#df528d5c91a6d453c9abd5be95e20206f970ab94"
+  integrity sha512-aBbA5vgHV7ak90vd5NcA7UPq7ZmLzXqlRLSg0rHwfRj/8po9DpEl+gXgS+2K/TEDv9kIOqqS7om9FJajmIEDhQ==
   dependencies:
     axios "^0.27.2"
     express "^4.18.2"
     ua-parser-js "^1.0.35"
 
-logtree-types@1.0.51:
-  version "1.0.51"
-  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.51.tgz#d0ebd1a99c9556de05670b6e576a6d5d0e9b42cc"
-  integrity sha512-sZp6nl6ulpdekn3qMCUIcwm+fuOtkMCm1A3pKJ6hQxUuBRlpFDc6aCr0pd/PPYSgGlw3ExUyyBI44eznC0o/Lg==
+logtree-types@1.0.53:
+  version "1.0.53"
+  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.53.tgz#0a2f1d0899a4047e8fda60b9237596c15f00b0d5"
+  integrity sha512-7vMteJhJsp1CqPO801lcjRHUIiTJfP0g0YhqrEOCqKDbNWBRmokkS2Qq65aqwJw21Bi3o22ofuVAnZYy40+lEA==
   dependencies:
     lodash "^4.17.20"
     mongodb "^5.1.0"
