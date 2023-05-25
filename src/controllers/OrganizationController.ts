@@ -30,6 +30,11 @@ export const OrganizationController = {
       password
     );
 
+    void MyLogtree.sendLog({
+      content: `Created organization with name "${organizationName}" and account with email "${email}"`,
+      folderPath: "/new-organizations",
+    });
+
     res.send({});
   },
   getMe: async (req: Request, res: Response) => {
