@@ -83,7 +83,13 @@ export const SlackController = {
         }
 
         const folder = await Folder.findOne({ fullPath: text }).lean().exec();
-        if (!folder) {
+        const installationExists = await PendingSlackInstallation.exists({
+          folderId: folder._id,
+          "options.channelId": channel_id,
+          "options.teamId": team_id,
+          isComplete: true,
+        });
+        if (!folder || !installationExists) {
           SlackLib.postToResponseUrl(response_url, {
             text: "No connected folder with this folderPath was found.",
             response_type: "ephemeral",
