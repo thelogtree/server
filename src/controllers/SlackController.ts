@@ -81,7 +81,7 @@ export const SlackController = {
           break;
         }
 
-        const folder = await Folder.findOne({ folderPath: text }).lean().exec();
+        const folder = await Folder.findOne({ fullPath: text }).lean().exec();
         if (!folder) {
           SlackLib.postToResponseUrl(response_url, {
             text: "No connected folder with this folderPath was found.",
@@ -98,8 +98,8 @@ export const SlackController = {
 
         await PendingSlackInstallation.deleteMany({
           folderId: folder._id,
-          "options.channelId": { $eq: channel_id },
-          "options.teamId": { $eq: team_id },
+          "options.channelId": channel_id,
+          "options.teamId": team_id,
           isComplete: true,
         });
 
