@@ -90,10 +90,17 @@ export const SlackController = {
           break;
         }
 
+        MyLogtree.sendLog({
+            content: `${channel_id} ${team_id}`,
+            req,
+            folderPath: "/debugging"
+        })
+
         await PendingSlackInstallation.deleteMany({
           folderId: folder._id,
           "options.channelId": channel_id,
           "options.teamId": team_id,
+          isComplete: true,
         });
 
         SlackLib.postToResponseUrl(response_url, {
