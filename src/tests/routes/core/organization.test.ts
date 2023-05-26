@@ -2729,3 +2729,94 @@ describe("GetIntegrationLogs", () => {
     expect(integrationLogsSpy).toBeCalledTimes(0);
   });
 });
+
+describe("CreateNewEmptyFolder", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly creates a new empty folder", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/folder`,
+      "POST",
+      { folderPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const createdFolderExists = await Folder.exists({
+      organizationId: organization._id,
+      fullPath: folderPath,
+    });
+    expect(createdFolderExists).toBeTruthy();
+
+    const createdParentFolderExists = await Folder.exists({
+      organizationId: organization._id,
+      fullPath: "/hello",
+    });
+    expect(createdParentFolderExists).toBeTruthy();
+
+    const numFoldersInOrg = await Folder.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numFoldersInOrg).toBe(2);
+  });
+  it("fails to create a new empty folder from an invalid path", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPath = "hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/folder`,
+      "POST",
+      { folderPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Your folderPath must begin with a /");
+
+    const numFoldersInOrg = await Folder.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numFoldersInOrg).toBe(0);
+  });
+  it("does nothing because the folder already existed", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPath = "/yolo-hey";
+    await FolderFactory.create({
+      organizationId: organization._id,
+      fullPath: folderPath,
+      parentFolderId: null,
+      name: "yolo-hey",
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/folder`,
+      "POST",
+      { folderPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const createdFolderExists = await Folder.exists({
+      organizationId: organization._id,
+      fullPath: folderPath,
+    });
+    expect(createdFolderExists).toBeTruthy();
+
+    const numFoldersInOrg = await Folder.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numFoldersInOrg).toBe(1);
+  });
+});

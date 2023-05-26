@@ -110,4 +110,7 @@ export const OrganizationSchemas = {
     integrationId: Joi.string().custom(objectId).required(),
     query: Joi.string().allow(""),
   }),
+  createNewEmptyFolder: Joi.object({
+    folderPath: Joi.string().required(),
+  }),
 };

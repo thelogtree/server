@@ -479,4 +479,16 @@ export const OrganizationController = {
 
     res.send({ url });
   },
+  createNewEmptyFolder: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { folderPath } = req.body;
+
+    FolderService.validateFolderPath(folderPath);
+    await FolderService.getOrGenerateLastFolderIdFromPath(
+      organization._id.toString(),
+      folderPath
+    );
+
+    res.send({});
+  },
 };

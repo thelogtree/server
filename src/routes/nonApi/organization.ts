@@ -164,6 +164,14 @@ router.post(
   OrganizationController.generateSecretKey
 );
 router.post(
+  "/:id/folder",
+  auth.requiredOrgAdmin,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createNewEmptyFolder,
+  }),
+  OrganizationController.createNewEmptyFolder
+);
+router.post(
   "/:id/invite-link",
   auth.requiredOrgAdmin,
   OrganizationController.generateInviteLink
