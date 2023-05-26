@@ -37,7 +37,7 @@ export const SlackController = {
           break;
         }
 
-        const weekOld = moment().subtract(7, "days").toDate();
+        const weekOld = moment().subtract(1, "day").toDate();
         const pendingInstallation = await PendingSlackInstallation.findOne({
           _id: text,
           createdAt: { $gte: weekOld },
