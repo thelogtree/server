@@ -44,7 +44,9 @@ export const SlackController = {
         })
           .lean()
           .exec();
-        if (!pendingInstallation) {
+        const folder = await Folder.findById(pendingInstallation.folderId);
+
+        if (!pendingInstallation || !folder) {
           SlackLib.postToResponseUrl(response_url, {
             text: "That installation code is invalid.",
             response_type: "ephemeral",
@@ -64,7 +66,7 @@ export const SlackController = {
         );
 
         SlackLib.postToResponseUrl(response_url, {
-          text: "You've successfully connected a Logtree channel to this Slack channel! We'll start forwarding future logs automatically.",
+          text: `You've successfully connected the Logtree channel ${folder.fullPath} to this Slack channel! We'll start forwarding future logs automatically.`,
           response_type: "ephemeral",
         });
         break;
@@ -80,6 +82,14 @@ export const SlackController = {
         }
 
         const folder = await Folder.findOne({ folderPath: text }).lean().exec();
+        if (!folder) {
+          SlackLib.postToResponseUrl(response_url, {
+            text: "No connected folder with this folderPath was found.",
+            response_type: "ephemeral",
+          });
+          break;
+        }
+
         await PendingSlackInstallation.deleteMany({
           folderId: folder._id,
           "options.channelId": channel_id,

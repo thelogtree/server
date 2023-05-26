@@ -61,6 +61,7 @@ export const SlackLib = {
             text: message,
             token: botAccessToken,
             channel: channelId,
+            unfurl_links: false,
           });
         } catch (e) {
           console.error(e);
