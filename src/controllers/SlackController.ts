@@ -41,6 +41,7 @@ export const SlackController = {
         const pendingInstallation = await PendingSlackInstallation.findOne({
           _id: text,
           createdAt: { $gte: weekOld },
+          isComplete: false,
         })
           .lean()
           .exec();
