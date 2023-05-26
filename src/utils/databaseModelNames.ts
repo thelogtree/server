@@ -10,4 +10,5 @@ export enum DatabaseModelNames {
   Rule = "Rule",
   Integration = "Integration",
   OAuthRequest = "OAuthRequest",
+  PendingSlackInstallation = "PendingSlackInstallation",
 }

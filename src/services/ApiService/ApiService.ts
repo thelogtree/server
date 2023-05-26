@@ -5,6 +5,7 @@ import { UsageService } from "./lib/UsageService";
 import { Folder } from "src/models/Folder";
 import { ApiError } from "src/utils/errors";
 import { Log } from "src/models/Log";
+import { SlackLib } from "src/utils/Slack";
 
 export const ApiService = {
   createLog: async (
@@ -34,6 +35,9 @@ export const ApiService = {
       { _id: folderIdForThisLog },
       { dateOfMostRecentLog: new Date() }
     );
+
+    void SlackLib.postToSlackIntegrationIfExists(log, organization, folderPath);
+
     if (shouldCharge) {
       await UsageService.recordNewLog(organization);
     }
