@@ -48,7 +48,7 @@ export const SlackLib = {
           const { options } = installation;
           const channelId = prop("channelId", options);
           const teamId = prop("teamId", options);
-          const message = `New log from ${folderPath}:\n\n${log.content}\n\nView channel: ${config.baseUrl}/org/${organization.slug}/logs${folderPath}`;
+          const message = `New log in ${config.baseUrl}/org/${organization.slug}/logs${folderPath}:\n\n${log.content}`;
 
           // get bot access token to post message
           const results =
