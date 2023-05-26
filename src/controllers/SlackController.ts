@@ -33,7 +33,7 @@ export const SlackController = {
     const value = parsedText[1];
 
     switch (command) {
-      case "subscribe": {
+      case "/subscribe": {
         if (!value) {
           SlackLib.postToResponseUrl(response_url, {
             text: "Please provide your one-time installation code.",
@@ -75,7 +75,7 @@ export const SlackController = {
         break;
       }
 
-      case "unsubscribe": {
+      case "/unsubscribe": {
         if (!value) {
           SlackLib.postToResponseUrl(response_url, {
             text: "Please provide the folderPath you would like to unsubscribe from.",
