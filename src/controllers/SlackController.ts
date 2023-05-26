@@ -91,7 +91,7 @@ export const SlackController = {
         }
 
         MyLogtree.sendLog({
-          content: `${channel_id} ${team_id}`,
+          content: `${folder._id.toString()}`,
           req,
           folderPath: "/debugging",
         });
