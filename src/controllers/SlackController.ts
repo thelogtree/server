@@ -25,16 +25,11 @@ export const SlackController = {
     });
   },
   handleSlashCommand: async (req: Request, res: Response) => {
-    const { text, channel_id, team_id, response_url } = req.body;
-
-    // parse slash command
-    const parsedText = text.split(" ");
-    const command = parsedText[0];
-    const value = parsedText[1];
+    const { command, text, channel_id, team_id, response_url } = req.body;
 
     switch (command) {
       case "/subscribe": {
-        if (!value) {
+        if (!text) {
           SlackLib.postToResponseUrl(response_url, {
             text: "Please provide your one-time installation code.",
             response_type: "ephemeral",
@@ -44,7 +39,7 @@ export const SlackController = {
 
         const weekOld = moment().subtract(7, "days").toDate();
         const pendingInstallation = await PendingSlackInstallation.findOne({
-          _id: value,
+          _id: text,
           createdAt: { $gte: weekOld },
         })
           .lean()
@@ -76,7 +71,7 @@ export const SlackController = {
       }
 
       case "/unsubscribe": {
-        if (!value) {
+        if (!text) {
           SlackLib.postToResponseUrl(response_url, {
             text: "Please provide the folderPath you would like to unsubscribe from.",
             response_type: "ephemeral",
@@ -84,9 +79,7 @@ export const SlackController = {
           break;
         }
 
-        const folder = await Folder.findOne({ folderPath: value })
-          .lean()
-          .exec();
+        const folder = await Folder.findOne({ folderPath: text }).lean().exec();
         await PendingSlackInstallation.deleteMany({
           folderId: folder._id,
           "options.channelId": channel_id,
