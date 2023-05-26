@@ -21,8 +21,7 @@ export const SlackController = {
         scopes: ["chat:write", "chat:write.public", "commands"],
         redirectUri: config.slack.redirectUri,
       },
-      true,
-      config.slack.stateSecret
+      false
     );
 
     const pendingInstallation = await PendingSlackInstallation.create({
