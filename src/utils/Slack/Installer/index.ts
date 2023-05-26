@@ -16,10 +16,11 @@ const _installationStore: InstallationStore = {
   ) => {
     if (installation.team.id) {
       await SlackInstallation.create(installation as any);
-    } else
+    } else {
       throw new ApiError(
         "Failed saving slack installation data because the team could not be identified."
       );
+    }
   },
   // @ts-ignore
   fetchInstallation: async (

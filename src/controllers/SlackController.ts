@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
-import { Folder } from "src/models/Folder";
-import { PendingSlackInstallation } from "src/models/PendingSlackInstallation";
-import { SlackLib, slackInstaller } from "src/utils/Slack";
-import { config } from "src/utils/config";
-import moment from "moment";
+import { Request, Response } from 'express';
+import moment from 'moment';
+import { Folder } from 'src/models/Folder';
+import { PendingSlackInstallation } from 'src/models/PendingSlackInstallation';
+import { config } from 'src/utils/config';
+import { slackInstaller, SlackLib } from 'src/utils/Slack';
 
 export const SlackController = {
   handleOauthRedirect: async (req: Request, res: Response) => {
