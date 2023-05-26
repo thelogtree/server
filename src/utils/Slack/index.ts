@@ -9,13 +9,6 @@ import { PendingSlackInstallation } from "src/models/PendingSlackInstallation";
 
 const _web = new WebClient();
 
-type IntegrationFxnArgs = {
-  organization: OrganizationDocument;
-  folderPath: string;
-  log: LogDocument;
-  options: Object | null;
-};
-
 export const SlackLib = {
   postToResponseUrl: async (
     responseUrl: string,

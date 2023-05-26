@@ -68,6 +68,16 @@ export const SlackController = {
           }
         );
 
+        MyLogtree.sendLog({
+          content: `Someone set up log forwarding from Logtree to Slack for folderPath ${folder.fullPath}`,
+          folderPath: "/slack-installation",
+          additionalContext: {
+            orgId: folder.organizationId,
+            folderPath: folder.fullPath,
+            folderCreatedWhen: folder.createdAt,
+          },
+        });
+
         SlackLib.postToResponseUrl(response_url, {
           text: `You've successfully connected the Logtree channel ${folder.fullPath} to this Slack channel! We'll start forwarding future logs automatically.`,
           response_type: "ephemeral",
@@ -85,12 +95,14 @@ export const SlackController = {
         }
 
         const folder = await Folder.findOne({ fullPath: text }).lean().exec();
-        const installationExists = await PendingSlackInstallation.exists({
+        const installationExists = await PendingSlackInstallation.findOne({
           folderId: folder._id,
           "options.channelId": channel_id,
           "options.teamId": team_id,
           isComplete: true,
-        });
+        })
+          .lean()
+          .exec();
         if (!folder || !installationExists) {
           SlackLib.postToResponseUrl(response_url, {
             text: "No connected folder with this folderPath was found.",
@@ -99,17 +111,22 @@ export const SlackController = {
           break;
         }
 
-        MyLogtree.sendLog({
-          content: `${folder._id.toString()}`,
-          req,
-          folderPath: "/debugging",
-        });
-
         await PendingSlackInstallation.deleteMany({
           folderId: folder._id,
           "options.channelId": channel_id,
           "options.teamId": team_id,
           isComplete: true,
+        });
+
+        MyLogtree.sendLog({
+          content: `Someone disconnected log forwarding from Logtree to Slack for folderPath ${folder.fullPath}`,
+          folderPath: "/slack-disconnect",
+          additionalContext: {
+            orgId: folder.organizationId,
+            folderPath: folder.fullPath,
+            folderCreatedWhen: folder.createdAt,
+            originallyInstalledWhen: installationExists.createdAt,
+          },
         });
 
         SlackLib.postToResponseUrl(response_url, {
