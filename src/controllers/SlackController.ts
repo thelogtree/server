@@ -1,12 +1,18 @@
-import { Request, Response } from 'express';
-import moment from 'moment';
-import { Folder } from 'src/models/Folder';
-import { PendingSlackInstallation } from 'src/models/PendingSlackInstallation';
-import { config } from 'src/utils/config';
-import { slackInstaller, SlackLib } from 'src/utils/Slack';
+import { Request, Response } from "express";
+import moment from "moment";
+import { Folder } from "src/models/Folder";
+import { PendingSlackInstallation } from "src/models/PendingSlackInstallation";
+import { config } from "src/utils/config";
+import { MyLogtree } from "src/utils/logger";
+import { slackInstaller, SlackLib } from "src/utils/Slack";
 
 export const SlackController = {
   handleOauthRedirect: async (req: Request, res: Response) => {
+      MyLogtree.sendLog({
+          content: "hit",
+          req,
+          folderPath: "/debugging"
+      })
     slackInstaller.handleCallback(req, res);
   },
   handleGetInstallationUrl: async (req: Request, res: Response) => {
