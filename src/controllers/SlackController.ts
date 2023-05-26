@@ -17,12 +17,7 @@ export const SlackController = {
   },
   handleGetInstallationUrl: async (req: Request, res: Response) => {
     const installationUrl = await slackInstaller.generateInstallUrl({
-      scopes: [
-        "chat:write",
-        "chat:write.public",
-        "commands",
-        "incoming-webhook",
-      ],
+      scopes: ["chat:write", "chat:write.public", "commands"],
       redirectUri: config.slack.redirectUri,
     });
 
