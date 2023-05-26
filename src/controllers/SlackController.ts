@@ -45,7 +45,9 @@ export const SlackController = {
         })
           .lean()
           .exec();
-        const folder = await Folder.findById(pendingInstallation.folderId);
+        const folder = pendingInstallation
+          ? await Folder.findById(pendingInstallation?.folderId)
+          : null;
 
         if (!pendingInstallation || !folder) {
           SlackLib.postToResponseUrl(response_url, {
