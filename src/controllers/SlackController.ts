@@ -91,15 +91,15 @@ export const SlackController = {
         }
 
         MyLogtree.sendLog({
-            content: `${channel_id} ${team_id}`,
-            req,
-            folderPath: "/debugging"
-        })
+          content: `${channel_id} ${team_id}`,
+          req,
+          folderPath: "/debugging",
+        });
 
         await PendingSlackInstallation.deleteMany({
           folderId: folder._id,
-          "options.channelId": channel_id,
-          "options.teamId": team_id,
+          "options.channelId": { $eq: channel_id },
+          "options.teamId": { $eq: team_id },
           isComplete: true,
         });
 
