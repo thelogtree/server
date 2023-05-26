@@ -2291,7 +2291,7 @@
   dependencies:
     "@types/node" ">=12.0.0"
 
-"@slack/oauth@^2.0.1":
+"@slack/oauth@^2.6.1":
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/@slack/oauth/-/oauth-2.6.1.tgz#96327397455d5cf8797c891c9f10a4c5050638ce"
   integrity sha512-Qm8LI+W9gtC5YQz/3yq7b6Qza7SSIJ9jVIgbkrY3AGwT4E0P6mUFV5gKHadvDEfTGG3ZiWuKMyC06ZpexZsQgg==
