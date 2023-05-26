@@ -37,6 +37,7 @@ export const slackInstaller = new InstallProvider({
   clientSecret: config.slack.clientSecret,
   stateSecret: config.slack.stateSecret,
   installationStore: _installationStore,
+  legacyStateVerification: true,
 });
 
 // only exported for testing purposes

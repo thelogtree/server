@@ -8,21 +8,13 @@ import { slackInstaller, SlackLib } from "src/utils/Slack";
 
 export const SlackController = {
   handleOauthRedirect: async (req: Request, res: Response) => {
-    MyLogtree.sendLog({
-      content: "hit " + config.slack.stateSecret,
-      req,
-      folderPath: "/debugging",
-    });
     slackInstaller.handleCallback(req, res);
   },
   handleGetInstallationUrl: async (req: Request, res: Response) => {
-    const installationUrl = await slackInstaller.generateInstallUrl(
-      {
-        scopes: ["chat:write", "chat:write.public", "commands"],
-        redirectUri: config.slack.redirectUri,
-      },
-      false
-    );
+    const installationUrl = await slackInstaller.generateInstallUrl({
+      scopes: ["chat:write", "chat:write.public", "commands"],
+      redirectUri: config.slack.redirectUri,
+    });
 
     const pendingInstallation = await PendingSlackInstallation.create({
       folderId: req.query.folderId?.toString() as string,
