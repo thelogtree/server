@@ -44,6 +44,7 @@ import { integrationsAvailableToConnectTo } from "src/services/integrations/lib"
 import { OAuthRequestFactory } from "src/tests/factories/OAuthRequestFactory";
 import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
+import { LangchainUtil } from "src/utils/langchain";
 
 const routeUrl = "/organization";
 
@@ -2818,5 +2819,41 @@ describe("CreateNewEmptyFolder", () => {
       organizationId: organization._id,
     });
     expect(numFoldersInOrg).toBe(1);
+  });
+});
+
+describe("AskQuestion", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly asks a question to a folder (mostly mocked)", async () => {
+    const fakeAnswer = "some answer blahhhh";
+    const langchainSpy = jest
+      .spyOn(LangchainUtil, "askQuestionToFolder")
+      .mockImplementation(() => Promise.resolve(fakeAnswer));
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const question = "what is the color of the sun?";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/ask-question`,
+      "POST",
+      { folderId: folder._id, question },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    expect(langchainSpy).toBeCalledTimes(1);
+    expect(langchainSpy.mock.calls[0][0]).toBe(question);
+    expect(langchainSpy.mock.calls[0][1].toString()).toBe(folder.id);
+    expect(langchainSpy.mock.calls[0][2].toString()).toBe(organization.id);
+
+    const { response } = res.body;
+    expect(response).toBe(fakeAnswer);
   });
 });

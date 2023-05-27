@@ -151,6 +151,15 @@ router.post(
   OrganizationController.createNewUser
 );
 router.post(
+  "/:id/ask-question",
+  rateLimiterP1,
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.askQuestion,
+  }),
+  OrganizationController.askQuestion
+);
+router.post(
   "/:id/delete-folder",
   auth.requiredOrgAdmin,
   validateRequestAgainstSchemas({

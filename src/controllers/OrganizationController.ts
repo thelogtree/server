@@ -19,6 +19,7 @@ import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import _ from "lodash";
+import { LangchainUtil } from "src/utils/langchain";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -490,5 +491,17 @@ export const OrganizationController = {
     );
 
     res.send({});
+  },
+  askQuestion: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { folderId, question } = req.body;
+
+    const response = await LangchainUtil.askQuestionToFolder(
+      question,
+      folderId,
+      organization._id.toString()
+    );
+
+    res.send({ response });
   },
 };

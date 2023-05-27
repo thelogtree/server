@@ -5,5 +5,11 @@
   "setupFilesAfterEnv": [
     "<rootDir>/src/tests/setupFile.ts",
     "<rootDir>/src/tests/jestMocks.ts"
-  ]
+  ],
+  "globals": {
+    "ts-jest": {
+      "tsconfig": "<rootDir>/tsconfig.json",
+      "isolatedModules": true
+    }
+  }
 }
