@@ -42,7 +42,7 @@ export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
 
 // functions for getting logs for an integration
 export const IntegrationGetLogsMap: {
-  [key in integrationTypeEnum]: GetIntegrationLogsFxnType | undefined;
+  [key in integrationTypeEnum]: GetIntegrationLogsFxnType;
 } = {
   sentry: SentryService.getLogs,
   mixpanel: MixpanelService.getLogs,
