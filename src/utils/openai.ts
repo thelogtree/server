@@ -20,7 +20,7 @@ export const OpenAI = {
         },
       ],
       temperature: 0.6,
-      max_tokens: 400,
+      max_tokens: 300,
     });
 
     return completion.data.choices[0].message?.content;
