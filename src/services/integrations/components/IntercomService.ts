@@ -22,10 +22,23 @@ import { IntegrationServiceType } from "../types";
 import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
 import _ from "lodash";
 import moment from "moment";
+import { MyLogtree } from "src/utils/logger";
 
 const BASE_URL = "https://api.intercom.io";
 
-export const IntercomService: IntegrationServiceType = {
+type ExtraIntercomServiceTypes = {
+  sendNote: (
+    integration: IntegrationDocument,
+    conversationId: string,
+    adminId: string,
+    body: string,
+    linkToLogtreeJourney: string
+  ) => Promise<any>;
+  getAdminIds: (integration: IntegrationDocument) => Promise<any>;
+};
+
+export const IntercomService: IntegrationServiceType &
+  ExtraIntercomServiceTypes = {
   getHeaders: (integration: IntegrationDocument) => {
     const decryptedValue =
       SecureIntegrationService.getDecryptedKeysForIntegration(integration);
@@ -200,5 +213,40 @@ export const IntercomService: IntegrationServiceType = {
       Buffer.from(requestHmac),
       Buffer.from(dataHmac)
     );
+  },
+  sendNote: async (
+    integration: IntegrationDocument,
+    conversationId: string,
+    adminId: string,
+    body: string,
+    linkToLogtreeJourney: string
+  ) => {
+    const headers = IntercomService.getHeaders(integration);
+    await axios.post(
+      BASE_URL + `/conversations/${conversationId}/reply`,
+      {
+        message_type: "note", // do not change this!!!
+        type: "admin",
+        admin_id: adminId,
+        body: `(Logtree Bot)\n${body}\n\nView details: ${linkToLogtreeJourney}`,
+      },
+      { headers }
+    );
+    void MyLogtree.sendLog({
+      content: `Successfully sent Intercom note for: "${body.slice(0, 80)}..."`,
+      folderPath: "/support-bot-responses",
+      additionalContext: {
+        integrationId: integration._id,
+        organizationId: integration.organizationId,
+        adminId,
+        linkToLogtreeJourney,
+      },
+    });
+  },
+  getAdminIds: async (integration: IntegrationDocument) => {
+    const headers = IntercomService.getHeaders(integration);
+    const res = await axios.get(BASE_URL + "/admins", { headers });
+    const { admins } = res.data;
+    return admins.map((admin) => admin.id);
   },
 };

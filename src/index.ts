@@ -11,6 +11,7 @@ import { exceptionHandler } from "./utils/exceptionHandler";
 import { startMongo } from "./utils/mongoConfig";
 import { attachUserDocument } from "./utils/attachUserDocumentToRoute";
 import { rateLimiterP3 } from "./utils/rateLimiters";
+import { CustomerSupportAssistantBotService } from "./services/CustomerSupportAssistantBotService";
 
 const SERVER_MSG = `This is the Logtree server.`;
 

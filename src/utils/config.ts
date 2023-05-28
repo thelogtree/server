@@ -52,4 +52,7 @@ export const config = {
     appClientId: process.env.INTERCOM_APP_CLIENT_ID,
     appClientSecret: process.env.INTERCOM_APP_CLIENT_SECRET,
   },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || ""
+  }
 };
