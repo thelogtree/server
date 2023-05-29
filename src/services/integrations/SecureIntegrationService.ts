@@ -1,20 +1,20 @@
 import CryptoJS from "crypto-js";
+import _ from "lodash";
 import {
   IntegrationDocument,
-  Key,
-  OrganizationDocument,
   integrationTypeEnum,
+  Key,
   keyTypeEnum,
+  OrganizationDocument,
 } from "logtree-types";
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
+import { OAuthRequest } from "src/models/OAuthRequest";
 import { config } from "src/utils/config";
 import { ApiError, AuthError } from "src/utils/errors";
-import {
-  ExchangeOAuthTokenAndConnectFxnType,
-  FinishSetupFxnType,
-  GetIntegrationLogsFxnType,
-} from "./types";
+import { getErrorMessage } from "src/utils/helpers";
+
+import { SimplifiedLog } from "../ApiService/lib/LogService";
 import {
   IntegrationExchangeOAuthTokenAndConnectMap,
   IntegrationFinishSetupFunctionsToRunMap,
@@ -22,11 +22,10 @@ import {
   IntegrationGetOAuthLinkMap,
   IntegrationRemoveOAuthMap,
   integrationsAvailableToConnectTo,
-} from "./lib";
-import _ from "lodash";
-import { SimplifiedLog } from "../ApiService/lib/LogService";
-import { getErrorMessage } from "src/utils/helpers";
-import { OAuthRequest } from "src/models/OAuthRequest";
+  ExchangeOAuthTokenAndConnectFxnType,
+  FinishSetupFxnType,
+  GetIntegrationLogsFxnType,
+} from "./index";
 
 export type PlaintextKey = {
   type: keyTypeEnum;
@@ -138,9 +137,7 @@ export const SecureIntegrationService = {
   ): Promise<SimplifiedLog[]> => {
     const integrations = await Integration.find({
       organizationId: organization._id,
-    })
-      .lean()
-      .exec();
+    }).exec();
 
     const logResults = await Promise.all(
       integrations.map(async (integration) => {

@@ -1,8 +1,11 @@
 import { integrationTypeEnum } from "logtree-types";
 import { Integration } from "src/models/Integration";
 import { Organization } from "src/models/Organization";
-import { IntercomService } from "./integrations/components/IntercomService";
-import { LogService, SimplifiedLog } from "./ApiService/lib/LogService";
+import { IntercomService } from "src/services/integrations/index";
+import {
+  LogService,
+  SimplifiedLog,
+} from "src/services/ApiService/lib/LogService";
 import moment from "moment";
 import { OpenAI } from "src/utils/openai";
 import { MyLogtree } from "src/utils/logger";
@@ -21,9 +24,7 @@ export const CustomerSupportAssistantBotService = {
     const supportIntegrations = await Integration.find({
       type: integrationTypeEnum.Intercom,
       organizationId: { $in: organizations.map((org) => org._id) },
-    })
-      .lean()
-      .exec();
+    }).exec();
 
     for (const integration of supportIntegrations) {
       const organization = organizations.find(

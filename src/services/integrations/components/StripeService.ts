@@ -1,26 +1,18 @@
+import axios from "axios";
+import _ from "lodash";
 import {
   IntegrationDocument,
-  OrganizationDocument,
-  integrationTypeEnum,
   keyTypeEnum,
+  OrganizationDocument,
   simplifiedLogTagEnum,
 } from "logtree-types";
-import { Integration } from "src/models/Integration";
-import { ApiError } from "src/utils/errors";
-import { SecureIntegrationService } from "../SecureIntegrationService";
-import axios from "axios";
-import {
-  MAX_NUM_CHARS_ALLOWED_IN_LOG,
-  SimplifiedLog,
-} from "src/services/ApiService/lib/LogService";
-import _ from "lodash";
-import { IntegrationServiceType } from "../types";
-import {
-  awaitTimeout,
-  getFloorLogRetentionDateForOrganization,
-  partitionArray,
-} from "src/utils/helpers";
 import moment from "moment";
+import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
+import { ApiError } from "src/utils/errors";
+import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
+
+import { SecureIntegrationService } from "../SecureIntegrationService";
+import { IntegrationServiceType } from "../types";
 
 const BASE_URL = "https://api.stripe.com/v1";
 

@@ -28,7 +28,7 @@ import firebase from "../../firebaseConfig";
 import { ApiService } from "./ApiService/ApiService";
 import { FolderService } from "./ApiService/lib/FolderService";
 import { UsageService } from "./ApiService/lib/UsageService";
-import { SecureIntegrationService } from "./integrations/SecureIntegrationService";
+import { SecureIntegrationService } from "src/services/integrations/index";
 import { SendgridUtil } from "src/utils/sendgrid";
 
 export const TRIAL_LOG_LIMIT = 20000;

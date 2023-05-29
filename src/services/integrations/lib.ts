@@ -1,17 +1,18 @@
 import { integrationTypeEnum } from "logtree-types";
-import { SentryService } from "src/services/integrations/components/SentryService";
+
 import {
   ExchangeOAuthTokenAndConnectFxnType,
   FinishSetupFxnType,
   GetIntegrationLogsFxnType,
   GetOAuthLinkFxnType,
   RemoveOAuthConnectionType,
-} from "./types";
-import { MixpanelService } from "src/services/integrations/components/MixpanelService";
-import { IntercomService } from "src/services/integrations/components/IntercomService";
-import { SendgridService } from "src/services/integrations/components/SendgridService";
-import { CustomerioService } from "src/services/integrations/components/CustomerioService";
-import { StripeService } from "src/services/integrations/components/StripeService";
+  StripeService,
+  SentryService,
+  SendgridService,
+  MixpanelService,
+  IntercomService,
+  CustomerioService,
+} from "./index";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.

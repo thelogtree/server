@@ -7,7 +7,7 @@ import {
   simplifiedLogTagEnum,
 } from "logtree-types";
 import { ApiError, AuthError } from "src/utils/errors";
-import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
+import { SecureIntegrationService } from "src/services/integrations/index";
 import moment from "moment";
 import { Integration } from "src/models/Integration";
 import { queryBool } from "src/utils/helpers";
@@ -261,9 +261,7 @@ export const LogService = {
     const integration = await Integration.findOne({
       organizationId: organization._id,
       _id: integrationId,
-    })
-      .lean()
-      .exec();
+    }).exec();
     if (!integration) {
       throw new ApiError("Could not find an integration with this ID.");
     }

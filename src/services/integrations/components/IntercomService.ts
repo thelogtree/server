@@ -8,21 +8,19 @@ import {
   OrganizationDocument,
   simplifiedLogTagEnum,
 } from "logtree-types";
+import moment from "moment";
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import {
   MAX_NUM_CHARS_ALLOWED_IN_LOG,
   SimplifiedLog,
 } from "src/services/ApiService/lib/LogService";
+import { IntegrationServiceType } from "src/services/integrations/types";
 import { config } from "src/utils/config";
 import { ApiError } from "src/utils/errors";
-
-import { SecureIntegrationService } from "../SecureIntegrationService";
-import { IntegrationServiceType } from "../types";
 import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
-import _ from "lodash";
-import moment from "moment";
 import { MyLogtree } from "src/utils/logger";
+import { SecureIntegrationService } from "src/services/integrations/index";
 
 const BASE_URL = "https://api.intercom.io";
 
