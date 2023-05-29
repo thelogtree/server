@@ -33,6 +33,9 @@ type ExtraIntercomServiceTypes = {
     linkToLogtreeJourney: string
   ) => Promise<any>;
   getAdminIds: (integration: IntegrationDocument) => Promise<any>;
+  getLogsForSupportBot: (
+    integration: IntegrationDocument
+  ) => Promise<SimplifiedLog[]>;
 };
 
 export const IntercomService: IntegrationServiceType &
@@ -246,5 +249,82 @@ export const IntercomService: IntegrationServiceType &
     const res = await axios.get(BASE_URL + "/admins", { headers });
     const { admins } = res.data;
     return admins.map((admin) => admin.id);
+  },
+  getLogsForSupportBot: async (
+    integration: IntegrationDocument
+  ): Promise<SimplifiedLog[]> => {
+    const floorDate = moment().subtract(5, "minutes"); // keep this the cron interval so you don't respond to a message multiple times
+    const headers = IntercomService.getHeaders(integration);
+
+    let conversationsResult: any[] = [];
+    const res = await axios.get(BASE_URL + "/conversations", { headers });
+    const { conversations } = res.data;
+    conversationsResult = conversations;
+
+    let allConversationParts: any[] = [];
+    await Promise.all(
+      conversationsResult.map(async (conversation) => {
+        const res = await axios.get(
+          BASE_URL + "/conversations/" + conversation.id,
+          {
+            params: {
+              display_as: "plaintext",
+            },
+            headers,
+          }
+        );
+        const { conversation_parts } = res.data.conversation_parts;
+        conversation_parts.forEach((part) => {
+          if (
+            ["comment", "open"].includes(part.part_type) &&
+            moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate)
+          ) {
+            allConversationParts.push({
+              ...part,
+              conversationId: conversation.id,
+            });
+          }
+        });
+      })
+    );
+
+    const allMessagesUnsorted = allConversationParts
+      .map((conversationPart: any) => ({
+        _id: `intercom_${conversationPart.conversationId}_${conversationPart.id}`,
+        content: `From ${
+          conversationPart.author.name || "user"
+        }:\n\n${conversationPart.body?.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
+        createdAt: new Date(conversationPart.created_at * 1000),
+        externalLink: `https://app.intercom.com/a/inbox/${
+          (integration.additionalProperties as any).appId as string
+        }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
+        tag: simplifiedLogTagEnum.Support,
+        sourceTitle: "Intercom",
+        referenceId: conversationPart.author?.email,
+      }))
+      .concat(
+        conversationsResult.map((conversation) => ({
+          _id: `intercom_${conversation.id}_init`,
+          content: `From ${
+            conversation.source.author.name || "user"
+          }:\n\n${conversation.source.body?.slice(
+            0,
+            MAX_NUM_CHARS_ALLOWED_IN_LOG
+          )}`,
+          createdAt: new Date(conversation.created_at * 1000),
+          externalLink: `https://app.intercom.com/a/inbox/${
+            (integration.additionalProperties as any).appId as string
+          }/inbox/shared/all/conversation/${conversation.id}`,
+          tag: simplifiedLogTagEnum.Support,
+          sourceTitle: "Intercom",
+          referenceId: conversation.source.author?.email,
+        }))
+      );
+
+    const allMessagesSorted = allMessagesUnsorted.sort((a, b) =>
+      moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
+    );
+
+    return allMessagesSorted;
   },
 };

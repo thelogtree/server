@@ -40,15 +40,8 @@ export const CustomerSupportAssistantBotService = {
         continue;
       }
 
-      const recentSupportLogs = await IntercomService.getLogs(
-        organization,
-        integration
-      );
-
-      const fiveMinsAgo = moment().subtract(5, "minutes");
-      const supportLogsFromLastCoupleMins = recentSupportLogs.filter((log) =>
-        fiveMinsAgo.isBefore(moment(log.createdAt))
-      );
+      const supportLogsFromLastCoupleMins =
+        await IntercomService.getLogsForSupportBot(integration);
 
       for (const recentSupportLog of supportLogsFromLastCoupleMins) {
         const specificUserEmail = recentSupportLog.referenceId;
