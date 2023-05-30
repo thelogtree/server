@@ -10,6 +10,7 @@ import moment from "moment";
 import { OpenAIUtil } from "src/utils/openai";
 import { MyLogtree } from "src/utils/logger";
 import { config } from "src/utils/config";
+import { getErrorMessage } from "src/utils/helpers";
 
 // just for beta
 const orgSlugsParticipating = ["fizz"];
@@ -25,100 +26,127 @@ export const CustomerSupportAssistantBotService = {
     }).exec();
 
     for (const integration of supportIntegrations) {
-      const organization = organizations.find(
-        (org) => org._id.toString() === integration.organizationId.toString()
-      );
-      if (!organization) {
-        continue;
-      }
-
-      const adminIdsForOrg = await IntercomService.getAdminIds(integration);
-      if (!adminIdsForOrg.length) {
-        // can't send a note because there are no intercom admins, no point in continuing
-        continue;
-      }
-
-      const supportLogsFromLastCoupleMins =
-        await IntercomService.getLogsForSupportBot(integration);
-
-      for (const recentSupportLog of supportLogsFromLastCoupleMins) {
-        const specificUserEmail = recentSupportLog.referenceId;
-        if (!specificUserEmail) {
-          continue;
-        }
-
-        const moreRecentSupportLogForThisUserExists =
-          !!supportLogsFromLastCoupleMins.find(
-            (log) =>
-              log.referenceId === specificUserEmail &&
-              moment(log.createdAt).isAfter(moment(recentSupportLog.createdAt))
-          );
-        if (moreRecentSupportLogForThisUserExists) {
-          // ignore this log because we don't want to clutter intercom with notes
-          continue;
-        }
-
-        const allLogsForSpecificUser = await LogService.getSupportLogs(
-          organization,
-          specificUserEmail
+      try {
+        const organization = organizations.find(
+          (org) => org._id.toString() === integration.organizationId.toString()
         );
-
-        if (!allLogsForSpecificUser.length) {
+        if (!organization) {
           continue;
         }
 
-        const contextLogs =
-          CustomerSupportAssistantBotService.getContextLogsToEvaluate(
-            allLogsForSpecificUser,
-            recentSupportLog
-          );
-        if (!contextLogs.length) {
+        const adminIdsForOrg = await IntercomService.getAdminIds(integration);
+        if (!adminIdsForOrg.length) {
+          // can't send a note because there are no intercom admins, no point in continuing
           continue;
         }
 
-        const isWorthRespondingTo =
-          await OpenAIUtil.getIsSupportMessageWorthRespondingTo(
-            recentSupportLog.content
-          );
+        const supportLogsFromLastCoupleMins =
+          await IntercomService.getLogsForSupportBot(integration);
 
-        if (!isWorthRespondingTo) {
-          continue;
+        for (const recentSupportLog of supportLogsFromLastCoupleMins) {
+          try {
+            const specificUserEmail = recentSupportLog.referenceId;
+            if (!specificUserEmail) {
+              continue;
+            }
+
+            const moreRecentSupportLogForThisUserExists =
+              !!supportLogsFromLastCoupleMins.find(
+                (log) =>
+                  log.referenceId === specificUserEmail &&
+                  moment(log.createdAt).isAfter(
+                    moment(recentSupportLog.createdAt)
+                  )
+              );
+            if (moreRecentSupportLogForThisUserExists) {
+              // ignore this log because we don't want to clutter intercom with notes
+              continue;
+            }
+
+            const allLogsForSpecificUser = await LogService.getSupportLogs(
+              organization,
+              specificUserEmail
+            );
+
+            if (!allLogsForSpecificUser.length) {
+              continue;
+            }
+
+            const contextLogs =
+              CustomerSupportAssistantBotService.getContextLogsToEvaluate(
+                allLogsForSpecificUser,
+                recentSupportLog
+              );
+            if (!contextLogs.length) {
+              continue;
+            }
+
+            const isWorthRespondingTo =
+              await OpenAIUtil.getIsSupportMessageWorthRespondingTo(
+                recentSupportLog.content
+              );
+
+            if (!isWorthRespondingTo) {
+              continue;
+            }
+
+            const logContextAsString =
+              CustomerSupportAssistantBotService.transformLogContextIntoString(
+                contextLogs
+              );
+
+            const instructions =
+              CustomerSupportAssistantBotService.getSupportLogStrAndInstructions(
+                recentSupportLog
+              );
+
+            const completionBotResponse =
+              await OpenAIUtil.getCompletionForCustomerSupportBot(
+                logContextAsString,
+                instructions
+              );
+
+            void MyLogtree.sendLog({
+              content: `(${organization.name})\n\nSupport message: ${recentSupportLog.content}\n\nBot response: '${completionBotResponse}'`,
+              folderPath: "/support-bot-responses",
+              externalLink: `${config.baseUrl}/org/${organization.slug}/journey?query=${specificUserEmail}`,
+            });
+
+            const conversationId = recentSupportLog._id
+              .toString()
+              .split("_")[1];
+            const adminId = adminIdsForOrg[0];
+            const logtreeJourneyLink =
+              config.baseUrl +
+              `/org/${organization.slug}/journey?query=${specificUserEmail}`;
+
+            await IntercomService.sendNote(
+              integration,
+              conversationId,
+              adminId,
+              completionBotResponse || "",
+              logtreeJourneyLink
+            );
+          } catch (e: any) {
+            MyLogtree.sendLog({
+              content: getErrorMessage(e),
+              folderPath: "/errors",
+              additionalContext: {
+                integrationId: integration._id.toString(),
+                wasInside: true,
+              },
+            });
+          }
         }
-
-        const logContextAsString =
-          CustomerSupportAssistantBotService.transformLogContextIntoString(
-            contextLogs
-          );
-
-        const instructions =
-          CustomerSupportAssistantBotService.getSupportLogStrAndInstructions(
-            recentSupportLog
-          );
-
-        const completionBotResponse =
-          await OpenAIUtil.getCompletionForCustomerSupportBot(
-            logContextAsString,
-            instructions
-          );
-
-        void MyLogtree.sendLog({
-          content: `(${organization.name})\n\nSupport message: ${recentSupportLog.content}\n\nBot response: '${completionBotResponse}'`,
-          folderPath: "/support-bot-responses",
-          externalLink: `${config.baseUrl}/org/${organization.slug}/journey?query=${specificUserEmail}`,
+      } catch (e: any) {
+        MyLogtree.sendLog({
+          content: getErrorMessage(e),
+          folderPath: "/errors",
+          additionalContext: {
+            integrationId: integration._id.toString(),
+            wasInside: false,
+          },
         });
-
-        const conversationId = recentSupportLog._id.toString().split("_")[1];
-        const adminId = adminIdsForOrg[0];
-        const logtreeJourneyLink =
-          config.baseUrl +
-          `/org/${organization.slug}/journey?query=${specificUserEmail}`;
-        // await IntercomService.sendNote(
-        //   integration,
-        //   conversationId,
-        //   adminId,
-        //   completionBotResponse || "",
-        //   logtreeJourneyLink
-        // );
       }
     }
   },
