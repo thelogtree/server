@@ -37,7 +37,7 @@ const setupServer = async () => {
     });
   }
 
-  await CustomerSupportAssistantBotService.runCron()
+  // await CustomerSupportAssistantBotService.runCron()
 
   app.listen(config.environment.port, () => {
     console.log(`💪 Server is running on port: ${config.environment.port}`);
