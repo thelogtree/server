@@ -37,7 +37,7 @@ export const OpenAIUtil = {
     const isWorthRespondingTo = textResult.includes("true");
 
     void MyLogtree.sendLog({
-      content: `Message: ${message}\nWill respond to it: ${isWorthRespondingTo}`,
+      content: `Message: ${message}\n\nWill respond to it: ${isWorthRespondingTo}`,
       folderPath: "/support-bot-responses",
       additionalContext: {
         gptResponse: textResult,
