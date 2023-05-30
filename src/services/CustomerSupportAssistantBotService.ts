@@ -7,7 +7,7 @@ import {
   SimplifiedLog,
 } from "src/services/ApiService/lib/LogService";
 import moment from "moment";
-import { OpenAI } from "src/utils/openai";
+import { OpenAIUtil } from "src/utils/openai";
 import { MyLogtree } from "src/utils/logger";
 import { config } from "src/utils/config";
 
@@ -76,6 +76,15 @@ export const CustomerSupportAssistantBotService = {
           continue;
         }
 
+        const isWorthRespondingTo =
+          await OpenAIUtil.getIsSupportMessageWorthRespondingTo(
+            recentSupportLog.content
+          );
+
+        if (!isWorthRespondingTo) {
+          continue;
+        }
+
         const logContextAsString =
           CustomerSupportAssistantBotService.transformLogContextIntoString(
             contextLogs
@@ -87,7 +96,7 @@ export const CustomerSupportAssistantBotService = {
           );
 
         const completionBotResponse =
-          await OpenAI.getCompletionForCustomerSupportBot(
+          await OpenAIUtil.getCompletionForCustomerSupportBot(
             logContextAsString,
             instructions
           );
@@ -103,13 +112,13 @@ export const CustomerSupportAssistantBotService = {
         const logtreeJourneyLink =
           config.baseUrl +
           `/org/${organization.slug}/journey?query=${specificUserEmail}`;
-        await IntercomService.sendNote(
-          integration,
-          conversationId,
-          adminId,
-          completionBotResponse || "",
-          logtreeJourneyLink
-        );
+        // await IntercomService.sendNote(
+        //   integration,
+        //   conversationId,
+        //   adminId,
+        //   completionBotResponse || "",
+        //   logtreeJourneyLink
+        // );
       }
     }
   },

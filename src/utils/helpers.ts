@@ -57,3 +57,11 @@ export const numberToNumberWithCommas = (val: number): string =>
   Math.trunc(val)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+export const accessValueInMap = (object: any, key: string) => {
+  try {
+    return object[key] || object.get(key);
+  } catch {
+    return undefined;
+  }
+};

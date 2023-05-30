@@ -9,7 +9,10 @@ import {
   SimplifiedLog,
 } from "src/services/ApiService/lib/LogService";
 import { ApiError } from "src/utils/errors";
-import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
+import {
+  accessValueInMap,
+  getFloorLogRetentionDateForOrganization,
+} from "src/utils/helpers";
 
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
@@ -50,7 +53,11 @@ export const MixpanelService: IntegrationServiceType = {
     const floorDate = getFloorLogRetentionDateForOrganization(organization);
     const auth = MixpanelService.getHeaders(integration);
 
-    const projectId = integration.additionalProperties["projectId"];
+    const projectId = accessValueInMap(
+      integration.additionalProperties,
+      "projectId"
+    );
+
     const usersRes = await axios.post(
       BASE_URL + "/engage",
       {

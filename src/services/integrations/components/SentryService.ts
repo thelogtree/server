@@ -16,6 +16,7 @@ import {
 import _ from "lodash";
 import { IntegrationServiceType } from "../types";
 import {
+  accessValueInMap,
   awaitTimeout,
   getFloorLogRetentionDateForOrganization,
   partitionArray,
@@ -48,7 +49,7 @@ export const SentryService: IntegrationServiceType = {
     const headers = SentryService.getHeaders(integration);
 
     const projectBatches = partitionArray(
-      integration.additionalProperties["projectSlugs"],
+      accessValueInMap(integration.additionalProperties, "projectSlugs"),
       3
     );
 
