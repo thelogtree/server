@@ -63,10 +63,24 @@ export const CustomerSupportAssistantBotService = {
               continue;
             }
 
+            const isWorthRespondingTo =
+              await OpenAIUtil.getIsSupportMessageWorthRespondingTo(
+                recentSupportLog.content
+              );
+
+            if (!isWorthRespondingTo) {
+              continue;
+            }
+
             const allLogsForSpecificUser = await LogService.getSupportLogs(
               organization,
               specificUserEmail
             );
+
+            void MyLogtree.sendLog({
+              content: `${allLogsForSpecificUser.length} logs found for ${specificUserEmail}`,
+              folderPath: "/support-bot-responses",
+            });
 
             if (!allLogsForSpecificUser.length) {
               continue;
@@ -77,16 +91,13 @@ export const CustomerSupportAssistantBotService = {
                 allLogsForSpecificUser,
                 recentSupportLog
               );
+
+            void MyLogtree.sendLog({
+              content: `${contextLogs.length} logs will be used as context for the support bot's response for ${specificUserEmail}`,
+              folderPath: "/support-bot-responses",
+            });
+
             if (!contextLogs.length) {
-              continue;
-            }
-
-            const isWorthRespondingTo =
-              await OpenAIUtil.getIsSupportMessageWorthRespondingTo(
-                recentSupportLog.content
-              );
-
-            if (!isWorthRespondingTo) {
               continue;
             }
 
