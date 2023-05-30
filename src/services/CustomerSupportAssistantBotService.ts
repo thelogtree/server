@@ -18,9 +18,7 @@ export const CustomerSupportAssistantBotService = {
   runCron: async () => {
     const organizations = await Organization.find({
       slug: { $in: orgSlugsParticipating },
-    })
-      .lean()
-      .exec();
+    }).exec();
     const supportIntegrations = await Integration.find({
       type: integrationTypeEnum.Intercom,
       organizationId: { $in: organizations.map((org) => org._id) },

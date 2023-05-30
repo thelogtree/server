@@ -253,7 +253,7 @@ export const IntercomService: IntegrationServiceType &
   getLogsForSupportBot: async (
     integration: IntegrationDocument
   ): Promise<SimplifiedLog[]> => {
-    const floorDate = moment().subtract(5, "minutes"); // keep this the cron interval so you don't respond to a message multiple times
+    const floorDate = moment().subtract(25, "minutes"); // keep this the cron interval so you don't respond to a message multiple times
     const headers = IntercomService.getHeaders(integration);
 
     let conversationsResult: any[] = [];
@@ -325,6 +325,8 @@ export const IntercomService: IntegrationServiceType &
       moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
     );
 
-    return allMessagesSorted;
+    return allMessagesSorted.filter((message) =>
+      moment(message.createdAt).isAfter(floorDate)
+    );
   },
 };
