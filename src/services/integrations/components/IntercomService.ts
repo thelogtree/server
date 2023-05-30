@@ -277,7 +277,8 @@ export const IntercomService: IntegrationServiceType &
         conversation_parts.forEach((part) => {
           if (
             ["comment", "open"].includes(part.part_type) &&
-            moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate)
+            moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate) &&
+            part.author.type !== "admin"
           ) {
             allConversationParts.push({
               ...part,
