@@ -241,6 +241,7 @@ export const IntercomService: IntegrationServiceType &
         organizationId: integration.organizationId,
         adminId,
         linkToLogtreeJourney,
+        fullIntercomNote: body,
       },
     });
   },
@@ -278,7 +279,7 @@ export const IntercomService: IntegrationServiceType &
           if (
             ["comment", "open"].includes(part.part_type) &&
             moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate) &&
-            part.author.type !== "admin"
+            !["admin", "bot"].includes(part.author.type)
           ) {
             allConversationParts.push({
               ...part,
