@@ -235,7 +235,7 @@ export const IntercomService: IntegrationServiceType &
     );
     void MyLogtree.sendLog({
       content: `Successfully sent Intercom note for: "${body.slice(0, 80)}..."`,
-      folderPath: "/support-bot-responses",
+      folderPath: "/support-bot-responses-sent",
       additionalContext: {
         integrationId: integration._id,
         organizationId: integration.organizationId,
