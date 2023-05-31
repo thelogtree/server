@@ -282,9 +282,6 @@ export const IntercomService: IntegrationServiceType &
           if (
             ["comment", "open"].includes(part.part_type) &&
             moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate) &&
-            moment(new Date(part.created_at * 1000)).isBefore(
-              moment().subtract(300, "minutes")
-            ) &&
             !["admin", "bot"].includes(part.author.type)
           ) {
             allConversationParts.push({
