@@ -29,7 +29,7 @@ export const OpenAIUtil = {
   getIsSupportMessageWorthRespondingTo: async (message: string) => {
     const completion = await MyOpenAI.createCompletion({
       model: "text-babbage-001",
-      prompt: `Say "true" if the following message from a user is just a simple greeting or thank you phrase and nothing else. Examples of these are: "thanks!", "hello", "is anyone here", "thank you". Say "false" otherwise. If a message is at least one sentence long then say "true" regardless of the contents of the message. Here is the message:\n${message}`,
+      prompt: `Say "true" if the following message from a user is just a simple greeting or expression of gratitude and nothing else. Examples of these are: "thanks!", "hello", "is anyone here", "thank you". Otherwise, say "false". Here is the message:\n${message}`,
       temperature: 0,
       max_tokens: 30,
     });
