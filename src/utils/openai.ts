@@ -21,7 +21,7 @@ export const OpenAIUtil = {
         },
       ],
       temperature: 0.6,
-      max_tokens: 300,
+      max_tokens: 200,
     });
 
     return completion.data.choices[0].message?.content;
@@ -31,7 +31,7 @@ export const OpenAIUtil = {
       model: "text-babbage-001",
       prompt: `Say "true" if the following message from a user is just a simple greeting or thank you phrase and nothing else. Examples of these are: "thanks!", "hello", "is anyone here", "thank you". Say "false" otherwise. If a message is at least one sentence long then say "true" regardless of the contents of the message. Here is the message:\n${message}`,
       temperature: 0,
-      max_tokens: 50,
+      max_tokens: 30,
     });
     const textResult = completion.data.choices[0].text || "";
     const isWorthRespondingTo = textResult.includes("true");
@@ -45,5 +45,25 @@ export const OpenAIUtil = {
     });
 
     return isWorthRespondingTo;
+  },
+  getAreLogsRelatedToMessage: async (gptResponse: string) => {
+    const completion = await MyOpenAI.createCompletion({
+      model: "text-babbage-001",
+      prompt: `Say "false" if the message comes to the conclusion that the user's logs are unrelated to the user's message. Say "true" otherwise.`,
+      temperature: 0,
+      max_tokens: 30,
+    });
+    const textResult = completion.data.choices[0].text || "";
+    const isRelated = textResult.includes("true");
+
+    void MyLogtree.sendLog({
+      content: `GPT response: ${gptResponse}\n\nAre the Logtree logs related: ${isRelated}`,
+      folderPath: "/support-bot-responses",
+      additionalContext: {
+        gptResponse: textResult,
+      },
+    });
+
+    return isRelated;
   },
 };

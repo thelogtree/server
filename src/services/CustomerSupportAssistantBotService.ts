@@ -123,6 +123,14 @@ export const CustomerSupportAssistantBotService = {
               externalLink: `${config.baseUrl}/org/${organization.slug}/journey?query=${specificUserEmail}`,
             });
 
+            const areLogsRelevant = await OpenAIUtil.getAreLogsRelatedToMessage(
+              completionBotResponse || ""
+            );
+
+            if (!areLogsRelevant) {
+              continue;
+            }
+
             const conversationId = recentSupportLog._id
               .toString()
               .split("_")[1];
@@ -182,8 +190,8 @@ export const CustomerSupportAssistantBotService = {
     // right after the user messages in
     const lowerBound = indexOfSpecificSupportLog + 1;
 
-    // currently adding 20 surrounding logs as context
-    const upperBound = Math.min(allLogs.length, indexOfSpecificSupportLog + 20);
+    // currently adding 28 surrounding logs as context
+    const upperBound = Math.min(allLogs.length, lowerBound + 28);
 
     return allLogs.slice(lowerBound, upperBound);
   },
@@ -203,7 +211,7 @@ export const CustomerSupportAssistantBotService = {
     return str;
   },
   getSupportLogStrAndInstructions: (supportLog: SimplifiedLog) => {
-    const instructions = `Your job is to help a customer support agent address a user's problem or question. You will be given the user's inbound chat message from the company's customer support tool and you will also be given a list of events in chronological order that the company recorded about the user's actions directly prior to the user messaging in. The most recent event is listed first, and the oldest event is listed last. Your job is to look through these events and try to write an insightful and concise note to the customer support agent about what the events say about the user's problem or question. If the events have nothing to do with what the user messaged in with, you can say that the user's Logtree logs are unrelated to the user's message. Write your response as if you are speaking directly to the support agent. Never suggest that the user contacts anyone else since they are already speaking to support. Here is the user's message, sent at ${supportLog.createdAt}:\n${supportLog.content}\n\nHere are the user's events directly prior to this message:`;
+    const instructions = `Your job is to help a customer support agent address a user's problem or question. You will be given the user's inbound chat message from the company's customer support tool and you will also be given a list of events in chronological order that the company recorded about the user's actions directly prior to the user messaging in. The most recent event is listed first, and the oldest event is listed last. Your job is to look through these events and try to write an insightful note to the customer support agent about what the events say about the user's problem or question. If the events have nothing to do with what the user messaged in with, you can say that the user's Logtree logs are unrelated to the user's message. Write your response as if you are speaking directly to the support agent. Never suggest that the user contacts anyone else since they are already speaking to support. Be very concise and only tell the customer support agent the most important things. Do not explain the user's message since the customer support agent has already read it. Here is the user's message, sent at ${supportLog.createdAt}:\n${supportLog.content}\n\nHere are the user's events directly prior to this message:`;
     return instructions;
   },
 };
