@@ -30,7 +30,8 @@ type ExtraIntercomServiceTypes = {
     conversationId: string,
     adminId: string,
     body: string,
-    linkToLogtreeJourney: string
+    linkToLogtreeJourney: string,
+    customerSupportMessage: string
   ) => Promise<any>;
   getAdminIds: (integration: IntegrationDocument) => Promise<any>;
   getLogsForSupportBot: (
@@ -220,7 +221,8 @@ export const IntercomService: IntegrationServiceType &
     conversationId: string,
     adminId: string,
     body: string,
-    linkToLogtreeJourney: string
+    linkToLogtreeJourney: string,
+    customerSupportMessage: string
   ) => {
     const headers = IntercomService.getHeaders(integration);
     await axios.post(
@@ -234,7 +236,7 @@ export const IntercomService: IntegrationServiceType &
       { headers }
     );
     void MyLogtree.sendLog({
-      content: `Successfully sent Intercom note for: "${body.slice(0, 80)}..."`,
+      content: `User's Intercom message: ${customerSupportMessage}\n\nSent Intercom note: ${body}`,
       folderPath: "/support-bot-responses-sent",
       additionalContext: {
         integrationId: integration._id,
@@ -242,6 +244,7 @@ export const IntercomService: IntegrationServiceType &
         adminId,
         linkToLogtreeJourney,
         fullIntercomNote: body,
+        customerSupportMessage,
       },
     });
   },
@@ -279,6 +282,9 @@ export const IntercomService: IntegrationServiceType &
           if (
             ["comment", "open"].includes(part.part_type) &&
             moment(new Date(part.created_at * 1000)).isSameOrAfter(floorDate) &&
+            moment(new Date(part.created_at * 1000)).isBefore(
+              moment().subtract(300, "minutes")
+            ) &&
             !["admin", "bot"].includes(part.author.type)
           ) {
             allConversationParts.push({

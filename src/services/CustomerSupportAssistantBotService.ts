@@ -144,7 +144,8 @@ export const CustomerSupportAssistantBotService = {
               conversationId,
               adminId,
               completionBotResponse || "",
-              logtreeJourneyLink
+              logtreeJourneyLink,
+              recentSupportLog.content
             );
           } catch (e: any) {
             MyLogtree.sendLog({
