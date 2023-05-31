@@ -49,7 +49,7 @@ export const OpenAIUtil = {
   getAreLogsRelatedToMessage: async (gptResponse: string) => {
     const completion = await MyOpenAI.createCompletion({
       model: "text-babbage-001",
-      prompt: `Say "false" if the message comes to the conclusion that the user's logs are unrelated to the user's message. Say "true" otherwise.`,
+      prompt: `Say "false" if the following paragraph says that the user's logs are unrelated to the user's message. Say "true" otherwise. Here is the paragraph to evaluate:\n${gptResponse}`,
       temperature: 0,
       max_tokens: 30,
     });
