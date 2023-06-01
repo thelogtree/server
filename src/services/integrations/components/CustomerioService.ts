@@ -11,7 +11,10 @@ import {
   SimplifiedLog,
 } from "src/services/ApiService/lib/LogService";
 import { ApiError } from "src/utils/errors";
-import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
+import {
+  accessValueInMap,
+  getFloorLogRetentionDateForOrganization,
+} from "src/utils/helpers";
 
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
@@ -86,9 +89,10 @@ export const CustomerioService: IntegrationServiceType = {
             referenceId:
               query ||
               (message.type === "email" ? message.recipient : undefined),
-            externalLink: `https://fly.customer.io/journeys/env/${
-              (integration.additionalProperties as any).workspaceId
-            }/people/${message.customer_identifiers.cio_id}/activity`,
+            externalLink: `https://fly.customer.io/journeys/env/${accessValueInMap(
+              integration.additionalProperties,
+              "workspaceId"
+            )}/people/${message.customer_identifiers.cio_id}/activity`,
             tag: simplifiedLogTagEnum.Marketing,
             sourceTitle: "Customer.io",
           } as SimplifiedLog);

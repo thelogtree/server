@@ -18,7 +18,10 @@ import {
 import { IntegrationServiceType } from "src/services/integrations/types";
 import { config } from "src/utils/config";
 import { ApiError } from "src/utils/errors";
-import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
+import {
+  accessValueInMap,
+  getFloorLogRetentionDateForOrganization,
+} from "src/utils/helpers";
 import { MyLogtree } from "src/utils/logger";
 import { SecureIntegrationService } from "src/services/integrations/index";
 
@@ -118,9 +121,10 @@ export const IntercomService: IntegrationServiceType &
           conversationPart.author.name || "user"
         }:\n\n${conversationPart.body?.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
         createdAt: new Date(conversationPart.created_at * 1000),
-        externalLink: `https://app.intercom.com/a/inbox/${
-          (integration.additionalProperties as any).appId as string
-        }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
+        externalLink: `https://app.intercom.com/a/inbox/${accessValueInMap(
+          integration.additionalProperties,
+          "appId"
+        )}/inbox/shared/all/conversation/${conversationPart.conversationId}`,
         tag: simplifiedLogTagEnum.Support,
         sourceTitle: "Intercom",
         referenceId: conversationPart.author?.email,
@@ -135,9 +139,10 @@ export const IntercomService: IntegrationServiceType &
             MAX_NUM_CHARS_ALLOWED_IN_LOG
           )}`,
           createdAt: new Date(conversation.created_at * 1000),
-          externalLink: `https://app.intercom.com/a/inbox/${
-            (integration.additionalProperties as any).appId as string
-          }/inbox/shared/all/conversation/${conversation.id}`,
+          externalLink: `https://app.intercom.com/a/inbox/${accessValueInMap(
+            integration.additionalProperties,
+            "appId"
+          )}/inbox/shared/all/conversation/${conversation.id}`,
           tag: simplifiedLogTagEnum.Support,
           sourceTitle: "Intercom",
           referenceId: conversation.source.author?.email,
@@ -300,9 +305,10 @@ export const IntercomService: IntegrationServiceType &
           conversationPart.author.name || "user"
         }:\n\n${conversationPart.body?.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG)}`,
         createdAt: new Date(conversationPart.created_at * 1000),
-        externalLink: `https://app.intercom.com/a/inbox/${
-          (integration.additionalProperties as any).appId as string
-        }/inbox/shared/all/conversation/${conversationPart.conversationId}`,
+        externalLink: `https://app.intercom.com/a/inbox/${accessValueInMap(
+          integration.additionalProperties,
+          "appId"
+        )}/inbox/shared/all/conversation/${conversationPart.conversationId}`,
         tag: simplifiedLogTagEnum.Support,
         sourceTitle: "Intercom",
         referenceId: conversationPart.author?.email,
@@ -317,9 +323,10 @@ export const IntercomService: IntegrationServiceType &
             MAX_NUM_CHARS_ALLOWED_IN_LOG
           )}`,
           createdAt: new Date(conversation.created_at * 1000),
-          externalLink: `https://app.intercom.com/a/inbox/${
-            (integration.additionalProperties as any).appId as string
-          }/inbox/shared/all/conversation/${conversation.id}`,
+          externalLink: `https://app.intercom.com/a/inbox/${accessValueInMap(
+            integration.additionalProperties,
+            "appId"
+          )}/inbox/shared/all/conversation/${conversation.id}`,
           tag: simplifiedLogTagEnum.Support,
           sourceTitle: "Intercom",
           referenceId: conversation.source.author?.email,

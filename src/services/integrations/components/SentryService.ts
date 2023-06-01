@@ -62,7 +62,10 @@ export const SentryService: IntegrationServiceType = {
         await Promise.all(
           batch.map(async (projectSlug) => {
             const issuesRes = await axios.get(
-              `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/issues/`,
+              `${BASE_URL}projects/${accessValueInMap(
+                integration.additionalProperties,
+                "organizationSlug"
+              )}/${projectSlug}/issues/`,
               {
                 params: {
                   query: `user.email:${query}`,
@@ -128,7 +131,10 @@ export const SentryService: IntegrationServiceType = {
         await Promise.all(
           batch.map(async (projectSlug) => {
             const eventsRes = await axios.get(
-              `${BASE_URL}projects/${integration.additionalProperties["organizationSlug"]}/${projectSlug}/events/`,
+              `${BASE_URL}projects/${accessValueInMap(
+                integration.additionalProperties,
+                "organizationSlug"
+              )}/${projectSlug}/events/`,
               {
                 headers,
               }
