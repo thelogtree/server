@@ -260,7 +260,7 @@ describe("CreateLog", () => {
     }).countDocuments();
     expect(allLogsInOrg).toBe(2);
   });
-  it.skip("correctly ignores api limits because it is a high value account", async () => {
+  it("correctly enforces api limits on the account", async () => {
     const logContent = "test 123";
     const folderName = "transactions";
     const organization = await OrganizationFactory.create({
@@ -277,12 +277,15 @@ describe("CreateLog", () => {
       {},
       ...TestHelper.extractApiKeys(organization)
     );
-    TestHelper.expectSuccess(res);
+    TestHelper.expectError(
+      res,
+      "Your organization has reached its limit for the number of logs it can have. Please contact support to increase the limit."
+    );
 
     const allLogsInOrg = await Log.find({
       organizationId: organization._id,
     }).countDocuments();
-    expect(allLogsInOrg).toBe(1);
+    expect(allLogsInOrg).toBe(0);
   });
   it("fails because we're trying to open up a subfolder inside a folder that already has at least 1 log", async () => {
     const logContent = "test 123";
