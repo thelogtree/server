@@ -21,18 +21,12 @@ export const UsageService = {
       }
     ),
   shouldAllowAnotherLog: (organization: OrganizationDocument) => {
-    // enforce api limits for these smaller accounts (most likely trials)
-    if (organization.logLimitForPeriod <= TRIAL_LOG_LIMIT) {
-      // see if they are over the limit or if the usage reset cron hasn't run yet.
-      // if the reset cron hasn't run yet, give them a grace period and allow the log.
-      return (
-        organization.numLogsSentInPeriod < organization.logLimitForPeriod ||
-        moment().isSameOrAfter(organization.cycleEnds)
-      );
-    }
-
-    // enforce the limit manually with larger accounts
-    return true;
+    // see if they are over the limit or if the usage reset cron hasn't run yet.
+    // if the reset cron hasn't run yet, give them a grace period and allow the log.
+    return (
+      organization.numLogsSentInPeriod < organization.logLimitForPeriod ||
+      moment().isSameOrAfter(organization.cycleEnds)
+    );
   },
   getPeriodDates: (
     organization?: OrganizationDocument
