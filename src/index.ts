@@ -37,9 +37,12 @@ const setupServer = async () => {
     });
   }
 
-  app.listen(config.environment.port, () => {
+  const server = app.listen(config.environment.port, () => {
     console.log(`💪 Server is running on port: ${config.environment.port}`);
   });
+
+  server.keepAliveTimeout = 120 * 1000;
+  server.headersTimeout = 120 * 1000;
 };
 
 if (!config.environment.isTest) {
