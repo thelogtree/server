@@ -80,18 +80,15 @@ export const LoggerHelpers = {
   recordDeletedRule: async (
     req: Request,
     user: UserDocument,
-    ruleId: string,
-    organization: OrganizationDocument
-  ) => {
-    const rule = await Rule.findById(ruleId).populate("folderId");
-    const folder = rule?.folderId as FolderDocument;
+    organization: OrganizationDocument,
+    folderPath?: string
+  ) =>
     MyLogtree.sendLog({
-      content: `User deleted rule for a channel: ${folder?.fullPath}`,
+      content: `User deleted rule from channel: ${folderPath}`,
       folderPath: `/rules/${organization?.slug}`,
       referenceId: user.email,
       req,
-    });
-  },
+    }),
   recordCheckingChannel: async (
     req: Request,
     user: UserDocument,

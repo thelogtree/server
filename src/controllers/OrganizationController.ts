@@ -334,9 +334,7 @@ export const OrganizationController = {
     const user: UserDocument = req["user"];
     const organization: OrganizationDocument = req["organization"];
     const { ruleId } = req.body;
-    await RuleService.deleteRule(user._id.toString(), ruleId);
-
-    LoggerHelpers.recordDeletedRule(req, user, ruleId, organization);
+    await RuleService.deleteRule(user, ruleId, organization, req);
 
     res.send({});
   },

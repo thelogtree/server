@@ -1,4 +1,6 @@
 import {
+  FolderDocument,
+  OrganizationDocument,
   RuleDocument,
   UserDocument,
   comparisonTypeEnum,
@@ -17,6 +19,8 @@ import { MyLogtree } from "src/utils/logger";
 import { getErrorMessage } from "src/utils/helpers";
 import { User } from "src/models/User";
 import { TwilioUtil } from "src/utils/twilio";
+import { LoggerHelpers } from "src/utils/loggerHelpers";
+import { Request } from "express";
 
 export const RuleService = {
   createRule: async (
@@ -46,11 +50,26 @@ export const RuleService = {
       notificationType,
     });
   },
-  deleteRule: async (userId: string, ruleId: string) => {
-    const ruleExists = await Rule.exists({ userId, _id: ruleId });
+  deleteRule: async (
+    user: UserDocument,
+    ruleId: string,
+    organization: OrganizationDocument,
+    req: Request
+  ) => {
+    const ruleExists = await Rule.findOne({
+      userId: user._id,
+      _id: ruleId,
+    }).populate("folderId");
     if (!ruleExists) {
       throw new ApiError("Cannot delete a rule that does not exist.");
     }
+
+    void LoggerHelpers.recordDeletedRule(
+      req,
+      user,
+      organization,
+      (ruleExists.folderId as FolderDocument | null)?.fullPath
+    );
 
     await Rule.deleteOne({ _id: ruleId });
   },
