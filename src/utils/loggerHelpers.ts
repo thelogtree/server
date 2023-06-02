@@ -46,7 +46,6 @@ export const LoggerHelpers = {
       content: `User joined organization: ${organization?.slug}`,
       folderPath: `/new-user/${organization?.slug}`,
       referenceId: email,
-      req,
     });
   },
   recordDeletedFolder: async (
