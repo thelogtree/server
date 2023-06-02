@@ -29,7 +29,7 @@ export const OpenAIUtil = {
   getIsSupportMessageWorthRespondingTo: async (message: string) => {
     const completion = await MyOpenAI.createCompletion({
       model: "text-curie-001",
-      prompt: `Say "true" if the following message from a user is just a simple greeting or expression of gratitude and nothing else. Examples of these are: "thanks!", "hello", "is anyone here", "thank you". If it is not something like this, say "false". If you are not sure, or the user's message looks like a question, say "false". Here is the message:\n${message}`,
+      prompt: `Say "true" if the following message from a user is just a simple greeting or expression of gratitude and nothing else. Examples of these are: "thanks!", "hello", "is anyone here", "thank you". If it is not something like this or the message also contains a help question or problem they are facing, say "false". If you are not sure, say "false". Here is the message:\n${message}`,
       temperature: 0,
       max_tokens: 30,
     });
