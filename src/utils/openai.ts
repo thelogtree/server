@@ -47,15 +47,18 @@ export const OpenAIUtil = {
     return isWorthRespondingTo;
   },
   getAreLogsRelatedToMessage: async (gptResponse: string) => {
+    const hasLogtree = gptResponse.toLowerCase().includes("logtree");
     const isUnrelated =
-      gptResponse.toLowerCase().includes("unrelated") &&
-      gptResponse.toLowerCase().includes("logtree");
+      gptResponse.toLowerCase().includes("unrelated") ||
+      gptResponse.toLowerCase().includes("no events");
+
+    const isUnrelatedDecision = isUnrelated && hasLogtree;
 
     void MyLogtree.sendLog({
-      content: `GPT response: ${gptResponse}\n\nAre the Logtree logs related: ${!isUnrelated}`,
+      content: `GPT response: ${gptResponse}\n\nAre the Logtree logs related: ${!isUnrelatedDecision}`,
       folderPath: "/support-bot-responses",
     });
 
-    return !isUnrelated;
+    return !isUnrelatedDecision;
   },
 };
