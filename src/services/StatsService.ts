@@ -5,6 +5,7 @@ import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import { FolderDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
+import { getFloorAndCeilingDatesForHistogramBox } from "src/utils/helpers";
 
 // we represent these in total minutes
 export enum timeIntervalEnum {
@@ -22,6 +23,12 @@ type Insight = {
   folder: FolderDocument;
   stat: RelevantStat;
   numLogsToday: number;
+};
+
+type HistogramBox = {
+  count: number;
+  floorDate: Date;
+  ceilingDate: Date;
 };
 
 export const StatsService = {
@@ -234,4 +241,71 @@ export const StatsService = {
       folderId,
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
+  getHistogramsForFolder: async (folderId: string) => {
+    const floorDate = moment().subtract(5, "day").toDate();
+    const ceilingDate = new Date(); // to avoid race conditions
+    const allLogsInFolder = await Log.find(
+      {
+        folderId,
+        createdAt: { $gte: floorDate, $lt: ceilingDate },
+      },
+      { content: 1, createdAt: 1, _id: 0 }
+    )
+      .lean()
+      .exec();
+
+    const groupedLogs = _.groupBy(allLogsInFolder, "content");
+
+    // put their sums in a map
+    let sumArr: any[] = [];
+    Object.values(groupedLogs).forEach((logArr) => {
+      const contentKey = logArr[0].content;
+      sumArr.push({ contentKey, count: logArr.length });
+    });
+
+    // order the sums in descending order
+    let sumsOrderedArr = _.sortBy(sumArr, "count").reverse();
+
+    if (sumsOrderedArr.length > 5 && sumsOrderedArr[0] === 1) {
+      // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
+      return [];
+    }
+
+    // now generate their histograms
+    const numHistogramBoxes = 24;
+
+    const histograms = sumsOrderedArr.slice(0, 20).map((obj) => {
+      const { contentKey } = obj;
+      const logsWithThisContentKey = groupedLogs[contentKey];
+      let histogram: HistogramBox[] = [];
+      for (let i = 0; i < numHistogramBoxes; i++) {
+        const {
+          floorDate: intervalFloorDate,
+          ceilingDate: intervalCeilingDate,
+        } = getFloorAndCeilingDatesForHistogramBox(
+          floorDate,
+          ceilingDate,
+          numHistogramBoxes,
+          i
+        );
+        const numLogsInTimeframe = _.sumBy(logsWithThisContentKey, (log) =>
+          moment(log.createdAt).isSameOrAfter(moment(intervalFloorDate)) &&
+          moment(log.createdAt).isBefore(moment(intervalCeilingDate))
+            ? 1
+            : 0
+        );
+        histogram.push({
+          count: numLogsInTimeframe,
+          floorDate: intervalFloorDate,
+          ceilingDate: intervalCeilingDate,
+        });
+      }
+      return {
+        contentKey,
+        histogram,
+      };
+    });
+
+    return histograms;
+  },
 };

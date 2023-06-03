@@ -65,3 +65,20 @@ export const accessValueInMap = (object: any, key: string) => {
     return undefined;
   }
 };
+
+export const getFloorAndCeilingDatesForHistogramBox = (
+  dataFloorDate: Date,
+  dataCeilingDate: Date,
+  numBoxes: number,
+  indexOfBox: number
+) => {
+  const boxDuration = Math.ceil(
+    (dataCeilingDate.getTime() - dataFloorDate.getTime()) / numBoxes
+  );
+  const floorDate = new Date(
+    dataFloorDate.getTime() + boxDuration * indexOfBox
+  );
+  const ceilingDate = new Date(floorDate.getTime() + boxDuration);
+
+  return { floorDate, ceilingDate };
+};
