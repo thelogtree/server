@@ -242,7 +242,7 @@ export const StatsService = {
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
   getHistogramsForFolder: async (folderId: string) => {
-    const floorDate = moment().subtract(5, "day").toDate();
+    const floorDate = moment().subtract(1, "day").toDate();
     const ceilingDate = new Date(); // to avoid race conditions
     const allLogsInFolder = await Log.find(
       {
@@ -266,7 +266,7 @@ export const StatsService = {
     // order the sums in descending order
     let sumsOrderedArr = _.sortBy(sumArr, "count").reverse();
 
-    if (sumsOrderedArr.length > 5 && sumsOrderedArr[0] === 1) {
+    if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 2) {
       // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
       return [];
     }
@@ -277,7 +277,7 @@ export const StatsService = {
     const histograms = sumsOrderedArr.slice(0, 20).map((obj) => {
       const { contentKey } = obj;
       const logsWithThisContentKey = groupedLogs[contentKey];
-      let histogram: HistogramBox[] = [];
+      let histogramData: HistogramBox[] = [];
       for (let i = 0; i < numHistogramBoxes; i++) {
         const {
           floorDate: intervalFloorDate,
@@ -294,7 +294,7 @@ export const StatsService = {
             ? 1
             : 0
         );
-        histogram.push({
+        histogramData.push({
           count: numLogsInTimeframe,
           floorDate: intervalFloorDate,
           ceilingDate: intervalCeilingDate,
@@ -302,7 +302,7 @@ export const StatsService = {
       }
       return {
         contentKey,
-        histogram,
+        histogramData,
       };
     });
 
