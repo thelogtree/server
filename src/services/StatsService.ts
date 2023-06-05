@@ -305,7 +305,7 @@ export const StatsService = {
     let sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
     let groupedLogs = sumsOrderedArrObj.groupedLogs;
 
-    if (!sumsOrderedArr.length || sumsOrderedArr[0].count === 0) {
+    if (!sumsOrderedArr.length || sumsOrderedArr[0].count <= 1) {
       // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
       return {
         histograms: [],
