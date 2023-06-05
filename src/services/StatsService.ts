@@ -241,7 +241,12 @@ export const StatsService = {
       folderId,
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
-  getHistogramsForFolder: async (folderId: string) => {
+  getHistogramsForFolder: async (
+    folderId: string
+  ): Promise<{
+    histograms: any[];
+    moreHistogramsAreNotShown: boolean;
+  }> => {
     const floorDate = moment().subtract(1, "day").toDate();
     const ceilingDate = new Date(); // to avoid race conditions
     const allLogsInFolder = await Log.find(
@@ -268,44 +273,55 @@ export const StatsService = {
 
     if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 2) {
       // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
-      return [];
+      return {
+        histograms: [],
+        moreHistogramsAreNotShown: false,
+      };
     }
 
     // now generate their histograms
     const numHistogramBoxes = 24;
 
-    const histograms = sumsOrderedArr.slice(0, 20).map((obj) => {
-      const { contentKey } = obj;
-      const logsWithThisContentKey = groupedLogs[contentKey];
-      let histogramData: HistogramBox[] = [];
-      for (let i = 0; i < numHistogramBoxes; i++) {
-        const {
-          floorDate: intervalFloorDate,
-          ceilingDate: intervalCeilingDate,
-        } = getFloorAndCeilingDatesForHistogramBox(
-          floorDate,
-          ceilingDate,
-          numHistogramBoxes,
-          i
-        );
-        const numLogsInTimeframe = _.sumBy(logsWithThisContentKey, (log) =>
-          moment(log.createdAt).isSameOrAfter(moment(intervalFloorDate)) &&
-          moment(log.createdAt).isBefore(moment(intervalCeilingDate))
-            ? 1
-            : 0
-        );
-        histogramData.push({
-          count: numLogsInTimeframe,
-          floorDate: intervalFloorDate,
-          ceilingDate: intervalCeilingDate,
-        });
-      }
-      return {
-        contentKey,
-        histogramData,
-      };
-    });
+    const MAX_HISTOGRAMS_RETURNED = 20;
 
-    return histograms;
+    const histograms = sumsOrderedArr
+      .slice(0, MAX_HISTOGRAMS_RETURNED)
+      .map((obj) => {
+        const { contentKey } = obj;
+        const logsWithThisContentKey = groupedLogs[contentKey];
+        let histogramData: HistogramBox[] = [];
+        for (let i = 0; i < numHistogramBoxes; i++) {
+          const {
+            floorDate: intervalFloorDate,
+            ceilingDate: intervalCeilingDate,
+          } = getFloorAndCeilingDatesForHistogramBox(
+            floorDate,
+            ceilingDate,
+            numHistogramBoxes,
+            i
+          );
+          const numLogsInTimeframe = _.sumBy(logsWithThisContentKey, (log) =>
+            moment(log.createdAt).isSameOrAfter(moment(intervalFloorDate)) &&
+            moment(log.createdAt).isBefore(moment(intervalCeilingDate))
+              ? 1
+              : 0
+          );
+          histogramData.push({
+            count: numLogsInTimeframe,
+            floorDate: intervalFloorDate,
+            ceilingDate: intervalCeilingDate,
+          });
+        }
+        return {
+          contentKey,
+          histogramData,
+        };
+      });
+
+    return {
+      histograms,
+      moreHistogramsAreNotShown:
+        sumsOrderedArr.length > MAX_HISTOGRAMS_RETURNED,
+    };
   },
 };

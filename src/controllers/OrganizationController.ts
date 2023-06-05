@@ -257,7 +257,7 @@ export const OrganizationController = {
         "Cannot get the folder stats of a folder in a different organization."
       );
     }
-    const [relevantStatObj, logFrequencies, numLogsToday, histograms] =
+    const [relevantStatObj, logFrequencies, numLogsToday, histogramsObj] =
       await Promise.all([
         StatsService.getRelevantStat(folderId as string),
         StatsService.getLogFrequenciesByInterval(
@@ -279,12 +279,14 @@ export const OrganizationController = {
         StatsService.getHistogramsForFolder(folderId as string),
       ]);
     const { percentageChange, timeInterval } = relevantStatObj;
+    const { histograms, moreHistogramsAreNotShown } = histogramsObj;
     res.send({
       percentageChange,
       timeInterval,
       logFrequencies: logFrequencies.length >= 2 ? logFrequencies : [],
       numLogsToday,
       histograms,
+      moreHistogramsAreNotShown,
     });
   },
   updateFolder: async (req: Request, res: Response) => {
