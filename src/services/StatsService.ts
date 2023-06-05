@@ -285,14 +285,15 @@ export const StatsService = {
   },
   getHistogramsForFolder: async (
     folderId: string,
-    isByReferenceId: boolean = false
+    isByReferenceId: boolean = false,
+    lastXDays: number = 1
   ): Promise<{
     histograms: any[];
     moreHistogramsAreNotShown: boolean;
   }> => {
-    let numHistogramBoxes = 24;
+    let numHistogramBoxes = lastXDays === 1 ? 24 : lastXDays;
     const ceilingDate = new Date(); // to avoid race conditions
-    let floorDate = moment().subtract(1, "day").toDate();
+    let floorDate = moment().subtract(lastXDays, "days").toDate();
 
     // first try the 24-hour timeframe
     let sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
@@ -303,20 +304,6 @@ export const StatsService = {
     );
     let sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
     let groupedLogs = sumsOrderedArrObj.groupedLogs;
-
-    // if the 24-hour timeframe yields no good results, try a 30 day timeframe
-    if (sumsOrderedArr.length <= 1) {
-      numHistogramBoxes = 30;
-      floorDate = moment().subtract(30, "days").toDate();
-      sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
-        floorDate,
-        ceilingDate,
-        folderId,
-        isByReferenceId
-      );
-      sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
-      groupedLogs = sumsOrderedArrObj.groupedLogs;
-    }
 
     if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 1) {
       // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)

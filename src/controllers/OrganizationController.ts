@@ -248,7 +248,9 @@ export const OrganizationController = {
   },
   getFolderStats: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
-    const { folderId, timezone, isHistogramByReferenceId } = req.query;
+    const { folderId, timezone, isHistogramByReferenceId, lastXDays } =
+      req.query;
+    const lastXDaysNumber = Number((lastXDays as string) || 1);
     const folder = await Folder.findById(folderId as string)
       .lean()
       .exec();
@@ -278,7 +280,8 @@ export const OrganizationController = {
         ),
         StatsService.getHistogramsForFolder(
           folderId as string,
-          queryBool(isHistogramByReferenceId as string)
+          queryBool(isHistogramByReferenceId as string),
+          isNaN(lastXDaysNumber) ? 1 : lastXDaysNumber
         ),
       ]);
     const { percentageChange, timeInterval } = relevantStatObj;
