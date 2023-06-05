@@ -241,14 +241,11 @@ export const StatsService = {
       folderId,
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
-  getHistogramsForFolder: async (
+  getSumsOrderedArray: async (
+    floorDate: Date,
+    ceilingDate: Date,
     folderId: string
-  ): Promise<{
-    histograms: any[];
-    moreHistogramsAreNotShown: boolean;
-  }> => {
-    const floorDate = moment().subtract(1, "day").toDate();
-    const ceilingDate = new Date(); // to avoid race conditions
+  ) => {
     const allLogsInFolder = await Log.find(
       {
         folderId,
@@ -271,6 +268,40 @@ export const StatsService = {
     // order the sums in descending order
     let sumsOrderedArr = _.sortBy(sumArr, "count").reverse();
 
+    return { sumsOrderedArr, groupedLogs };
+  },
+  getHistogramsForFolder: async (
+    folderId: string
+  ): Promise<{
+    histograms: any[];
+    moreHistogramsAreNotShown: boolean;
+  }> => {
+    let numHistogramBoxes = 24;
+    const ceilingDate = new Date(); // to avoid race conditions
+    let floorDate = moment().subtract(1, "day").toDate();
+
+    // first try the 24-hour timeframe
+    let sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
+      floorDate,
+      ceilingDate,
+      folderId
+    );
+    let sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
+    let groupedLogs = sumsOrderedArrObj.groupedLogs;
+
+    // if the 24-hour timeframe yields no good results, try a 30 day timeframe
+    if (sumsOrderedArr.length <= 1) {
+      numHistogramBoxes = 30;
+      floorDate = moment().subtract(30, "days").toDate();
+      sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
+        floorDate,
+        ceilingDate,
+        folderId
+      );
+      sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
+      groupedLogs = sumsOrderedArrObj.groupedLogs;
+    }
+
     if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 2) {
       // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
       return {
@@ -278,9 +309,6 @@ export const StatsService = {
         moreHistogramsAreNotShown: false,
       };
     }
-
-    // now generate their histograms
-    const numHistogramBoxes = 24;
 
     const MAX_HISTOGRAMS_RETURNED = 20;
 
