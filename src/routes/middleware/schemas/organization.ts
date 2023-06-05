@@ -54,6 +54,7 @@ export const OrganizationSchemas = {
   getFolderStats: Joi.object({
     folderId: Joi.string().custom(objectId).required(),
     timezone: Joi.string().required(),
+    isHistogramByReferenceId: Joi.any(),
   }),
   updateFolder: Joi.object({
     folderId: Joi.string().custom(objectId).required(),

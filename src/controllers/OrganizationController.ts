@@ -248,7 +248,7 @@ export const OrganizationController = {
   },
   getFolderStats: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
-    const { folderId, timezone } = req.query;
+    const { folderId, timezone, isHistogramByReferenceId } = req.query;
     const folder = await Folder.findById(folderId as string)
       .lean()
       .exec();
@@ -257,25 +257,30 @@ export const OrganizationController = {
         "Cannot get the folder stats of a folder in a different organization."
       );
     }
-    const [relevantStatObj, logFrequencies, numLogsToday] = await Promise.all([
-      StatsService.getRelevantStat(folderId as string),
-      StatsService.getLogFrequenciesByInterval(
-        folderId as string,
-        timeIntervalEnum.Day,
-        7
-      ),
-      StatsService.getNumLogsInTimePeriod(
-        folderId as string,
-        moment
-          .tz(timezone as string)
-          .startOf("day")
-          .toDate(),
-        moment
-          .tz(timezone as string)
-          .endOf("day")
-          .toDate()
-      ),
-    ]);
+    const [relevantStatObj, logFrequencies, numLogsToday, histogramsObj] =
+      await Promise.all([
+        StatsService.getRelevantStat(folderId as string),
+        StatsService.getLogFrequenciesByInterval(
+          folderId as string,
+          timeIntervalEnum.Day,
+          7
+        ),
+        StatsService.getNumLogsInTimePeriod(
+          folderId as string,
+          moment
+            .tz(timezone as string)
+            .startOf("day")
+            .toDate(),
+          moment
+            .tz(timezone as string)
+            .endOf("day")
+            .toDate()
+        ),
+        StatsService.getHistogramsForFolder(
+          folderId as string,
+          queryBool(isHistogramByReferenceId as string)
+        ),
+      ]);
     const { percentageChange, timeInterval } = relevantStatObj;
     res.send({
       percentageChange,
