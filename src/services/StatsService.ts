@@ -5,6 +5,7 @@ import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import { FolderDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
+import { getFloorAndCeilingDatesForHistogramBox } from "src/utils/helpers";
 
 // we represent these in total minutes
 export enum timeIntervalEnum {
@@ -22,6 +23,12 @@ type Insight = {
   folder: FolderDocument;
   stat: RelevantStat;
   numLogsToday: number;
+};
+
+type HistogramBox = {
+  count: number;
+  floorDate: Date;
+  ceilingDate: Date;
 };
 
 export const StatsService = {
@@ -234,4 +241,115 @@ export const StatsService = {
       folderId,
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
+  getSumsOrderedArray: async (
+    floorDate: Date,
+    ceilingDate: Date,
+    folderId: string
+  ) => {
+    const allLogsInFolder = await Log.find(
+      {
+        folderId,
+        createdAt: { $gte: floorDate, $lt: ceilingDate },
+      },
+      { content: 1, createdAt: 1, _id: 0 }
+    )
+      .lean()
+      .exec();
+
+    const groupedLogs = _.groupBy(allLogsInFolder, "content");
+
+    // put their sums in a map
+    let sumArr: any[] = [];
+    Object.values(groupedLogs).forEach((logArr) => {
+      const contentKey = logArr[0].content;
+      sumArr.push({ contentKey, count: logArr.length });
+    });
+
+    // order the sums in descending order
+    let sumsOrderedArr = _.sortBy(sumArr, "count").reverse();
+
+    return { sumsOrderedArr, groupedLogs };
+  },
+  getHistogramsForFolder: async (
+    folderId: string
+  ): Promise<{
+    histograms: any[];
+    moreHistogramsAreNotShown: boolean;
+  }> => {
+    let numHistogramBoxes = 24;
+    const ceilingDate = new Date(); // to avoid race conditions
+    let floorDate = moment().subtract(1, "day").toDate();
+
+    // first try the 24-hour timeframe
+    let sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
+      floorDate,
+      ceilingDate,
+      folderId
+    );
+    let sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
+    let groupedLogs = sumsOrderedArrObj.groupedLogs;
+
+    // if the 24-hour timeframe yields no good results, try a 30 day timeframe
+    if (sumsOrderedArr.length <= 1) {
+      numHistogramBoxes = 30;
+      floorDate = moment().subtract(30, "days").toDate();
+      sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
+        floorDate,
+        ceilingDate,
+        folderId
+      );
+      sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
+      groupedLogs = sumsOrderedArrObj.groupedLogs;
+    }
+
+    if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 2) {
+      // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
+      return {
+        histograms: [],
+        moreHistogramsAreNotShown: false,
+      };
+    }
+
+    const MAX_HISTOGRAMS_RETURNED = 20;
+
+    const histograms = sumsOrderedArr
+      .slice(0, MAX_HISTOGRAMS_RETURNED)
+      .map((obj) => {
+        const { contentKey } = obj;
+        const logsWithThisContentKey = groupedLogs[contentKey];
+        let histogramData: HistogramBox[] = [];
+        for (let i = 0; i < numHistogramBoxes; i++) {
+          const {
+            floorDate: intervalFloorDate,
+            ceilingDate: intervalCeilingDate,
+          } = getFloorAndCeilingDatesForHistogramBox(
+            floorDate,
+            ceilingDate,
+            numHistogramBoxes,
+            i
+          );
+          const numLogsInTimeframe = _.sumBy(logsWithThisContentKey, (log) =>
+            moment(log.createdAt).isSameOrAfter(moment(intervalFloorDate)) &&
+            moment(log.createdAt).isBefore(moment(intervalCeilingDate))
+              ? 1
+              : 0
+          );
+          histogramData.push({
+            count: numLogsInTimeframe,
+            floorDate: intervalFloorDate,
+            ceilingDate: intervalCeilingDate,
+          });
+        }
+        return {
+          contentKey,
+          histogramData,
+        };
+      });
+
+    return {
+      histograms,
+      moreHistogramsAreNotShown:
+        sumsOrderedArr.length > MAX_HISTOGRAMS_RETURNED,
+    };
+  },
 };
