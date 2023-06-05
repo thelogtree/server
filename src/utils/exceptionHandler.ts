@@ -18,15 +18,7 @@ export const exceptionHandler = (error, req, res, _next) => {
       if (
         !Object.values(ErrorMessages).includes(getErrorMessage(error as any))
       ) {
-        MyLogtree.sendLog({
-          content: getErrorMessage(error as any),
-          folderPath: "/errors",
-          referenceId:
-            user?.email ||
-            organization?.slug ||
-            req.headers["x-logtree-key"]?.toString(),
-          req,
-        });
+        MyLogtree.sendErrorLog(error, req);
       }
     } catch {}
     console.error(error);
