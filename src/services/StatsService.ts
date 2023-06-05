@@ -5,6 +5,7 @@ import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import { FolderDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
+import { getFloorAndCeilingDatesForHistogramBox } from "src/utils/helpers";
 
 // we represent these in total minutes
 export enum timeIntervalEnum {
@@ -22,6 +23,12 @@ type Insight = {
   folder: FolderDocument;
   stat: RelevantStat;
   numLogsToday: number;
+};
+
+type HistogramBox = {
+  count: number;
+  floorDate: Date;
+  ceilingDate: Date;
 };
 
 export const StatsService = {

@@ -282,11 +282,14 @@ export const OrganizationController = {
         ),
       ]);
     const { percentageChange, timeInterval } = relevantStatObj;
+    const { histograms, moreHistogramsAreNotShown } = histogramsObj;
     res.send({
       percentageChange,
       timeInterval,
       logFrequencies: logFrequencies.length >= 2 ? logFrequencies : [],
       numLogsToday,
+      histograms,
+      moreHistogramsAreNotShown,
     });
   },
   updateFolder: async (req: Request, res: Response) => {
