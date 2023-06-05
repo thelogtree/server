@@ -210,9 +210,8 @@ export const RuleService = {
             await RuleService.executeTriggeredRule(rule as RuleDocument, user);
           }
         } catch (e: any) {
-          MyLogtree.sendLog({
-            content: getErrorMessage(e),
-            folderPath: "/errors",
+          MyLogtree.sendErrorLog({
+            error: e,
             referenceId: (rule.userId as UserDocument).email,
           });
         }

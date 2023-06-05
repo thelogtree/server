@@ -148,23 +148,20 @@ export const CustomerSupportAssistantBotService = {
               recentSupportLog.content
             );
           } catch (e: any) {
-            MyLogtree.sendLog({
-              content: getErrorMessage(e),
-              folderPath: "/errors",
+            MyLogtree.sendErrorLog({
+              error: e,
               additionalContext: {
+                organizationSlug: organization.slug,
                 integrationId: integration._id.toString(),
-                wasInside: true,
               },
             });
           }
         }
       } catch (e: any) {
-        MyLogtree.sendLog({
-          content: getErrorMessage(e),
-          folderPath: "/errors",
+        MyLogtree.sendErrorLog({
+          error: e,
           additionalContext: {
             integrationId: integration._id.toString(),
-            wasInside: false,
           },
         });
       }
