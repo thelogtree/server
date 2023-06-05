@@ -273,7 +273,9 @@ export const StatsService = {
       const contentKey = isByReferenceId
         ? logArr[0].referenceId
         : logArr[0].content;
-      sumArr.push({ contentKey, count: logArr.length });
+      if (contentKey) {
+        sumArr.push({ contentKey, count: logArr.length });
+      }
     });
 
     // order the sums in descending order
@@ -316,7 +318,7 @@ export const StatsService = {
       groupedLogs = sumsOrderedArrObj.groupedLogs;
     }
 
-    if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 2) {
+    if (sumsOrderedArr.length <= 1 || sumsOrderedArr[1].count <= 1) {
       // don't return histograms for this type of data since it is likely not meant to be shown as a histogram (i.e. all the logs are unique)
       return {
         histograms: [],
