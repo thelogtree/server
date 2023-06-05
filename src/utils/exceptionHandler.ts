@@ -18,7 +18,14 @@ export const exceptionHandler = (error, req, res, _next) => {
       if (
         !Object.values(ErrorMessages).includes(getErrorMessage(error as any))
       ) {
-        MyLogtree.sendErrorLog(error, req);
+        MyLogtree.sendErrorLog({
+          error,
+          req,
+          referenceId: user?.email,
+          additionalContext: {
+            organizationSlug: organization?.slug,
+          },
+        });
       }
     } catch {}
     console.error(error);
