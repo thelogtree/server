@@ -22,12 +22,13 @@ import _ from "lodash";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
-    const { organizationName, email, password } = req.body;
+    const { organizationName, email, password, promoCode } = req.body;
 
     await OrganizationService.createAccountAndOrganization(
       organizationName,
       email,
-      password
+      password,
+      promoCode
     );
 
     void MyLogtree.sendLog({

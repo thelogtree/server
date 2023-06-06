@@ -30,6 +30,8 @@ import { FolderService } from "./ApiService/lib/FolderService";
 import { UsageService } from "./ApiService/lib/UsageService";
 import { SecureIntegrationService } from "src/services/integrations/index";
 import { SendgridUtil } from "src/utils/sendgrid";
+import { AvailablePromoCodes } from "src/utils/promoCodes";
+import { MyLogtree } from "src/utils/logger";
 
 export const TRIAL_LOG_LIMIT = 20000;
 
@@ -37,15 +39,23 @@ export const OrganizationService = {
   createAccountAndOrganization: async (
     organizationName: string,
     email: string,
-    password: string
+    password: string,
+    promoCode?: string
   ) => {
     const existingUser = await User.exists({ email });
     if (existingUser) {
       throw new ApiError("An account with this email already exists.");
     }
 
+    const lowercasePromoCode = promoCode?.toLowerCase();
+    const promoLogLimit = AvailablePromoCodes[lowercasePromoCode || ""];
+    if (lowercasePromoCode && !promoLogLimit) {
+      throw new ApiError(`The promo code ${promoCode} is not valid.`);
+    }
+
     const { organization } = await OrganizationService.createOrganization(
-      organizationName
+      organizationName,
+      promoLogLimit
     );
     const invitation = await OrgInvitation.findOne({
       organizationId: organization._id,
@@ -59,6 +69,17 @@ export const OrganizationService = {
       password
     );
 
+    if (promoCode && promoLogLimit) {
+      void MyLogtree.sendLog({
+        content: `Applied promo code ${promoCode} to get ${promoLogLimit} free logs per month.`,
+        folderPath: "/promo-codes",
+        additionalContext: {
+          organizationName: organizationName,
+        },
+        referenceId: email,
+      });
+    }
+
     try {
       await SendgridUtil.sendEmail({
         to: email,
@@ -71,7 +92,8 @@ export const OrganizationService = {
     } catch {}
   },
   createOrganization: async (
-    name: string
+    name: string,
+    overrideLogLimit?: number
   ): Promise<{
     organization: OrganizationDocument;
     firstInvitationUrl: string;
@@ -90,7 +112,7 @@ export const OrganizationService = {
       keys: {
         publishableApiKey,
       },
-      logLimitForPeriod: TRIAL_LOG_LIMIT,
+      logLimitForPeriod: overrideLogLimit || TRIAL_LOG_LIMIT,
       cycleStarts,
       cycleEnds,
     });
