@@ -457,6 +457,9 @@ export const OrganizationService = {
       const funnels = await OrganizationService.getFunnels(
         organization._id.toString()
       );
+      if (!funnels.length) {
+        return;
+      }
       const allFunnelFolderPaths = _.flatten(
         funnels.map((funnel) => funnel.folderPathsInOrder)
       );
