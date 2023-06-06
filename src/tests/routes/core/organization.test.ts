@@ -2851,6 +2851,25 @@ describe("CreateFunnel", () => {
     expect(funnel.forwardToChannelPath).toBe(forwardToChannelPath);
     expect(funnel.organizationId.toString()).toBe(organization.id);
   });
+  it("fails to create a funnel with only 1 folderPath", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo"];
+    const forwardToChannelPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Please provide at least 2 folderPaths in your funnel."
+    );
+  });
   it("fails to create a funnel because the channel getting forwarded to is not a valid path", async () => {
     const organization = await OrganizationFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });

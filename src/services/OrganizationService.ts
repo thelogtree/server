@@ -33,6 +33,7 @@ import { SendgridUtil } from "src/utils/sendgrid";
 import { AvailablePromoCodes } from "src/utils/promoCodes";
 import { MyLogtree } from "src/utils/logger";
 import { Funnel } from "src/models/Funnel";
+import _ from "lodash";
 
 export const TRIAL_LOG_LIMIT = 20000;
 
@@ -165,6 +166,12 @@ export const OrganizationService = {
     folderPathsInOrder: string[],
     forwardToChannelPath: string
   ) => {
+    if (folderPathsInOrder.length < 2) {
+      throw new ApiError(
+        "Please provide at least 2 folderPaths in your funnel."
+      );
+    }
+
     FolderService.validateFolderPath(forwardToChannelPath);
 
     for (const folderPath of folderPathsInOrder) {
@@ -439,5 +446,105 @@ export const OrganizationService = {
     }
 
     return Integration.findByIdAndUpdate(integrationId, fields, { new: true });
+  },
+  evaluateFunnels: async (
+    organization: OrganizationDocument,
+    folderPath: string,
+    referenceIdOfNewLog: string,
+    idOfNewLog: string
+  ) => {
+    try {
+      const funnels = await OrganizationService.getFunnels(
+        organization._id.toString()
+      );
+      const allFunnelFolderPaths = _.flatten(
+        funnels.map((funnel) => funnel.folderPathsInOrder)
+      );
+      const allFunnelFolders = await Folder.find(
+        {
+          organizationId: organization._id.toString(),
+          fullPath: { $in: allFunnelFolderPaths },
+        },
+        { _id: 1, fullPath: 1 }
+      )
+        .lean()
+        .exec();
+
+      await Promise.all(
+        funnels.map(async (funnel) => {
+          const folderPathsInFunnel = funnel.folderPathsInOrder;
+          const lastFolderPathInFunnel = _.last(folderPathsInFunnel);
+          if (lastFolderPathInFunnel !== folderPath) {
+            // no chance this funnel was completed just now, so skip.
+            return;
+          }
+
+          // start from the end
+          for (let i = folderPathsInFunnel.length - 1; i >= 0; i--) {
+            const isTheEnd = i === folderPathsInFunnel.length - 1;
+            const folderPathTemp = folderPathsInFunnel[i];
+            const folderIdAndPath = allFunnelFolders.find(
+              (folder) => folderPathTemp === folder.fullPath
+            );
+            if (!folderIdAndPath || (!folderPathTemp && !isTheEnd)) {
+              return null;
+            }
+            if (isTheEnd) {
+              // looking at the last one, make sure there is no log with this reference ID in that folder yet.
+              // this is why we evaluate the funnel before creating the log.
+              // if there is already a log with this reference ID then stop early because the funnel was already completed.
+              const logExists = await Log.exists({
+                referenceId: referenceIdOfNewLog,
+                folderId: folderIdAndPath._id,
+                organizationId: organization._id.toString(),
+                _id: { $ne: idOfNewLog },
+              });
+              if (logExists) {
+                return;
+              }
+            } else {
+              // if it is not the end, we need to see if the folder includes the reference ID (it should)
+              // if it doesn't, stop early because funnel did not reach at least one step.
+              const logExists = await Log.exists({
+                referenceId: referenceIdOfNewLog,
+                folderId: folderIdAndPath._id,
+                organizationId: organization._id.toString(),
+              });
+              if (!logExists) {
+                return;
+              }
+            }
+          }
+
+          // cleaning up a good description for the funnel log we're about to make
+          let folderPathFunnelDescription = "";
+          folderPathsInFunnel.forEach((folderPathTemp) => {
+            if (folderPathsInFunnel) {
+              folderPathFunnelDescription += " to ";
+            }
+            folderPathFunnelDescription += folderPathTemp;
+          });
+
+          // funnel completed successfully for the first time
+          await ApiService.createLog(
+            organization,
+            folderPath,
+            `${referenceIdOfNewLog} completed funnel for the first-time from ${folderPathFunnelDescription}.`,
+            referenceIdOfNewLog,
+            undefined,
+            undefined,
+            true
+          );
+        })
+      );
+    } catch (e: any) {
+      MyLogtree.sendErrorLog({
+        error: e,
+        additionalContext: {
+          organizationId: organization._id.toString(),
+          folderPath,
+        },
+      });
+    }
   },
 };
