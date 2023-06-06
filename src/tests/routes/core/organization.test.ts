@@ -2932,3 +2932,39 @@ describe("DeleteFunnel", () => {
     expect(funnelExists).toBeTruthy();
   });
 });
+
+describe("GetFunnels", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly gets the funnels for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const funnel1 = await FunnelFactory.create({
+      organizationId: organization._id,
+    });
+    const funnel2 = await FunnelFactory.create({
+      organizationId: organization._id,
+    });
+
+    // decoy
+    await FunnelFactory.create({});
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnels`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { funnels } = res.body;
+
+    expect(funnels.length).toBe(2);
+    expect(funnels[0]._id.toString()).toBe(funnel2.id);
+    expect(funnels[1]._id.toString()).toBe(funnel1.id);
+  });
+});

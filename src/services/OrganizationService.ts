@@ -192,6 +192,13 @@ export const OrganizationService = {
 
     await Funnel.deleteOne({ _id: funnelId });
   },
+  getFunnels: (organizationId: string) =>
+    Funnel.find({
+      organizationId,
+    })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec(),
   createNewUser: async (
     organizationId: string | ObjectId,
     invitationId: string | ObjectId,

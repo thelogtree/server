@@ -441,6 +441,13 @@ export const OrganizationController = {
     );
     res.send({ integrations });
   },
+  getFunnels: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const funnels = await OrganizationService.getFunnels(
+      organization._id.toString()
+    );
+    res.send({ funnels });
+  },
   deleteIntegration: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
     const { integrationId } = req.body;

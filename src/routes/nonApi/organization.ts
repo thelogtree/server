@@ -80,6 +80,11 @@ router.get(
   OrganizationController.getIntegrations
 );
 router.get(
+  "/:id/funnels",
+  auth.requiredOrgMember,
+  OrganizationController.getFunnels
+);
+router.get(
   "/:id/connectable-integrations",
   auth.requiredOrgMember,
   OrganizationController.getConnectableIntegrations
