@@ -1,5 +1,4 @@
 import Joi from "joi";
-import { comparisonTypeEnum } from "logtree-types";
 import { objectId } from "src/utils/joiFieldValidators";
 
 export const OrganizationSchemas = {
