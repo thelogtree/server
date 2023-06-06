@@ -115,4 +115,8 @@ export const OrganizationSchemas = {
   createNewEmptyFolder: Joi.object({
     folderPath: Joi.string().required(),
   }),
+  createFunnel: Joi.object({
+    folderPathsInOrder: Joi.array().required(),
+    forwardToChannelPath: Joi.string().required(),
+  }),
 };

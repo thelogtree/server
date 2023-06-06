@@ -131,6 +131,27 @@ export const OrganizationController = {
 
     res.send({ logs });
   },
+  createFunnel: async (req: Request, res: Response) => {
+    const user = req["user"];
+    const organization = req["organization"];
+    const { folderPathsInOrder, forwardToChannelPath } = req.body;
+
+    const funnel = await OrganizationService.createFunnel(
+      organization._id,
+      folderPathsInOrder,
+      forwardToChannelPath
+    );
+
+    LoggerHelpers.recordCreatedFunnel(
+      req,
+      user,
+      organization,
+      forwardToChannelPath,
+      JSON.stringify(folderPathsInOrder)
+    );
+
+    res.send({ funnel });
+  },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;
     const { organization, firstInvitationUrl } =

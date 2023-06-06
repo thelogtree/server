@@ -32,6 +32,7 @@ import { SecureIntegrationService } from "src/services/integrations/index";
 import { SendgridUtil } from "src/utils/sendgrid";
 import { AvailablePromoCodes } from "src/utils/promoCodes";
 import { MyLogtree } from "src/utils/logger";
+import { Funnel } from "src/models/Funnel";
 
 export const TRIAL_LOG_LIMIT = 20000;
 
@@ -158,6 +159,27 @@ export const OrganizationService = {
     return `${
       config.baseUrl
     }/invite/${organizationSlug}/${invite._id.toString()}`;
+  },
+  createFunnel: async (
+    organizationId: string | ObjectId,
+    folderPathsInOrder: string[],
+    forwardToChannelPath: string
+  ) => {
+    FolderService.validateFolderPath(forwardToChannelPath);
+
+    for (const folderPath of folderPathsInOrder) {
+      try {
+        FolderService.validateFolderPath(folderPath);
+      } catch (e) {
+        throw new Error(`The folder path of ${folderPath} is invalid.`);
+      }
+    }
+
+    return Funnel.create({
+      organizationId,
+      folderPathsInOrder,
+      forwardToChannelPath,
+    });
   },
   createNewUser: async (
     organizationId: string | ObjectId,

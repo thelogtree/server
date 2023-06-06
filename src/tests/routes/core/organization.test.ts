@@ -2820,3 +2820,65 @@ describe("CreateNewEmptyFolder", () => {
     expect(numFoldersInOrg).toBe(1);
   });
 });
+
+describe("CreateFunnel", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly creates a funnel", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo", "/hello"];
+    const forwardToChannelPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { funnel } = res.body;
+    expect(funnel.folderPathsInOrder).toEqual(
+      expect.arrayContaining(folderPathsInOrder)
+    );
+    expect(funnel.forwardToChannelPath).toBe(forwardToChannelPath);
+    expect(funnel.organizationId.toString()).toBe(organization.id);
+  });
+  it("fails to create a funnel because the channel getting forwarded to is not a valid path", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo", "/hello"];
+    const forwardToChannelPath = "hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Your folderPath must begin with a /");
+  });
+  it("fails to create a funnel because one of the funnel channels is not a valid path", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo", "/he llo"];
+    const forwardToChannelPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "The folder path of /he llo is invalid.");
+  });
+});

@@ -16,7 +16,7 @@ const FunnelSchema = new Schema(
       ref: DatabaseModelNames.Organization,
       required: true,
     },
-    folderIdsInOrder: { type: Array, default: [] },
+    folderPathsInOrder: { type: Array, default: [] },
     forwardToChannelPath: { type: String, required: true },
   },
   { timestamps: true }

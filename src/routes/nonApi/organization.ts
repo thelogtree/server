@@ -17,14 +17,6 @@ const router = expressRouter();
 //   OrganizationController.createOrganization
 // );
 
-router.post(
-  "/new",
-  rateLimiterP1,
-  validateRequestAgainstSchemas({
-    bodySchema: OrganizationSchemas.createAccountAndOrganization,
-  }),
-  OrganizationController.createAccountAndOrganization
-);
 router.get(
   "/invitation",
   validateRequestAgainstSchemas({
@@ -143,6 +135,14 @@ router.put(
 );
 
 router.post(
+  "/new",
+  rateLimiterP1,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createAccountAndOrganization,
+  }),
+  OrganizationController.createAccountAndOrganization
+);
+router.post(
   "/:id/user",
   rateLimiterP1,
   validateRequestAgainstSchemas({
@@ -183,6 +183,14 @@ router.post(
     bodySchema: OrganizationSchemas.searchForLogs,
   }),
   OrganizationController.searchForLogs
+);
+router.post(
+  "/:id/funnel",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createFunnel,
+  }),
+  OrganizationController.createFunnel
 );
 router.post(
   "/:id/favorite-folder",
