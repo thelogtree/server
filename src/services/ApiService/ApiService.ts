@@ -23,6 +23,14 @@ export const ApiService = {
         organization._id.toString(),
         folderPath
       );
+
+    // make sure we don't overflow the context and make a massive mongo document
+    if (additionalContext && JSON.stringify(additionalContext).length > 2200) {
+      additionalContext = new Map();
+      additionalContext["logtree_message"] =
+        "context was not recorded because it was too long.";
+    }
+
     const log = await LogService.createLog(
       organization._id.toString(),
       folderIdForThisLog,
