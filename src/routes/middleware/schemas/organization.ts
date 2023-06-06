@@ -119,4 +119,7 @@ export const OrganizationSchemas = {
     folderPathsInOrder: Joi.array().required(),
     forwardToChannelPath: Joi.string().required(),
   }),
+  deleteFunnel: Joi.object({
+    funnelId: Joi.string().custom(objectId).required(),
+  }),
 };

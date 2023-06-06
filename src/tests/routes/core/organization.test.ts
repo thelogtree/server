@@ -44,6 +44,8 @@ import { integrationsAvailableToConnectTo } from "src/services/integrations/lib"
 import { OAuthRequestFactory } from "src/tests/factories/OAuthRequestFactory";
 import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
+import { FunnelFactory } from "src/tests/factories/FunnelFactory";
+import { Funnel } from "src/models/Funnel";
 
 const routeUrl = "/organization";
 
@@ -2880,5 +2882,53 @@ describe("CreateFunnel", () => {
       user.firebaseId
     );
     TestHelper.expectError(res, "The folder path of /he llo is invalid.");
+  });
+});
+
+describe("DeleteFunnel", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly deletes a funnel", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const funnel = await FunnelFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-funnel`,
+      "POST",
+      { funnelId: funnel._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const funnelExists = await Funnel.exists({ _id: funnel._id });
+    expect(funnelExists).toBeFalsy();
+  });
+  it("fails to delete a funnel from another organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const funnel = await FunnelFactory.create({});
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-funnel`,
+      "POST",
+      { funnelId: funnel._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No funnel with this ID exists for this organization."
+    );
+
+    const funnelExists = await Funnel.exists({ _id: funnel._id });
+    expect(funnelExists).toBeTruthy();
   });
 });

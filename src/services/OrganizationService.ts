@@ -181,6 +181,17 @@ export const OrganizationService = {
       forwardToChannelPath,
     });
   },
+  deleteFunnel: async (organizationId: string, funnelId: string) => {
+    const funnelExists = await Funnel.exists({ _id: funnelId, organizationId });
+
+    if (!funnelExists) {
+      throw new ApiError(
+        "No funnel with this ID exists for this organization."
+      );
+    }
+
+    await Funnel.deleteOne({ _id: funnelId });
+  },
   createNewUser: async (
     organizationId: string | ObjectId,
     invitationId: string | ObjectId,

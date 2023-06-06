@@ -265,6 +265,14 @@ router.post(
   OrganizationController.deleteIntegration
 );
 router.post(
+  "/:id/delete-funnel",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteFunnel,
+  }),
+  OrganizationController.deleteFunnel
+);
+router.post(
   "/waitlist",
   rateLimiterP1,
   validateRequestAgainstSchemas({

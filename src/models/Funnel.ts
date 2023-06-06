@@ -1,10 +1,4 @@
-import {
-  comparisonTypeEnum,
-  FunnelDocument,
-  LogDocument,
-  notificationTypeEnum,
-  RuleDocument,
-} from "logtree-types";
+import { FunnelDocument, RuleDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Model, model, Schema } from "mongoose";
 import { DatabaseModelNames } from "src/utils/databaseModelNames";

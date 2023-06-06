@@ -152,6 +152,17 @@ export const OrganizationController = {
 
     res.send({ funnel });
   },
+  deleteFunnel: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const { funnelId } = req.body;
+
+    await OrganizationService.deleteFunnel(
+      organization._id.toString(),
+      funnelId
+    );
+
+    res.send({});
+  },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;
     const { organization, firstInvitationUrl } =
