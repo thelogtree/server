@@ -42,7 +42,7 @@ export const FolderService = {
     parentFolderId: string | null,
     lastCheckedFolders: LastCheckedFolderDocument[],
     folderPreferences: FolderPreferenceDocument[],
-    userId: string | ObjectId
+    user: UserDocument
   ): TreeRepresentation[] {
     let tree: any[] = [];
     for (let folder of allFolders) {
@@ -52,7 +52,7 @@ export const FolderService = {
           folder._id.toString(),
           lastCheckedFolders,
           folderPreferences,
-          userId
+          user
         );
         if (children.length) {
           folder.children = children;
@@ -62,7 +62,8 @@ export const FolderService = {
 
         const hasUnreadLogs = FolderService.getDoesFolderHaveUnreadLogs(
           lastCheckedFolders,
-          folder
+          folder,
+          user
         );
         folder.hasUnreadLogs = hasUnreadLogs;
 
@@ -89,7 +90,7 @@ export const FolderService = {
   },
   getFolders: async (
     organizationId: ObjectId,
-    userId: ObjectId
+    user: UserDocument
   ): Promise<TreeRepresentation[]> => {
     // returns a matrix-like representation of the folders for this organization
     const [allFoldersInOrg, lastCheckedFolders, folderPreferences] =
@@ -98,11 +99,11 @@ export const FolderService = {
           .sort({ createdAt: 1 })
           .lean()
           .exec() as Promise<FolderDocument[]>,
-        LastCheckedFolder.find({ userId })
+        LastCheckedFolder.find({ userId: user._id })
           .sort({ createdAt: -1 })
           .lean()
           .exec() as Promise<LastCheckedFolderDocument[]>,
-        FolderPreference.find({ userId })
+        FolderPreference.find({ userId: user._id })
           .sort({ createdAt: -1 })
           .lean()
           .exec() as Promise<FolderPreferenceDocument[]>,
@@ -113,7 +114,7 @@ export const FolderService = {
       null,
       lastCheckedFolders,
       folderPreferences,
-      userId
+      user
     );
   },
   findOrCreateNewFolderId: async (
@@ -249,17 +250,24 @@ export const FolderService = {
   },
   getDoesFolderHaveUnreadLogs: (
     lastCheckedFoldersForUser: LastCheckedFolderDocument[], // should already be in descending date order (so the newest document is at index 0)
-    folder: FolderDocument
+    folder: FolderDocument,
+    user: UserDocument
   ) => {
+    const dateOfLastLogInFolder = folder.dateOfMostRecentLog;
     const lastCheckedThisFolder = lastCheckedFoldersForUser.find(
       (lastCheckedFolder) => lastCheckedFolder.fullPath === folder.fullPath
     );
-    if (!lastCheckedThisFolder) {
+    if (
+      !lastCheckedThisFolder &&
+      dateOfLastLogInFolder &&
+      folder.createdAt > user.createdAt
+    ) {
+      return true;
+    } else if (!lastCheckedThisFolder) {
       return false;
     }
 
     const dateLastCheckedFolder = lastCheckedThisFolder.createdAt;
-    const dateOfLastLogInFolder = folder.dateOfMostRecentLog;
 
     return (
       !!dateOfLastLogInFolder &&

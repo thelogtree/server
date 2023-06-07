@@ -56,7 +56,7 @@ export const OrganizationController = {
   getFolders: async (req: Request, res: Response) => {
     const organization = req["organization"];
     const user = req["user"];
-    const folders = await FolderService.getFolders(organization._id, user._id);
+    const folders = await FolderService.getFolders(organization._id, user);
     res.send({ folders });
   },
   getLogs: async (req: Request, res: Response) => {
