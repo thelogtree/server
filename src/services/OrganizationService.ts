@@ -451,10 +451,11 @@ export const OrganizationService = {
     organization: OrganizationDocument,
     folderPath: string,
     referenceIdOfNewLog: string,
-    idOfNewLog: string
+    idOfNewLog: string,
+    dateLogCreated: Date
   ) => {
     try {
-      let dateOfLastLogInPreviousStep = new Date();
+      let dateOfLastLogInPreviousStep = dateLogCreated;
       const funnels = await OrganizationService.getFunnels(
         organization._id.toString()
       );
