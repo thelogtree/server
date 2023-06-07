@@ -51,7 +51,7 @@ export const ApiService = {
       await UsageService.recordNewLog(organization);
     }
 
-    if (referenceId) {
+    if (referenceId && organization.slug === "/internal" && referenceId === "andy@logtree.co") {
       void OrganizationService.evaluateFunnels(
         organization,
         folderPath,
