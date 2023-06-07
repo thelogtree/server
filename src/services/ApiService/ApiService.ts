@@ -6,6 +6,7 @@ import { Folder } from "src/models/Folder";
 import { ApiError } from "src/utils/errors";
 import { Log } from "src/models/Log";
 import { SlackLib } from "src/utils/Slack";
+import { OrganizationService } from "../OrganizationService";
 
 export const ApiService = {
   createLog: async (
@@ -49,6 +50,16 @@ export const ApiService = {
     if (shouldCharge) {
       await UsageService.recordNewLog(organization);
     }
+
+    if (referenceId && organization.slug === "/internal" && referenceId === "andy@logtree.co") {
+      void OrganizationService.evaluateFunnels(
+        organization,
+        folderPath,
+        referenceId,
+        log._id.toString()
+      );
+    }
+
     return log;
   },
   getLogs: async (

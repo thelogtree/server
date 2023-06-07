@@ -17,14 +17,6 @@ const router = expressRouter();
 //   OrganizationController.createOrganization
 // );
 
-router.post(
-  "/new",
-  rateLimiterP1,
-  validateRequestAgainstSchemas({
-    bodySchema: OrganizationSchemas.createAccountAndOrganization,
-  }),
-  OrganizationController.createAccountAndOrganization
-);
 router.get(
   "/invitation",
   validateRequestAgainstSchemas({
@@ -88,6 +80,11 @@ router.get(
   OrganizationController.getIntegrations
 );
 router.get(
+  "/:id/funnels",
+  auth.requiredOrgMember,
+  OrganizationController.getFunnels
+);
+router.get(
   "/:id/connectable-integrations",
   auth.requiredOrgMember,
   OrganizationController.getConnectableIntegrations
@@ -143,6 +140,14 @@ router.put(
 );
 
 router.post(
+  "/new",
+  rateLimiterP1,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createAccountAndOrganization,
+  }),
+  OrganizationController.createAccountAndOrganization
+);
+router.post(
   "/:id/user",
   rateLimiterP1,
   validateRequestAgainstSchemas({
@@ -183,6 +188,14 @@ router.post(
     bodySchema: OrganizationSchemas.searchForLogs,
   }),
   OrganizationController.searchForLogs
+);
+router.post(
+  "/:id/funnel",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createFunnel,
+  }),
+  OrganizationController.createFunnel
 );
 router.post(
   "/:id/favorite-folder",
@@ -255,6 +268,14 @@ router.post(
     bodySchema: OrganizationSchemas.deleteIntegration,
   }),
   OrganizationController.deleteIntegration
+);
+router.post(
+  "/:id/delete-funnel",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteFunnel,
+  }),
+  OrganizationController.deleteFunnel
 );
 router.post(
   "/waitlist",

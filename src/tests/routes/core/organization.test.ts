@@ -44,6 +44,8 @@ import { integrationsAvailableToConnectTo } from "src/services/integrations/lib"
 import { OAuthRequestFactory } from "src/tests/factories/OAuthRequestFactory";
 import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
+import { FunnelFactory } from "src/tests/factories/FunnelFactory";
+import { Funnel } from "src/models/Funnel";
 
 const routeUrl = "/organization";
 
@@ -2818,5 +2820,170 @@ describe("CreateNewEmptyFolder", () => {
       organizationId: organization._id,
     });
     expect(numFoldersInOrg).toBe(1);
+  });
+});
+
+describe("CreateFunnel", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly creates a funnel", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo", "/hello"];
+    const forwardToChannelPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { funnel } = res.body;
+    expect(funnel.folderPathsInOrder).toEqual(
+      expect.arrayContaining(folderPathsInOrder)
+    );
+    expect(funnel.forwardToChannelPath).toBe(forwardToChannelPath);
+    expect(funnel.organizationId.toString()).toBe(organization.id);
+  });
+  it("fails to create a funnel with only 1 folderPath", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo"];
+    const forwardToChannelPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "Please provide at least 2 folderPaths in your funnel."
+    );
+  });
+  it("fails to create a funnel because the channel getting forwarded to is not a valid path", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo", "/hello"];
+    const forwardToChannelPath = "hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "Your folderPath must begin with a /");
+  });
+  it("fails to create a funnel because one of the funnel channels is not a valid path", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const folderPathsInOrder = ["/yolo", "/he llo"];
+    const forwardToChannelPath = "/hello/sup";
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnel`,
+      "POST",
+      { folderPathsInOrder, forwardToChannelPath },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(res, "The folder path of /he llo is invalid.");
+  });
+});
+
+describe("DeleteFunnel", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly deletes a funnel", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const funnel = await FunnelFactory.create({
+      organizationId: organization._id,
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-funnel`,
+      "POST",
+      { funnelId: funnel._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const funnelExists = await Funnel.exists({ _id: funnel._id });
+    expect(funnelExists).toBeFalsy();
+  });
+  it("fails to delete a funnel from another organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const funnel = await FunnelFactory.create({});
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-funnel`,
+      "POST",
+      { funnelId: funnel._id },
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No funnel with this ID exists for this organization."
+    );
+
+    const funnelExists = await Funnel.exists({ _id: funnel._id });
+    expect(funnelExists).toBeTruthy();
+  });
+});
+
+describe("GetFunnels", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly gets the funnels for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const funnel1 = await FunnelFactory.create({
+      organizationId: organization._id,
+    });
+    const funnel2 = await FunnelFactory.create({
+      organizationId: organization._id,
+    });
+
+    // decoy
+    await FunnelFactory.create({});
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/funnels`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { funnels } = res.body;
+
+    expect(funnels.length).toBe(2);
+    expect(funnels[0]._id.toString()).toBe(funnel2.id);
+    expect(funnels[1]._id.toString()).toBe(funnel1.id);
   });
 });
