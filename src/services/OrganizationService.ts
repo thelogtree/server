@@ -459,6 +459,7 @@ export const OrganizationService = {
       const funnels = await OrganizationService.getFunnels(
         organization._id.toString()
       );
+      MyLogtree.sendDebugLog(`Got ${funnels.length} funnels`);
       if (!funnels.length) {
         return;
       }
@@ -471,6 +472,10 @@ export const OrganizationService = {
           funnelsThatCouldBeCompleted.push(funnel);
         }
       }
+
+      MyLogtree.sendDebugLog(
+        `Got ${funnelsThatCouldBeCompleted.length} funnels that could be completed`
+      );
 
       // no funnels will be completed so stop early
       if (!funnelsThatCouldBeCompleted.length) {
@@ -491,14 +496,11 @@ export const OrganizationService = {
         .lean()
         .exec();
 
+      MyLogtree.sendDebugLog(`Got ${allFunnelFolders.length} funnel folders`);
+
       await Promise.all(
         funnels.map(async (funnel) => {
           const folderPathsInFunnel = funnel.folderPathsInOrder;
-          const lastFolderPathInFunnel = _.last(folderPathsInFunnel);
-          if (lastFolderPathInFunnel !== folderPath) {
-            // no chance this funnel was completed just now, so skip.
-            return;
-          }
 
           // start from the end
           for (let i = folderPathsInFunnel.length - 1; i >= 0; i--) {
@@ -506,6 +508,9 @@ export const OrganizationService = {
             const folderPathTemp = folderPathsInFunnel[i];
             const folderIdAndPath = allFunnelFolders.find(
               (folder) => folderPathTemp === folder.fullPath
+            );
+            MyLogtree.sendDebugLog(
+              `${JSON.stringify(folderIdAndPath)} and ${isTheEnd}`
             );
             if (!folderIdAndPath || (!folderPathTemp && !isTheEnd)) {
               return null;
@@ -521,6 +526,7 @@ export const OrganizationService = {
                 _id: { $ne: idOfNewLog },
                 createdAt: { $gt: funnel.createdAt },
               });
+              MyLogtree.sendDebugLog(`End log exists: ${!!logExists}`);
               if (logExists) {
                 return;
               }
@@ -542,7 +548,7 @@ export const OrganizationService = {
                 .lean()
                 .exec();
               const logExists = logExistsArr[0];
-
+              MyLogtree.sendDebugLog(`Next log exists: ${!!logExists}`);
               if (!logExists) {
                 return;
               }
@@ -562,6 +568,7 @@ export const OrganizationService = {
           });
 
           // funnel completed successfully for the first time
+          MyLogtree.sendDebugLog(`Sending final funnel log`);
           await ApiService.createLog(
             organization,
             funnel.forwardToChannelPath,
