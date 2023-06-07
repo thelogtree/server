@@ -454,6 +454,7 @@ export const OrganizationService = {
     idOfNewLog: string
   ) => {
     try {
+      let dateOfLastLogInPreviousStep = new Date();
       const funnels = await OrganizationService.getFunnels(
         organization._id.toString()
       );
@@ -508,14 +509,26 @@ export const OrganizationService = {
             } else {
               // if it is not the end, we need to see if the folder includes the reference ID (it should)
               // if it doesn't, stop early because funnel did not reach at least one step.
-              const logExists = await Log.exists({
-                referenceId: referenceIdOfNewLog,
-                folderId: folderIdAndPath._id,
-                organizationId: organization._id.toString(),
-              });
+              const logExistsArr = await Log.find(
+                {
+                  referenceId: referenceIdOfNewLog,
+                  folderId: folderIdAndPath._id,
+                  organizationId: organization._id.toString(),
+                  createdAt: { $lte: dateOfLastLogInPreviousStep },
+                },
+                { createdAt: 1, _id: 0 }
+              )
+                .sort({ createdAt: -1 })
+                .lean()
+                .exec();
+              const logExists = logExistsArr[0];
+
               if (!logExists) {
                 return;
               }
+
+              // ensures the steps were executed in order
+              dateOfLastLogInPreviousStep = logExists.createdAt;
             }
           }
 
