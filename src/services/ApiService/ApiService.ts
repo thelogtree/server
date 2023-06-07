@@ -53,7 +53,7 @@ export const ApiService = {
 
     if (
       referenceId &&
-      organization.slug === "/internal" &&
+      organization.slug === "internal" &&
       referenceId === "andy@logtree.co"
     ) {
       void OrganizationService.evaluateFunnels(
