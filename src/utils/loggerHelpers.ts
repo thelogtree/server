@@ -108,4 +108,20 @@ export const LoggerHelpers = {
       req,
     });
   },
+  recordCreatedFunnel: async (
+    req: Request,
+    user: UserDocument,
+    organization: OrganizationDocument,
+    forwardLogsToChannel: string,
+    channelsForwardingFrom: string
+  ) =>
+    MyLogtree.sendLog({
+      content: `Created funnel to go to: ${forwardLogsToChannel}`,
+      folderPath: `/funnels/${organization?.slug}`,
+      referenceId: user.email,
+      req,
+      additionalContext: {
+        folderPathsInFunnel: channelsForwardingFrom,
+      },
+    }),
 };

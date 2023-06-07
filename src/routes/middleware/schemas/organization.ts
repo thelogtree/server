@@ -1,5 +1,4 @@
 import Joi from "joi";
-import { comparisonTypeEnum } from "logtree-types";
 import { objectId } from "src/utils/joiFieldValidators";
 
 export const OrganizationSchemas = {
@@ -115,5 +114,12 @@ export const OrganizationSchemas = {
   }),
   createNewEmptyFolder: Joi.object({
     folderPath: Joi.string().required(),
+  }),
+  createFunnel: Joi.object({
+    folderPathsInOrder: Joi.array().required(),
+    forwardToChannelPath: Joi.string().required(),
+  }),
+  deleteFunnel: Joi.object({
+    funnelId: Joi.string().custom(objectId).required(),
   }),
 };

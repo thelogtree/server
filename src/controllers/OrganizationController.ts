@@ -131,6 +131,38 @@ export const OrganizationController = {
 
     res.send({ logs });
   },
+  createFunnel: async (req: Request, res: Response) => {
+    const user = req["user"];
+    const organization = req["organization"];
+    const { folderPathsInOrder, forwardToChannelPath } = req.body;
+
+    const funnel = await OrganizationService.createFunnel(
+      organization._id,
+      folderPathsInOrder,
+      forwardToChannelPath
+    );
+
+    LoggerHelpers.recordCreatedFunnel(
+      req,
+      user,
+      organization,
+      forwardToChannelPath,
+      JSON.stringify(folderPathsInOrder)
+    );
+
+    res.send({ funnel });
+  },
+  deleteFunnel: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const { funnelId } = req.body;
+
+    await OrganizationService.deleteFunnel(
+      organization._id.toString(),
+      funnelId
+    );
+
+    res.send({});
+  },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;
     const { organization, firstInvitationUrl } =
@@ -408,6 +440,13 @@ export const OrganizationController = {
       organization._id.toString()
     );
     res.send({ integrations });
+  },
+  getFunnels: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const funnels = await OrganizationService.getFunnels(
+      organization._id.toString()
+    );
+    res.send({ funnels });
   },
   deleteIntegration: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];

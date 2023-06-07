@@ -32,6 +32,8 @@ import { SecureIntegrationService } from "src/services/integrations/index";
 import { SendgridUtil } from "src/utils/sendgrid";
 import { AvailablePromoCodes } from "src/utils/promoCodes";
 import { MyLogtree } from "src/utils/logger";
+import { Funnel } from "src/models/Funnel";
+import _ from "lodash";
 
 export const TRIAL_LOG_LIMIT = 20000;
 
@@ -159,6 +161,51 @@ export const OrganizationService = {
       config.baseUrl
     }/invite/${organizationSlug}/${invite._id.toString()}`;
   },
+  createFunnel: async (
+    organizationId: string | ObjectId,
+    folderPathsInOrder: string[],
+    forwardToChannelPath: string
+  ) => {
+    if (folderPathsInOrder.length < 2) {
+      throw new ApiError(
+        "Please provide at least 2 folderPaths in your funnel."
+      );
+    }
+
+    FolderService.validateFolderPath(forwardToChannelPath);
+
+    for (const folderPath of folderPathsInOrder) {
+      try {
+        FolderService.validateFolderPath(folderPath);
+      } catch (e) {
+        throw new Error(`The folder path of ${folderPath} is invalid.`);
+      }
+    }
+
+    return Funnel.create({
+      organizationId,
+      folderPathsInOrder,
+      forwardToChannelPath,
+    });
+  },
+  deleteFunnel: async (organizationId: string, funnelId: string) => {
+    const funnelExists = await Funnel.exists({ _id: funnelId, organizationId });
+
+    if (!funnelExists) {
+      throw new ApiError(
+        "No funnel with this ID exists for this organization."
+      );
+    }
+
+    await Funnel.deleteOne({ _id: funnelId });
+  },
+  getFunnels: (organizationId: string) =>
+    Funnel.find({
+      organizationId,
+    })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec(),
   createNewUser: async (
     organizationId: string | ObjectId,
     invitationId: string | ObjectId,
