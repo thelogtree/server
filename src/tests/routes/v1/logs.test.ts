@@ -8,8 +8,16 @@ import { LogFactory } from "src/tests/factories/LogFactory";
 import { MAX_NUM_CHARS_ALLOWED_IN_LOG } from "src/services/ApiService/lib/LogService";
 import { UsageService } from "src/services/ApiService/lib/UsageService";
 import { Organization } from "src/models/Organization";
-import { TRIAL_LOG_LIMIT } from "src/services/OrganizationService";
+import {
+  OrganizationService,
+  TRIAL_LOG_LIMIT,
+} from "src/services/OrganizationService";
 import { ErrorMessages } from "src/utils/errors";
+import { ApiService } from "src/services/ApiService/ApiService";
+import { fakePromise } from "src/tests/mockHelpers";
+import { jest } from "@jest/globals";
+import { FunnelFactory } from "src/tests/factories/FunnelFactory";
+import moment from "moment";
 
 const routeUrl = "/v1/logs";
 
@@ -610,5 +618,315 @@ describe("GetLogs", () => {
       ...TestHelper.extractApiKeys(organization)
     );
     TestHelper.expectError(res, "No folder with this folderPath was found.");
+  });
+});
+
+describe("evaluateFunnels", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly evaluates a funnel and triggers a log", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(5, "minutes").toDate(),
+    });
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(2, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(1);
+  });
+  it("correctly evaluates a funnel and does not trigger a log", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(5, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(0);
+  });
+  it("correctly evaluates a funnel and does not trigger a log (2nd test)", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(2, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(0);
+  });
+  it("correctly evaluates a funnel and does not trigger a log (3rd test)", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(5, "minutes").toDate(),
+    });
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId: "different",
+      createdAt: moment().subtract(2, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(0);
+  });
+  it("correctly evaluates a funnel and does not trigger a log (4th test)", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(0);
+  });
+  it("correctly evaluates a funnel and triggers a log despite starting at the end with a log", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(8, "minutes").toDate(),
+    });
+
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(5, "minutes").toDate(),
+    });
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(1);
+  });
+  it("correctly evaluates a funnel and does not trigger a log because the folder path is not at the end", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await FunnelFactory.create({
+      organizationId: organization._id,
+      folderPathsInOrder: [folder1.fullPath, folder2.fullPath],
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(5, "minutes").toDate(),
+    });
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder1.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(0);
+  });
+  it("correctly does nothing because the organization has no funnels", async () => {
+    const createLogSpy = jest
+      .spyOn(ApiService, "createLog")
+      .mockImplementation(fakePromise);
+
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+
+    const referenceId = "abcdef";
+
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(5, "minutes").toDate(),
+    });
+
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      referenceId,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    await OrganizationService.evaluateFunnels(
+      organization,
+      folder2.fullPath,
+      referenceId
+    );
+
+    expect(createLogSpy).toBeCalledTimes(0);
   });
 });

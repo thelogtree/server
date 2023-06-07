@@ -52,13 +52,12 @@ export const ApiService = {
       await UsageService.recordNewLog(organization);
     }
 
+    // must be called after the log is created
     if (referenceId) {
       void OrganizationService.evaluateFunnels(
         organization,
         folderPath,
-        referenceId,
-        log._id.toString(),
-        log.createdAt
+        referenceId
       );
     }
 

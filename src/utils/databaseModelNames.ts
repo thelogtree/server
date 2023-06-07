@@ -12,4 +12,5 @@ export enum DatabaseModelNames {
   OAuthRequest = "OAuthRequest",
   PendingSlackInstallation = "PendingSlackInstallation",
   Funnel = "Funnel",
+  FunnelCompletion = "FunnelCompletion",
 }

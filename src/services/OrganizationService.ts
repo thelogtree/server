@@ -34,6 +34,7 @@ import { AvailablePromoCodes } from "src/utils/promoCodes";
 import { MyLogtree } from "src/utils/logger";
 import { Funnel } from "src/models/Funnel";
 import _ from "lodash";
+import { FunnelCompletion } from "src/models/FunnelCompletion";
 
 export const TRIAL_LOG_LIMIT = 20000;
 
@@ -455,7 +456,7 @@ export const OrganizationService = {
     dateLogCreated: Date
   ) => {
     try {
-      let dateOfLastLogInPreviousStep = dateLogCreated;
+      let dateOfLogInPreviousStep;
       const funnels = await OrganizationService.getFunnels(
         organization._id.toString()
       );
@@ -493,59 +494,55 @@ export const OrganizationService = {
         .exec();
 
       await Promise.all(
-        funnels.map(async (funnel) => {
+        funnelsThatCouldBeCompleted.map(async (funnel) => {
+          const wasFunnelAlreadyCompletedForThisReferenceId =
+            await FunnelCompletion.exists({
+              funnelId: funnel._id,
+              referenceId: referenceIdOfNewLog,
+            });
+          if (wasFunnelAlreadyCompletedForThisReferenceId) {
+            // don't let a funnel get completed multiple times for the same reference ID
+            return;
+          }
+
           const folderPathsInFunnel = funnel.folderPathsInOrder;
 
-          // start from the end
-          for (let i = folderPathsInFunnel.length - 1; i >= 0; i--) {
-            const isTheEnd = i === folderPathsInFunnel.length - 1;
+          for (let i = 0; i < folderPathsInFunnel.length; i++) {
             const folderPathTemp = folderPathsInFunnel[i];
             const folderIdAndPath = allFunnelFolders.find(
               (folder) => folderPathTemp === folder.fullPath
             );
-            if (!folderIdAndPath || (!folderPathTemp && !isTheEnd)) {
-              return null;
+            if (!folderIdAndPath) {
+              return;
             }
-            if (isTheEnd) {
-              // looking at the last one, make sure there is no log with this reference ID in that folder yet.
-              // this is why we evaluate the funnel before creating the log.
-              // if there is already a log with this reference ID then stop early because the funnel was already completed.
-              const logExists = await Log.exists({
+
+            // we need to see if the folder includes the reference ID (it should)
+            // if it doesn't, stop early because funnel did not reach at least one of the steps it needed to.
+            const logExistsArr = await Log.find(
+              {
                 referenceId: referenceIdOfNewLog,
                 folderId: folderIdAndPath._id,
                 organizationId: organization._id,
-                _id: { $ne: idOfNewLog },
-                createdAt: { $gt: funnel.createdAt },
-              });
-              if (logExists) {
-                return;
-              }
-            } else {
-              // if it is not the end, we need to see if the folder includes the reference ID (it should)
-              // if it doesn't, stop early because funnel did not reach at least one step.
-              const logExistsArr = await Log.find(
-                {
-                  referenceId: referenceIdOfNewLog,
-                  folderId: folderIdAndPath._id,
-                  organizationId: organization._id,
+                ...(dateOfLogInPreviousStep && {
                   createdAt: {
-                    $lte: dateOfLastLogInPreviousStep,
+                    $gt: dateOfLogInPreviousStep,
                   },
-                },
-                { createdAt: 1, _id: 0 }
-              )
-                .sort({ createdAt: -1 })
-                .lean()
-                .exec();
-              const logExists = logExistsArr[0];
+                }),
+              },
+              { createdAt: 1, _id: 0 }
+            )
+              .sort({ createdAt: 1 })
+              .limit(1)
+              .lean()
+              .exec();
+            const logExists = logExistsArr[0];
 
-              if (!logExists) {
-                return;
-              }
-
-              // ensures the steps were executed in order
-              dateOfLastLogInPreviousStep = logExists.createdAt;
+            if (!logExists) {
+              return;
             }
+
+            // ensures the steps were executed in order
+            dateOfLogInPreviousStep = logExists.createdAt;
           }
 
           // cleaning up a good description for the funnel log we're about to make
