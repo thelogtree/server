@@ -450,7 +450,7 @@ export const OrganizationService = {
   },
   evaluateFunnels: async (
     organization: OrganizationDocument,
-    folderPath: string,
+    folderPath: string, // having this just saves some computation time
     referenceIdOfNewLog: string
   ) => {
     try {

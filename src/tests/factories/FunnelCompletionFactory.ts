@@ -1,6 +1,7 @@
 import merge from "lodash/merge";
 import { FunnelDocument } from "logtree-types";
 import { FunnelFactory } from "./FunnelFactory";
+import { FunnelCompletion } from "src/models/FunnelCompletion";
 
 const getDefaultFields = async () => {
   const funnel: FunnelDocument = await FunnelFactory.create();
@@ -14,6 +15,6 @@ const getDefaultFields = async () => {
 export const FunnelCompletionFactory = {
   create: async (overrideFields?: Object) => {
     const docFields: any = merge(await getDefaultFields(), overrideFields);
-    return FunnelCompletionFactory.create(docFields);
+    return FunnelCompletion.create(docFields);
   },
 };
