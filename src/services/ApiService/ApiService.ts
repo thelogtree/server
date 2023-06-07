@@ -7,6 +7,7 @@ import { ApiError } from "src/utils/errors";
 import { Log } from "src/models/Log";
 import { SlackLib } from "src/utils/Slack";
 import { OrganizationService } from "../OrganizationService";
+import { MyLogtree } from "src/utils/logger";
 
 export const ApiService = {
   createLog: async (
@@ -56,6 +57,7 @@ export const ApiService = {
       organization.slug === "internal" &&
       referenceId === "andy@logtree.co"
     ) {
+      MyLogtree.sendDebugLog(`In here`);
       void OrganizationService.evaluateFunnels(
         organization,
         folderPath,
