@@ -462,9 +462,25 @@ export const OrganizationService = {
       if (!funnels.length) {
         return;
       }
+
+      let funnelsThatCouldBeCompleted: any[] = [];
+      for (const funnel of funnels) {
+        const folderPaths = funnel.folderPathsInOrder;
+        const couldBeCompleted = _.last(folderPaths) === folderPath;
+        if (couldBeCompleted) {
+          funnelsThatCouldBeCompleted.push(funnel);
+        }
+      }
+
+      // no funnels will be completed so stop early
+      if (!funnelsThatCouldBeCompleted.length) {
+        return;
+      }
+
       const allFunnelFolderPaths = _.flatten(
-        funnels.map((funnel) => funnel.folderPathsInOrder)
+        funnelsThatCouldBeCompleted.map((funnel) => funnel.folderPathsInOrder)
       );
+
       const allFunnelFolders = await Folder.find(
         {
           organizationId: organization._id.toString(),
@@ -518,7 +534,6 @@ export const OrganizationService = {
                   organizationId: organization._id,
                   createdAt: {
                     $lte: dateOfLastLogInPreviousStep,
-                    $gt: funnel.createdAt,
                   },
                 },
                 { createdAt: 1, _id: 0 }
