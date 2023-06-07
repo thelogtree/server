@@ -500,7 +500,7 @@ export const OrganizationService = {
               const logExists = await Log.exists({
                 referenceId: referenceIdOfNewLog,
                 folderId: folderIdAndPath._id,
-                organizationId: organization._id.toString(),
+                organizationId: organization._id,
                 _id: { $ne: idOfNewLog },
                 createdAt: { $gt: funnel.createdAt },
               });
@@ -514,7 +514,7 @@ export const OrganizationService = {
                 {
                   referenceId: referenceIdOfNewLog,
                   folderId: folderIdAndPath._id,
-                  organizationId: organization._id.toString(),
+                  organizationId: organization._id,
                   createdAt: {
                     $lte: dateOfLastLogInPreviousStep,
                     $gt: funnel.createdAt,
@@ -548,7 +548,7 @@ export const OrganizationService = {
           // funnel completed successfully for the first time
           await ApiService.createLog(
             organization,
-            folderPath,
+            funnel.forwardToChannelPath,
             `${referenceIdOfNewLog} completed funnel for the first-time from ${folderPathFunnelDescription}.`,
             referenceIdOfNewLog,
             undefined,
