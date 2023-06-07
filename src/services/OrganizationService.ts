@@ -543,6 +543,11 @@ export const OrganizationService = {
             dateOfLogInPreviousStep = logExists.createdAt;
           }
 
+          await FunnelCompletion.create({
+            funnelId: funnel._id,
+            referenceId: referenceIdOfNewLog,
+          });
+
           // cleaning up a good description for the funnel log we're about to make
           let folderPathFunnelDescription = "";
           folderPathsInFunnel.forEach((folderPathTemp) => {
