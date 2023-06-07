@@ -451,9 +451,7 @@ export const OrganizationService = {
   evaluateFunnels: async (
     organization: OrganizationDocument,
     folderPath: string,
-    referenceIdOfNewLog: string,
-    idOfNewLog: string,
-    dateLogCreated: Date
+    referenceIdOfNewLog: string
   ) => {
     try {
       let dateOfLogInPreviousStep;
