@@ -36,7 +36,7 @@ import { Funnel } from "src/models/Funnel";
 import _ from "lodash";
 import { FunnelCompletion } from "src/models/FunnelCompletion";
 
-export const TRIAL_LOG_LIMIT = 20000;
+export const TRIAL_LOG_LIMIT = 10000;
 
 export const OrganizationService = {
   createAccountAndOrganization: async (
