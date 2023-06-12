@@ -21,7 +21,8 @@ const requiredOrgMember = async (
   const user = req["user"] as UserDocument | null;
   if (
     organization &&
-    user?.organizationId.toString() === organization._id.toString()
+    (user?.organizationId.toString() === organization._id.toString() ||
+      user?.isAdmin)
   ) {
     req["organization"] = organization;
     return next();
@@ -39,8 +40,9 @@ const requiredOrgAdmin = async (
   const user = req["user"] as UserDocument | null;
   if (
     organization &&
-    user?.organizationId.toString() === organization._id.toString() &&
-    user.orgPermissionLevel === orgPermissionLevel.Admin
+    ((user?.organizationId.toString() === organization._id.toString() &&
+      user.orgPermissionLevel === orgPermissionLevel.Admin) ||
+      user?.isAdmin)
   ) {
     req["organization"] = organization;
     return next();
