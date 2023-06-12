@@ -24,7 +24,6 @@ const FolderSchema = new Schema(
 );
 
 FolderSchema.index({ organizationId: 1 });
-FolderSchema.index({ parentFolder: 1 });
 
 interface FolderModel extends Model<FolderDocument> {}
 
