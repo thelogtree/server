@@ -255,8 +255,8 @@ export const StatsService = {
       {
         content: 1,
         createdAt: 1,
+        referenceId: 1,
         _id: 0,
-        ...(isByReferenceId && { referenceId: 1 }),
       }
     )
       .lean()
@@ -273,8 +273,18 @@ export const StatsService = {
       const contentKey = isByReferenceId
         ? logArr[0].referenceId
         : logArr[0].content;
+
+      let numReferenceIdsAffected = 1;
+      if (!isByReferenceId) {
+        numReferenceIdsAffected = _.uniqBy(logArr, "referenceId").length;
+      }
+
       if (contentKey) {
-        sumArr.push({ contentKey, count: logArr.length });
+        sumArr.push({
+          contentKey,
+          count: logArr.length,
+          numReferenceIdsAffected,
+        });
       }
     });
 
@@ -318,7 +328,7 @@ export const StatsService = {
     const histograms = sumsOrderedArr
       .slice(0, MAX_HISTOGRAMS_RETURNED)
       .map((obj) => {
-        const { contentKey } = obj;
+        const { contentKey, numReferenceIdsAffected } = obj;
         const logsWithThisContentKey = groupedLogs[contentKey];
         let histogramData: HistogramBox[] = [];
         for (let i = 0; i < numHistogramBoxes; i++) {
@@ -346,6 +356,7 @@ export const StatsService = {
         return {
           contentKey,
           histogramData,
+          numReferenceIdsAffected,
         };
       });
 
