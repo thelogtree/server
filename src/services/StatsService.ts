@@ -3,9 +3,11 @@ import { LogService } from "./ApiService/lib/LogService";
 import _ from "lodash";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
-import { FolderDocument } from "logtree-types";
+import { FolderDocument, LogDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { getFloorAndCeilingDatesForHistogramBox } from "src/utils/helpers";
+import { MyRedis, RedisUtil } from "src/utils/redis";
+import { MyLogtree } from "src/utils/logger";
 
 // we represent these in total minutes
 export enum timeIntervalEnum {
@@ -241,16 +243,41 @@ export const StatsService = {
       folderId,
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
-  getSumsOrderedArray: async (
+  getAllLogsInFolderForVisualizations: async (
     floorDate: Date,
     ceilingDate: Date,
-    folderId: string,
-    isByReferenceId: boolean
+    folderId: string
   ) => {
-    const allLogsInFolder = await Log.find(
+    let logsResult: LogDocument[] = [];
+    const lastCeilingDateRecorded = await RedisUtil.getValue(
+      `folderId:${folderId}:logs:ceilingDate`
+    );
+    MyLogtree.sendDebugLog(lastCeilingDateRecorded || "nothing (1)");
+    let newFloorDate;
+    if (lastCeilingDateRecorded) {
+      const cachedLogsStr = await RedisUtil.getValue(
+        `folderId:${folderId}:logs:response`
+      );
+      MyLogtree.sendDebugLog(cachedLogsStr || "nothing (2)");
+      if (cachedLogsStr) {
+        logsResult = JSON.parse(cachedLogsStr);
+      }
+      const lastCeilingDateRecordedConverted = new Date(
+        lastCeilingDateRecorded
+      );
+      newFloorDate = new Date(
+        Math.max(
+          lastCeilingDateRecordedConverted.getTime(),
+          floorDate.getTime()
+        ) * 1000
+      );
+      logsResult = logsResult.filter((log) => log.createdAt >= floorDate);
+    }
+
+    const nonCachedLogsInFolder = await Log.find(
       {
         folderId,
-        createdAt: { $gte: floorDate, $lt: ceilingDate },
+        createdAt: { $gte: newFloorDate, $lt: ceilingDate },
       },
       {
         content: 1,
@@ -261,6 +288,30 @@ export const StatsService = {
     )
       .lean()
       .exec();
+
+    logsResult = logsResult.concat(nonCachedLogsInFolder);
+
+    RedisUtil.setValue(
+      `folderId:${folderId}:logs:response`,
+      JSON.stringify(logsResult)
+    );
+    RedisUtil.setValue(`folderId:${folderId}:logs:ceilingDate`, ceilingDate);
+    MyLogtree.sendDebugLog("stored everything (3)");
+
+    return logsResult;
+  },
+  getSumsOrderedArray: async (
+    floorDate: Date,
+    ceilingDate: Date,
+    folderId: string,
+    isByReferenceId: boolean
+  ) => {
+    const allLogsInFolder =
+      await StatsService.getAllLogsInFolderForVisualizations(
+        floorDate,
+        ceilingDate,
+        folderId
+      );
 
     const groupedLogs = _.groupBy(
       allLogsInFolder,
