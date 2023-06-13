@@ -11,6 +11,7 @@ import { exceptionHandler } from "./utils/exceptionHandler";
 import { startMongo } from "./utils/mongoConfig";
 import { attachUserDocument } from "./utils/attachUserDocumentToRoute";
 import { rateLimiterP3 } from "./utils/rateLimiters";
+import { MyRedis } from "./utils/redis";
 
 const SERVER_MSG = `This is the Logtree server.`;
 
@@ -34,6 +35,9 @@ const setupServer = async () => {
       tracesSampleRate: 1.0,
       maxValueLength: 800,
     });
+
+    MyRedis.on("error", (err) => console.log("Redis Client Error", err));
+    await MyRedis.connect();
   }
 
   const server = app.listen(config.environment.port, () => {

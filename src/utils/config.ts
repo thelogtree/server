@@ -53,6 +53,9 @@ export const config = {
     appClientSecret: process.env.INTERCOM_APP_CLIENT_SECRET,
   },
   openai: {
-    apiKey: process.env.OPENAI_API_KEY || ""
-  }
+    apiKey: process.env.OPENAI_API_KEY || "",
+  },
+  redis: {
+    url: process.env.REDIS_URL || "",
+  },
 };
