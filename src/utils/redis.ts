@@ -1,7 +1,9 @@
 import { createClient } from "redis";
 import { config } from "./config";
 
-export const MyRedis = createClient({ url: config.redis.url });
+export const MyRedis = config.environment.isProd
+  ? createClient({ url: config.redis.url })
+  : createClient({ socket: { port: 6379, host: "127.0.0.1" } });
 
 export const RedisUtil = {
   setValue: async (key: string, value: any) => {

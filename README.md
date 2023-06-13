@@ -5,8 +5,9 @@
 1. clone the repo
 2. `cd server && yarn`
 3. Get a `.env` file from another engineer and place it into the root of the repo.
-4. `npm run dev` starts the server in debug mode
-5. `npm run test` runs all tests using jest
+4. Setup redis in docker locally (ask an engineer how)
+5. `npm run dev` starts the server in debug mode
+6. `npm run test` runs all tests using jest
 
 ## Running Backfills
 
