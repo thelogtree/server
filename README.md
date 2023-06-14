@@ -5,9 +5,12 @@
 1. clone the repo
 2. `cd server && yarn`
 3. Get a `.env` file from another engineer and place it into the root of the repo.
-4. Setup redis in docker locally (ask an engineer how)
-5. `npm run dev` starts the server in debug mode
-6. `npm run test` runs all tests using jest
+4. Install Docker desktop app.
+5. In your terminal, execute:
+   `docker run -d --name logtree_redis -p 127.0.0.1:6379:6379 redis`
+6. Go into Docker and make sure the local Redis instance is running. If it isn't yet, click the play/start button to start running it.
+7. `npm run dev` starts the server in debug mode
+8. `npm run test` runs all tests using jest
 
 ## Running Backfills
 
