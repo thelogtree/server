@@ -14,6 +14,6 @@ export const ApiSchemas = {
   }),
   recordCall: Joi.object({
     path: Joi.string().required(),
-    errorCode: Joi.number().optional(),
+    errorCode: Joi.string().optional().allow(""),
   }),
 };

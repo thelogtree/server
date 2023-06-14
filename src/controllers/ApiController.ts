@@ -36,4 +36,11 @@ export const ApiController = {
     const organization = req["organization"];
     res.send({ name: organization.name });
   },
+  recordCall: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const { path, errorCode } = req.body;
+    await ApiService.recordCall(organization._id.toString(), path, errorCode);
+
+    res.send({});
+  },
 };

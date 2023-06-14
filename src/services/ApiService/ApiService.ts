@@ -1,13 +1,14 @@
-import { OrganizationDocument } from "logtree-types";
-import { FolderService } from "./lib/FolderService";
-import { LogService, SimplifiedLog } from "./lib/LogService";
-import { UsageService } from "./lib/UsageService";
-import { Folder } from "src/models/Folder";
-import { ApiError } from "src/utils/errors";
-import { Log } from "src/models/Log";
-import { SlackLib } from "src/utils/Slack";
-import { OrganizationService } from "../OrganizationService";
-import { MyLogtree } from "src/utils/logger";
+import { OrganizationDocument } from 'logtree-types';
+import { Folder } from 'src/models/Folder';
+import { Log } from 'src/models/Log';
+import { RouteMonitor } from 'src/models/RouteMonitor';
+import { ApiError } from 'src/utils/errors';
+import { SlackLib } from 'src/utils/Slack';
+
+import { OrganizationService } from '../OrganizationService';
+import { FolderService } from './lib/FolderService';
+import { LogService, SimplifiedLog } from './lib/LogService';
+import { UsageService } from './lib/UsageService';
 
 export const ApiService = {
   createLog: async (
@@ -104,4 +105,23 @@ export const ApiService = {
       id: log._id.toString(),
     }));
   },
+  // tracking a call for route monitors
+  recordCall: async (
+    organizationId: string,
+    path: string,
+    errorCode?: string
+  ) =>
+    RouteMonitor.updateOne(
+      { organizationId, path },
+      {
+        $inc: {
+          ...(errorCode ? { [`errorCodes.${errorCode}`]: 1 } : { numCalls: 1 }),
+        },
+        $setOnInsert: {
+          organizationId,
+          path
+        },
+      },
+      { upsert: true }
+    ),
 };
