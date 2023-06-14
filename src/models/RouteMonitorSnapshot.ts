@@ -9,7 +9,7 @@ import { DatabaseModelNames } from "src/utils/databaseModelNames";
 const RouteMonitorSnapshotSchema = new Schema(
   {
     numCalls: { type: Number, default: 0 },
-    numErrors: { type: Number, default: 0 },
+    errorCodes: { type: Map, default: {} },
     routeMonitorId: {
       type: ObjectId,
       ref: DatabaseModelNames.RouteMonitor,

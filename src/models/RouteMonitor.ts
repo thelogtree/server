@@ -5,8 +5,9 @@ import { DatabaseModelNames } from "src/utils/databaseModelNames";
 
 const RouteMonitorSchema = new Schema(
   {
+    path: { type: String, required: true },
     numCalls: { type: Number, default: 0 },
-    numErrors: { type: Number, default: 0 },
+    errorCodes: { type: Map, default: {} },
     organizationId: {
       type: ObjectId,
       ref: DatabaseModelNames.Organization,

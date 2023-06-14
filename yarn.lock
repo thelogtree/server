@@ -6372,10 +6372,10 @@ logtree-node@1.0.34:
     stacktrace-js "^2.0.2"
     ua-parser-js "^1.0.35"
 
-logtree-types@1.0.62:
-  version "1.0.62"
-  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.62.tgz#b112e0b593e57651233376810972dd06f033298d"
-  integrity sha512-hQxAn/M9JQC5dqDX15Ki5EyjQ//V9QmSunCJOsWDKKU1e0RN3R+GQdPnidMx+VLr/Cy5pTgpS19k5mR2YFghKg==
+logtree-types@1.0.65:
+  version "1.0.65"
+  resolved "https://registry.yarnpkg.com/logtree-types/-/logtree-types-1.0.65.tgz#41eceb7ee03f7df4c809c7aff72784fc736dfb1d"
+  integrity sha512-An6M7V4oei7Fi3uaGsg8uZUMAq2ydSwrbBoDXqsl2vyJBRxIXr5fubfjpQdN5LNvFmUOEILu2hxSbAGLeOHFNw==
   dependencies:
     lodash "^4.17.20"
     mongodb "^5.1.0"

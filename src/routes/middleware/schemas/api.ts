@@ -12,4 +12,8 @@ export const ApiSchemas = {
     folderPath: Joi.string().allow("").optional(),
     referenceId: Joi.string().allow("").optional(),
   }),
+  recordCall: Joi.object({
+    path: Joi.string().required(),
+    errorCode: Joi.number().optional(),
+  }),
 };
