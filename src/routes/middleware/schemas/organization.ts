@@ -5,7 +5,7 @@ export const OrganizationSchemas = {
   createAccountAndOrganization: Joi.object({
     organizationName: Joi.string().required(),
     email: Joi.string().required(),
-    password: Joi.string().required(),
+    password: Joi.string().min(6).required(),
     promoCode: Joi.string().allow(""),
   }),
   createOrganization: Joi.object({
