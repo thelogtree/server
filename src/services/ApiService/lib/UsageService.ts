@@ -38,7 +38,12 @@ export const UsageService = {
       const now = moment();
       return {
         cycleStarts: moment(now).toDate(),
-        cycleEnds: moment(now).add(PERIOD_DURATION_IN_DAYS, "days").toDate(),
+        cycleEnds: moment(now)
+          .add(
+            organization?.logRetentionInDays || PERIOD_DURATION_IN_DAYS,
+            "days"
+          )
+          .toDate(),
       };
     }
 
