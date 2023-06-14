@@ -293,7 +293,13 @@ export const StatsService = {
       .lean()
       .exec();
 
-    MyLogtree.sendDebugLog("non-cached logs: " + nonCachedLogsInFolder.length);
+    MyLogtree.sendLog({
+      content: `(generating histogram data)\nlogs fetched from mongo: ${nonCachedLogsInFolder.length}\ncached logs used: ${logsResult.length}`,
+      folderPath: "/cache-data",
+      additionalContext: {
+        folderId,
+      },
+    });
 
     logsResult = logsResult
       .concat(nonCachedLogsInFolder)
