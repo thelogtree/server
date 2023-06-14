@@ -53,6 +53,12 @@ export const config = {
     appClientSecret: process.env.INTERCOM_APP_CLIENT_SECRET,
   },
   openai: {
-    apiKey: process.env.OPENAI_API_KEY || ""
-  }
+    apiKey: process.env.OPENAI_API_KEY || "",
+  },
+  redis: {
+    url: process.env.REDIS_URL || "",
+    isCacheEnabled:
+      !process.env.IS_TEST &&
+      ((!process.env.IS_DEV && !process.env.IS_TEST) || true), // the last value decides whether it is enabled in dev
+  },
 };

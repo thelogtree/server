@@ -3,9 +3,12 @@ import { LogService } from "./ApiService/lib/LogService";
 import _ from "lodash";
 import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
-import { FolderDocument } from "logtree-types";
+import { FolderDocument, LogDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
 import { getFloorAndCeilingDatesForHistogramBox } from "src/utils/helpers";
+import { MyRedis, RedisUtil } from "src/utils/redis";
+import { MyLogtree } from "src/utils/logger";
+import { LeanDocument } from "mongoose";
 
 // we represent these in total minutes
 export enum timeIntervalEnum {
@@ -87,7 +90,8 @@ export const StatsService = {
     );
 
     // filter out the values that went beyond the existence of the first log
-    return logFrequencyArr.filter((val) => val !== -1);
+    const res = logFrequencyArr.filter((val) => val !== -1);
+    return res;
   },
   getPercentChangeInFrequencyOfMostRecentLogs: async (
     folderId: string,
@@ -241,16 +245,43 @@ export const StatsService = {
       folderId,
       createdAt: { $gte: floorDate, $lt: ceilingDate },
     }),
-  getSumsOrderedArray: async (
+  getAllLogsInFolderForVisualizations: async (
     floorDate: Date,
     ceilingDate: Date,
-    folderId: string,
-    isByReferenceId: boolean
+    folderId: string
   ) => {
-    const allLogsInFolder = await Log.find(
+    let logsResult: LogDocument[] = [];
+    const lastCeilingDateRecorded = await RedisUtil.getValue(
+      `folderId:${folderId}:logs:ceilingDate`
+    );
+    let newFloorDate = floorDate;
+    if (lastCeilingDateRecorded) {
+      const cachedLogsStr = await RedisUtil.getValue(
+        `folderId:${folderId}:logs:response`
+      );
+      if (cachedLogsStr) {
+        logsResult = JSON.parse(cachedLogsStr);
+      }
+      if (logsResult.length) {
+        const lastCeilingDateRecordedConverted = new Date(
+          lastCeilingDateRecorded
+        );
+        newFloorDate = new Date(
+          Math.max(
+            lastCeilingDateRecordedConverted.getTime(),
+            floorDate.getTime()
+          ) * 1000
+        );
+        logsResult = logsResult.filter(
+          (log) => new Date(log.createdAt) >= floorDate
+        );
+      }
+    }
+
+    const nonCachedLogsInFolder = await Log.find(
       {
         folderId,
-        createdAt: { $gte: floorDate, $lt: ceilingDate },
+        createdAt: { $gte: newFloorDate, $lt: ceilingDate },
       },
       {
         content: 1,
@@ -261,6 +292,41 @@ export const StatsService = {
     )
       .lean()
       .exec();
+
+    MyLogtree.sendDebugLog("non-cached logs: " + nonCachedLogsInFolder.length);
+
+    logsResult = logsResult
+      .concat(nonCachedLogsInFolder)
+      .sort((a: LeanDocument<LogDocument>, b: LeanDocument<LogDocument>) => {
+        return a.createdAt > b.createdAt ? 1 : -1;
+      });
+
+    if (moment(ceilingDate).diff(floorDate, "days") > 1) {
+      RedisUtil.setValue(
+        `folderId:${folderId}:logs:response`,
+        JSON.stringify(logsResult)
+      );
+      RedisUtil.setValue(
+        `folderId:${folderId}:logs:ceilingDate`,
+        ceilingDate.toString()
+      );
+    }
+
+    return logsResult;
+  },
+  getSumsOrderedArray: async (
+    floorDate: Date,
+    ceilingDate: Date,
+    folderId: string,
+    isByReferenceId: boolean
+  ) => {
+    // sorted in ascending order of createdAt date of the log
+    const allLogsInFolder =
+      await StatsService.getAllLogsInFolderForVisualizations(
+        floorDate,
+        ceilingDate,
+        folderId
+      );
 
     const groupedLogs = _.groupBy(
       allLogsInFolder,
@@ -305,13 +371,14 @@ export const StatsService = {
     const ceilingDate = new Date(); // to avoid race conditions
     let floorDate = moment().subtract(lastXDays, "days").toDate();
 
-    // first try the 24-hour timeframe
+    // sorted in ascending order of createdAt date of the log
     let sumsOrderedArrObj = await StatsService.getSumsOrderedArray(
       floorDate,
       ceilingDate,
       folderId,
       isByReferenceId
     );
+
     let sumsOrderedArr = sumsOrderedArrObj.sumsOrderedArr;
     let groupedLogs = sumsOrderedArrObj.groupedLogs;
 
@@ -323,14 +390,16 @@ export const StatsService = {
       };
     }
 
-    const MAX_HISTOGRAMS_RETURNED = 20;
-
+    const MAX_HISTOGRAMS_RETURNED = 12;
     const histograms = sumsOrderedArr
       .slice(0, MAX_HISTOGRAMS_RETURNED)
       .map((obj) => {
+        // this part is super slow, fix!!!
+
         const { contentKey, numReferenceIdsAffected } = obj;
-        const logsWithThisContentKey = groupedLogs[contentKey];
+        let logsWithThisContentKey = groupedLogs[contentKey];
         let histogramData: HistogramBox[] = [];
+        let movingStartIndex = 0;
         for (let i = 0; i < numHistogramBoxes; i++) {
           const {
             floorDate: intervalFloorDate,
@@ -341,14 +410,28 @@ export const StatsService = {
             numHistogramBoxes,
             i
           );
-          const numLogsInTimeframe = _.sumBy(logsWithThisContentKey, (log) =>
-            moment(log.createdAt).isSameOrAfter(moment(intervalFloorDate)) &&
-            moment(log.createdAt).isBefore(moment(intervalCeilingDate))
-              ? 1
-              : 0
-          );
+
+          let count = 0;
+          for (
+            let j = movingStartIndex;
+            j < logsWithThisContentKey.length;
+            j++
+          ) {
+            const tempLog = logsWithThisContentKey[j];
+            const cleanedDateOfLog = new Date(tempLog.createdAt);
+            if (
+              cleanedDateOfLog >= intervalFloorDate &&
+              cleanedDateOfLog < intervalCeilingDate
+            ) {
+              count++;
+            } else {
+              movingStartIndex = j;
+              break;
+            }
+          }
+
           histogramData.push({
-            count: numLogsInTimeframe,
+            count,
             floorDate: intervalFloorDate,
             ceilingDate: intervalCeilingDate,
           });
@@ -359,7 +442,6 @@ export const StatsService = {
           numReferenceIdsAffected,
         };
       });
-
     return {
       histograms,
       moreHistogramsAreNotShown:
