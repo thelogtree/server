@@ -7,13 +7,13 @@ export const MyRedis = config.environment.isProd
 
 export const RedisUtil = {
   setValue: async (key: string, value: any) => {
-    if (config.redis.isCacheEnabled) {
+    if (!config.redis.isCacheEnabled) {
       return;
     }
     await MyRedis.set(key, value);
   },
   getValue: async (key: string) => {
-    if (config.redis.isCacheEnabled) {
+    if (!config.redis.isCacheEnabled) {
       return;
     }
     return MyRedis.get(key);
