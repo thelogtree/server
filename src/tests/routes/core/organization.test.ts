@@ -61,7 +61,7 @@ describe("CreateAccountAndOrganization", () => {
       {
         organizationName: "A",
         email: "b",
-        password: "c",
+        password: "cqiwnduiqwuidiqdjw",
       },
       {}
     );
@@ -85,7 +85,7 @@ describe("CreateAccountAndOrganization", () => {
       {
         organizationName: "A",
         email: "b",
-        password: "c",
+        password: "casidhiasdoasud",
       },
       {}
     );
@@ -102,7 +102,7 @@ describe("CreateAccountAndOrganization", () => {
       {
         organizationName: "A",
         email: "b",
-        password: "c",
+        password: "ciashdbiasdiasbd",
       },
       {}
     );
