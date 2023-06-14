@@ -57,5 +57,8 @@ export const config = {
   },
   redis: {
     url: process.env.REDIS_URL || "",
+    isCacheEnabled:
+      !process.env.IS_TEST &&
+      ((!process.env.IS_DEV && !process.env.IS_TEST) || true), // the last value decides whether it is enabled in dev
   },
 };

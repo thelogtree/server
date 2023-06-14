@@ -35,7 +35,9 @@ const setupServer = async () => {
       tracesSampleRate: 1.0,
       maxValueLength: 800,
     });
+  }
 
+  if (config.redis.isCacheEnabled) {
     MyRedis.on("error", (err) => console.log("Redis Client Error", err));
     await MyRedis.connect();
   }
