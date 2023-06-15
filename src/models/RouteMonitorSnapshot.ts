@@ -1,7 +1,4 @@
-import {
-  RouteMonitorDocument,
-  RouteMonitorSnapshotDocument,
-} from "logtree-types";
+import { RouteMonitorSnapshotDocument } from "logtree-types";
 import { ObjectId } from "mongodb";
 import { Model, model, Schema } from "mongoose";
 import { DatabaseModelNames } from "src/utils/databaseModelNames";
@@ -9,7 +6,7 @@ import { DatabaseModelNames } from "src/utils/databaseModelNames";
 const RouteMonitorSnapshotSchema = new Schema(
   {
     numCalls: { type: Number, default: 0 },
-    errorCodes: { type: Map, default: {} },
+    errorCodes: { type: Map },
     routeMonitorId: {
       type: ObjectId,
       ref: DatabaseModelNames.RouteMonitor,
