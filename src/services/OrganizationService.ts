@@ -18,6 +18,7 @@ import { User } from "src/models/User";
 import { config } from "src/utils/config";
 import { ApiError, AuthError } from "src/utils/errors";
 import {
+  getFloorAndCeilingDatesForHistogramBox,
   getHashFromPlainTextKey,
   numberToNumberWithCommas,
   wrapWords,
@@ -35,6 +36,10 @@ import { MyLogtree } from "src/utils/logger";
 import { Funnel } from "src/models/Funnel";
 import _ from "lodash";
 import { FunnelCompletion } from "src/models/FunnelCompletion";
+import { RouteMonitorSnapshot } from "src/models/RouteMonitorSnapshot";
+import moment from "moment";
+import { HistogramBox } from "./StatsService";
+import { RouteMonitor } from "src/models/RouteMonitor";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -578,5 +583,97 @@ export const OrganizationService = {
         },
       });
     }
+  },
+  getMonitors: async (organizationId: string) => {
+    const ceilingDate = new Date();
+    const floorDate = moment(ceilingDate).subtract(1, "day").toDate();
+    const monitorSnapshotsFromLast24Hours = await RouteMonitorSnapshot.find({
+      organizationId,
+      createdAt: { $gte: floorDate, $lt: ceilingDate },
+    })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+    const routeMonitors = await RouteMonitor.find({
+      organizationId,
+    })
+      .lean()
+      .exec();
+
+    const routeMonitorsGroupedById = _.keyBy(routeMonitors, "_id");
+    const groupedMonitorSnapshots = _.groupBy(
+      monitorSnapshotsFromLast24Hours,
+      "routeMonitorId"
+    );
+
+    const data = Object.keys(groupedMonitorSnapshots).map((routeMonitorId) => {
+      const snapshots = groupedMonitorSnapshots[routeMonitorId];
+
+      let histogramCallsData: HistogramBox[] = [];
+      let histogramErrorsData: HistogramBox[] = [];
+      const NUM_HISTOGRAM_BOXES = 24;
+      const routeMonitor = routeMonitorsGroupedById[routeMonitorId];
+
+      let movingStartIndex = 0; // for performance
+      for (let i = 0; i < NUM_HISTOGRAM_BOXES; i++) {
+        const {
+          floorDate: intervalFloorDate,
+          ceilingDate: intervalCeilingDate,
+        } = getFloorAndCeilingDatesForHistogramBox(
+          floorDate,
+          ceilingDate,
+          NUM_HISTOGRAM_BOXES,
+          i
+        );
+
+        let callsCount = 0;
+        let errorsCount = 0;
+        for (let j = movingStartIndex; j < snapshots.length; j++) {
+          const tempSnapshot = snapshots[j];
+          const cleanedDateOfSnapshot = new Date(tempSnapshot.createdAt);
+          if (
+            cleanedDateOfSnapshot < intervalFloorDate ||
+            cleanedDateOfSnapshot >= intervalCeilingDate
+          ) {
+            movingStartIndex = j;
+            break;
+          } else {
+            callsCount += tempSnapshot.numCalls;
+            errorsCount += tempSnapshot.errorCodes
+              ? _.sum(Object.values(tempSnapshot.errorCodes))
+              : 0;
+          }
+        }
+
+        histogramCallsData.push({
+          count: callsCount,
+          floorDate: intervalFloorDate,
+          ceilingDate: intervalCeilingDate,
+        });
+        histogramErrorsData.push({
+          count: errorsCount,
+          floorDate: intervalFloorDate,
+          ceilingDate: intervalCeilingDate,
+        });
+      }
+
+      const numTotalErrors = routeMonitor.errorCodes
+        ? _.sum(Object.values(routeMonitor.errorCodes))
+        : 0;
+
+      return {
+        histogramCallsData,
+        histogramErrorsData,
+        totalErrors: numTotalErrors,
+        totalCalls: routeMonitor.numCalls,
+        path: routeMonitor?.path || "unknown",
+      };
+    });
+
+    console.log(data);
+
+    return data.sort((a: any, b: any) =>
+      a.totalErrors > b.totalErrors ? -1 : 1
+    );
   },
 };

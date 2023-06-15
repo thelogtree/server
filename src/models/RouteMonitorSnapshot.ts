@@ -22,6 +22,7 @@ const RouteMonitorSnapshotSchema = new Schema(
 );
 
 RouteMonitorSnapshotSchema.index({ routeMonitorId: 1 });
+RouteMonitorSnapshotSchema.index({ organizationId: 1, createdAt: 1 });
 
 interface RouteMonitorSnapshotModel
   extends Model<RouteMonitorSnapshotDocument> {}

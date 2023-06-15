@@ -28,7 +28,7 @@ type Insight = {
   numLogsToday: number;
 };
 
-type HistogramBox = {
+export type HistogramBox = {
   count: number;
   floorDate: Date;
   ceilingDate: Date;

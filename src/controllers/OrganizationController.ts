@@ -163,6 +163,11 @@ export const OrganizationController = {
 
     res.send({});
   },
+  getMonitors: async (req: Request, res: Response) => {
+    const organization = req["organization"];
+    const monitors = await OrganizationService.getMonitors(organization._id.toString());
+    res.send({ monitors });
+  },
   createOrganization: async (req: Request, res: Response) => {
     const { name } = req.body;
     const { organization, firstInvitationUrl } =

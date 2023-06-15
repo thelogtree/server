@@ -46,6 +46,8 @@ import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
 import { FunnelFactory } from "src/tests/factories/FunnelFactory";
 import { Funnel } from "src/models/Funnel";
+import { RouteMonitorFactory } from "src/tests/factories/RouteMonitorFactory";
+import { RouteMonitorSnapshotFactory } from "src/tests/factories/RouteMonitorSnapshotFactory";
 
 const routeUrl = "/organization";
 
@@ -2985,5 +2987,72 @@ describe("GetFunnels", () => {
     expect(funnels.length).toBe(2);
     expect(funnels[0]._id.toString()).toBe(funnel2.id);
     expect(funnels[1]._id.toString()).toBe(funnel1.id);
+  });
+});
+
+describe("GetMonitors", () => {
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+  it("correctly gets the health map for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const routeMonitor1 = await RouteMonitorFactory.create({
+      organizationId: organization._id,
+      path: "test1",
+      numCalls: 7,
+      createdAt: moment().subtract(60, "minutes"),
+    });
+    const routeMonitor2 = await RouteMonitorFactory.create({
+      organizationId: organization._id,
+      path: "test2",
+      numCalls: 4,
+      errorCodes: {
+        "403": 2,
+        "400": 1,
+      },
+      createdAt: moment().subtract(60, "minutes"),
+    });
+
+    // decoy
+    await RouteMonitorFactory.create({
+      path: "test3",
+      createdAt: moment().subtract(60, "minutes"),
+    });
+
+    await RouteMonitorSnapshotFactory.create({
+      organizationId: organization._id,
+      routeMonitorId: routeMonitor1._id,
+      path: "test1",
+      createdAt: moment().subtract(30, "minutes"),
+    });
+
+    await RouteMonitorSnapshotFactory.create({
+      organizationId: organization._id,
+      routeMonitorId: routeMonitor2._id,
+      path: "test2",
+      createdAt: moment().subtract(30, "minutes"),
+    });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/monitors`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { monitors } = res.body;
+
+    expect(monitors.length).toBe(2);
+    expect(monitors[0].path).toBe(routeMonitor2.path);
+    expect(monitors[1].path).toBe(routeMonitor1.path);
+    expect(monitors[0].totalCalls).toBe(routeMonitor2.numCalls);
+    expect(monitors[1].totalCalls).toBe(routeMonitor1.numCalls);
+    expect(monitors[0].totalErrors).toBe(3);
+    expect(monitors[1].totalErrors).toBe(0);
   });
 });
