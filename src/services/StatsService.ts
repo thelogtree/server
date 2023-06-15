@@ -29,7 +29,7 @@ type Insight = {
 };
 
 export type HistogramBox = {
-  count: number;
+  count: number | null;
   floorDate: Date;
   ceilingDate: Date;
 };

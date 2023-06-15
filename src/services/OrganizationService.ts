@@ -646,7 +646,7 @@ export const OrganizationService = {
         }
 
         histogramCallsData.push({
-          count: callsCount,
+          count: callsCount || null,
           floorDate: intervalFloorDate,
           ceilingDate: intervalCeilingDate,
         });
