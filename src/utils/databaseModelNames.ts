@@ -13,4 +13,6 @@ export enum DatabaseModelNames {
   PendingSlackInstallation = "PendingSlackInstallation",
   Funnel = "Funnel",
   FunnelCompletion = "FunnelCompletion",
+  Dashboard = "Dashboard",
+  Widget = "Widget",
 }
