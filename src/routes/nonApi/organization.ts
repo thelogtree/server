@@ -164,6 +164,14 @@ router.post(
   OrganizationController.deleteFolderAndEverythingInside
 );
 router.post(
+  "/:id/widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createWidget,
+  }),
+  OrganizationController.createWidget
+);
+router.post(
   "/:id/secret-key",
   auth.requiredOrgAdmin,
   OrganizationController.generateSecretKey

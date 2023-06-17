@@ -19,6 +19,7 @@ import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import _ from "lodash";
+import { WidgetService } from "src/services/WidgetService";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -539,5 +540,23 @@ export const OrganizationController = {
     );
 
     res.send({});
+  },
+  createWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { dashboardId, title, type, folderPaths, query, position, size } =
+      req.body;
+
+    const widget = await WidgetService.createWidget(
+      organization._id.toString(),
+      dashboardId,
+      title,
+      type,
+      folderPaths,
+      position,
+      size,
+      query
+    );
+
+    res.send({ widget });
   },
 };

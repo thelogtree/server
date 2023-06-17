@@ -122,4 +122,13 @@ export const OrganizationSchemas = {
   deleteFunnel: Joi.object({
     funnelId: Joi.string().custom(objectId).required(),
   }),
+  createWidget: Joi.object({
+    dashboardId: Joi.string().custom(objectId).required(),
+    title: Joi.string().required(),
+    type: Joi.string().required(),
+    folderPaths: Joi.array().required(),
+    query: Joi.string().optional().allow(""),
+    position: Joi.any(),
+    size: Joi.any(),
+  }),
 };

@@ -9,6 +9,7 @@ import {
   OrganizationDocument,
   orgPermissionLevel,
   simplifiedLogTagEnum,
+  widgetType,
 } from "logtree-types";
 import { DateTime } from "luxon";
 import moment from "moment-timezone";
@@ -46,6 +47,7 @@ import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
 import { FunnelFactory } from "src/tests/factories/FunnelFactory";
 import { Funnel } from "src/models/Funnel";
+import { DashboardFactory } from "src/tests/factories/DashboardFactory";
 
 const routeUrl = "/organization";
 
@@ -2985,5 +2987,133 @@ describe("GetFunnels", () => {
     expect(funnels.length).toBe(2);
     expect(funnels[0]._id.toString()).toBe(funnel2.id);
     expect(funnels[1]._id.toString()).toBe(funnel1.id);
+  });
+});
+
+describe("CreateWidget", () => {
+  it("correctly creates a widget for a dashboard", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+      title: "Test Hi",
+      type: widgetType.Logs,
+      folderPaths: [{ fullPath: "/testing", overrideEventName: null }],
+      query: "some query",
+      position: {
+        x: 3,
+        y: 10,
+      },
+      size: {
+        width: 350,
+        height: 500,
+      },
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widget } = res.body;
+    expect(widget.dashboardId.toString()).toBe(body.dashboardId);
+    expect(widget.organizationId.toString()).toBe(organization.id);
+    expect(widget.title).toBe(body.title);
+    expect(widget.type).toBe(body.type);
+    expect(widget.query).toBe(body.query);
+    expect(widget.position).toEqual(body.position);
+    expect(widget.size).toEqual(body.size);
+    expect(widget.folderPaths).toEqual(
+      expect.arrayContaining(body.folderPaths)
+    );
+  });
+  it("correctly creates a widget for a dashboard (no query)", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+      title: "Test Hi",
+      type: widgetType.Logs,
+      folderPaths: [
+        { fullPath: "/testing", overrideEventName: null },
+        { fullPath: "/testing-more", overrideEventName: "conversions" },
+      ],
+      position: {
+        x: 3,
+        y: 10,
+      },
+      size: {
+        width: 350,
+        height: 500,
+      },
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widget } = res.body;
+    expect(widget.dashboardId.toString()).toBe(body.dashboardId);
+    expect(widget.organizationId.toString()).toBe(organization.id);
+    expect(widget.title).toBe(body.title);
+    expect(widget.type).toBe(body.type);
+    expect(widget.query).toBeUndefined();
+    expect(widget.position).toEqual(body.position);
+    expect(widget.size).toEqual(body.size);
+    expect(widget.folderPaths).toEqual(
+      expect.arrayContaining(body.folderPaths)
+    );
+  });
+  it("fails to create a widget for a dashboard because the dashboard doesn't belong to the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+      title: "Test Hi",
+      type: widgetType.Logs,
+      folderPaths: [
+        { fullPath: "/testing", overrideEventName: null },
+        { fullPath: "/testing-more", overrideEventName: "conversions" },
+      ],
+      position: {
+        x: 3,
+        y: 10,
+      },
+      size: {
+        width: 350,
+        height: 500,
+      },
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "You can only create a widget for your own organization."
+    );
   });
 });
