@@ -204,7 +204,17 @@ const WidgetLoader = {
       return [];
     }
 
-    const logs = await LogService.getLogs(folder._id.toString());
+    let logs: any[] = [];
+    if (widget.query) {
+      logs = await LogService.searchForLogs(
+        widget.organizationId.toString(),
+        widget.query,
+        folder._id.toString()
+      );
+    } else {
+      logs = await LogService.getLogs(folder._id.toString());
+    }
+
     return logs;
   },
 };
