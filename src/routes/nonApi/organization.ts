@@ -172,6 +172,14 @@ router.post(
   OrganizationController.createDashboard
 );
 router.post(
+  "/:id/delete-dashboard",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteDashboard,
+  }),
+  OrganizationController.deleteDashboard
+);
+router.post(
   "/:id/widget",
   auth.requiredOrgMember,
   validateRequestAgainstSchemas({

@@ -3147,3 +3147,103 @@ describe("CreateDashboard", () => {
     expect(dashboard.title).toBe(body.title);
   });
 });
+
+describe("DeleteDashboard", () => {
+  it("correctly deletes a dashboard for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numDashboardsOriginally = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboardsOriginally).toBe(2);
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const numDashboards = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboards).toBe(1);
+  });
+  it("fails to delete a dashboard for an organization because it doesn't belong to this organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numDashboardsOriginally = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboardsOriginally).toBe(0);
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No dashboard with this ID exists in your organization."
+    );
+
+    const numDashboards = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboards).toBe(0);
+  });
+  it("fails to delete a dashboard for an organization because there must always be at least 1 dashboard in the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numDashboardsOriginally = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboardsOriginally).toBe(1);
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "You must have at least 1 dashboard at all times."
+    );
+
+    const numDashboards = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboards).toBe(1);
+  });
+});

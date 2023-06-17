@@ -570,4 +570,15 @@ export const OrganizationController = {
 
     res.send({ dashboard });
   },
+  deleteDashboard: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { dashboardId } = req.body;
+
+    await OrganizationService.deleteDashboard(
+      organization._id.toString(),
+      dashboardId
+    );
+
+    res.send({});
+  },
 };

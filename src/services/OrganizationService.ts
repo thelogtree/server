@@ -586,4 +586,22 @@ export const OrganizationService = {
   },
   createDashboard: (organizationId: string, title: string) =>
     Dashboard.create({ organizationId, title }),
+  deleteDashboard: async (organizationId: string, dashboardId: string) => {
+    const dashboardExistsUnderOrg = await Dashboard.exists({
+      _id: dashboardId,
+      organizationId,
+    });
+    if (!dashboardExistsUnderOrg) {
+      throw new ApiError(
+        "No dashboard with this ID exists in your organization."
+      );
+    }
+
+    const numDashboards = await Dashboard.countDocuments({ organizationId });
+    if (numDashboards <= 1) {
+      throw new ApiError("You must have at least 1 dashboard at all times.");
+    }
+
+    await Dashboard.deleteOne({ _id: dashboardId });
+  },
 };
