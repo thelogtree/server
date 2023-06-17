@@ -140,4 +140,10 @@ export const OrganizationSchemas = {
   deleteWidget: Joi.object({
     widgetId: Joi.string().custom(objectId).required(),
   }),
+  updateWidget: Joi.object({
+    widgetId: Joi.string().custom(objectId).required(),
+    position: Joi.any().required(),
+    size: Joi.any().required(),
+    title: Joi.string().required(),
+  }),
 };

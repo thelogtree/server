@@ -589,4 +589,18 @@ export const OrganizationController = {
 
     res.send({});
   },
+  updateWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { widgetId, position, size, title } = req.body;
+
+    const widget = await WidgetService.updateWidget(
+      organization._id.toString(),
+      widgetId,
+      position,
+      size,
+      title
+    );
+
+    res.send({ widget });
+  },
 };

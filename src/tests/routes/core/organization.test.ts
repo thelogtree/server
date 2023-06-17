@@ -3299,3 +3299,70 @@ describe("DeleteWidget", () => {
     expect(originalWidget).toBeTruthy();
   });
 });
+
+describe("UpdateWidget", () => {
+  it("correctly updates a widget for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      widgetId: widget._id.toString(),
+      position: {
+        x: 4,
+        y: 10,
+      },
+      size: {
+        width: 23,
+        height: 49,
+      },
+      title: "yoooo",
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "PUT",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widget: updatedWidget } = res.body;
+    expect(updatedWidget.title).toBe(body.title);
+    expect(updatedWidget.size).toEqual(body.size);
+    expect(updatedWidget.position).toEqual(body.position);
+  });
+  it("fails to update a widget for an organization because the widget doesn't belong to the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      widgetId: widget._id.toString(),
+      position: {
+        x: 4,
+        y: 10,
+      },
+      size: {
+        width: 23,
+        height: 49,
+      },
+      title: "yoooo",
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "PUT",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No widget with this ID exists in your organization."
+    );
+  });
+});

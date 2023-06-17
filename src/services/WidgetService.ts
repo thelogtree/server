@@ -45,4 +45,29 @@ export const WidgetService = {
 
     await Widget.deleteOne({ _id: widgetId });
   },
+  updateWidget: async (
+    organizationId: string,
+    widgetId: string,
+    position: PositionType,
+    size: SizeType,
+    title: string
+  ) => {
+    const widgetBelongsToOrg = await Widget.exists({
+      _id: widgetId,
+      organizationId,
+    });
+    if (!widgetBelongsToOrg) {
+      throw new ApiError("No widget with this ID exists in your organization.");
+    }
+
+    return await Widget.findByIdAndUpdate(
+      widgetId,
+      {
+        position,
+        size,
+        title,
+      },
+      { new: true }
+    );
+  },
 };

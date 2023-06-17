@@ -131,6 +131,14 @@ router.put(
   OrganizationController.updateFolder
 );
 router.put(
+  "/:id/widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.updateWidget,
+  }),
+  OrganizationController.updateWidget
+);
+router.put(
   "/:id/integration",
   auth.requiredOrgMember,
   validateRequestAgainstSchemas({
