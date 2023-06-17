@@ -188,6 +188,14 @@ router.post(
   OrganizationController.createWidget
 );
 router.post(
+  "/:id/delete-widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteWidget,
+  }),
+  OrganizationController.deleteWidget
+);
+router.post(
   "/:id/secret-key",
   auth.requiredOrgAdmin,
   OrganizationController.generateSecretKey

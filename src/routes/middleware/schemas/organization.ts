@@ -137,4 +137,7 @@ export const OrganizationSchemas = {
   deleteDashboard: Joi.object({
     dashboardId: Joi.string().custom(objectId).required(),
   }),
+  deleteWidget: Joi.object({
+    widgetId: Joi.string().custom(objectId).required(),
+  }),
 };

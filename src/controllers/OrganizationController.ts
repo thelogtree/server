@@ -581,4 +581,12 @@ export const OrganizationController = {
 
     res.send({});
   },
+  deleteWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { widgetId } = req.body;
+
+    await WidgetService.deleteWidget(organization._id.toString(), widgetId);
+
+    res.send({});
+  },
 };

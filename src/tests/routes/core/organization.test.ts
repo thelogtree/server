@@ -49,6 +49,8 @@ import { FunnelFactory } from "src/tests/factories/FunnelFactory";
 import { Funnel } from "src/models/Funnel";
 import { DashboardFactory } from "src/tests/factories/DashboardFactory";
 import { Dashboard } from "src/models/Dashboard";
+import { WidgetFactory } from "src/tests/factories/WidgetFactory";
+import { Widget } from "src/models/Widget";
 
 const routeUrl = "/organization";
 
@@ -3187,11 +3189,6 @@ describe("DeleteDashboard", () => {
     const dashboard = await DashboardFactory.create();
     const user = await UserFactory.create({ organizationId: organization._id });
 
-    const numDashboardsOriginally = await Dashboard.countDocuments({
-      organizationId: organization._id,
-    });
-    expect(numDashboardsOriginally).toBe(0);
-
     const body = {
       dashboardId: dashboard._id.toString(),
     };
@@ -3208,10 +3205,8 @@ describe("DeleteDashboard", () => {
       "No dashboard with this ID exists in your organization."
     );
 
-    const numDashboards = await Dashboard.countDocuments({
-      organizationId: organization._id,
-    });
-    expect(numDashboards).toBe(0);
+    const originalDashboard = await Dashboard.findById(dashboard._id);
+    expect(originalDashboard).toBeTruthy();
   });
   it("fails to delete a dashboard for an organization because there must always be at least 1 dashboard in the organization", async () => {
     const organization = await OrganizationFactory.create();
@@ -3245,5 +3240,62 @@ describe("DeleteDashboard", () => {
       organizationId: organization._id,
     });
     expect(numDashboards).toBe(1);
+  });
+});
+
+describe("DeleteWidget", () => {
+  it("correctly deletes a widget for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numWidgetsOriginally = await Widget.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numWidgetsOriginally).toBe(1);
+
+    const body = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const numWidgets = await Widget.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numWidgets).toBe(0);
+  });
+  it("fails to delete a widget for an organization because it doesn't belong to this organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No widget with this ID exists in your organization."
+    );
+
+    const originalWidget = await Widget.findById(widget._id);
+    expect(originalWidget).toBeTruthy();
   });
 });
