@@ -614,4 +614,15 @@ export const OrganizationController = {
 
     res.send({ widgets });
   },
+  loadWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { widgetId } = req.query;
+
+    const data = await WidgetService.loadWidget(
+      organization._id.toString(),
+      widgetId!.toString()
+    );
+
+    res.send({ data });
+  },
 };

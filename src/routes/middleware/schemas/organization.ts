@@ -135,7 +135,10 @@ export const OrganizationSchemas = {
     title: Joi.string().required(),
   }),
   getWidgets: Joi.object({
-    dashboardId: Joi.string().required(),
+    dashboardId: Joi.string().custom(objectId).required(),
+  }),
+  loadWidget: Joi.object({
+    widgetId: Joi.string().custom(objectId).required(),
   }),
   deleteDashboard: Joi.object({
     dashboardId: Joi.string().custom(objectId).required(),

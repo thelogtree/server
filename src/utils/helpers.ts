@@ -66,7 +66,7 @@ export const accessValueInMap = (object: any, key: string) => {
   }
 };
 
-export const getFloorAndCeilingDatesForHistogramBox = (
+export const getFloorAndCeilingDatesForDataBox = (
   dataFloorDate: Date,
   dataCeilingDate: Date,
   numBoxes: number,

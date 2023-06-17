@@ -5,8 +5,8 @@ import { Log } from "src/models/Log";
 import { Folder } from "src/models/Folder";
 import { FolderDocument, LogDocument } from "logtree-types";
 import { LastCheckedFolder } from "src/models/LastCheckedFolder";
-import { getFloorAndCeilingDatesForHistogramBox } from "src/utils/helpers";
-import { MyRedis, RedisUtil } from "src/utils/redis";
+import { getFloorAndCeilingDatesForDataBox } from "src/utils/helpers";
+import { RedisUtil } from "src/utils/redis";
 import { MyLogtree } from "src/utils/logger";
 import { LeanDocument } from "mongoose";
 
@@ -28,7 +28,7 @@ type Insight = {
   numLogsToday: number;
 };
 
-type HistogramBox = {
+type DataBox = {
   count: number;
   floorDate: Date;
   ceilingDate: Date;
@@ -404,13 +404,13 @@ export const StatsService = {
 
         const { contentKey, numReferenceIdsAffected } = obj;
         let logsWithThisContentKey = groupedLogs[contentKey];
-        let histogramData: HistogramBox[] = [];
+        let histogramData: DataBox[] = [];
         let movingStartIndex = 0;
         for (let i = 0; i < numHistogramBoxes; i++) {
           const {
             floorDate: intervalFloorDate,
             ceilingDate: intervalCeilingDate,
-          } = getFloorAndCeilingDatesForHistogramBox(
+          } = getFloorAndCeilingDatesForDataBox(
             floorDate,
             ceilingDate,
             numHistogramBoxes,
@@ -453,5 +453,42 @@ export const StatsService = {
       moreHistogramsAreNotShown:
         sumsOrderedArr.length > MAX_HISTOGRAMS_RETURNED,
     };
+  },
+  // the logs must already be sorted in ascending date of createdAt
+  generateDataGrouping: (
+    logs: LogDocument[],
+    floorDate: Date,
+    ceilingDate: Date,
+    numBoxes: number = 24
+  ) => {
+    let data: DataBox[] = [];
+    let movingStartIndex = 0;
+    for (let i = 0; i < numBoxes; i++) {
+      const { floorDate: intervalFloorDate, ceilingDate: intervalCeilingDate } =
+        getFloorAndCeilingDatesForDataBox(floorDate, ceilingDate, numBoxes, i);
+
+      let count = 0;
+      for (let j = movingStartIndex; j < logs.length; j++) {
+        const tempLog = logs[j];
+        const cleanedDateOfLog = new Date(tempLog.createdAt);
+        if (
+          cleanedDateOfLog >= intervalFloorDate &&
+          cleanedDateOfLog < intervalCeilingDate
+        ) {
+          count++;
+        } else {
+          movingStartIndex = j;
+          break;
+        }
+      }
+
+      data.push({
+        count,
+        floorDate: intervalFloorDate,
+        ceilingDate: intervalCeilingDate,
+      });
+    }
+
+    return data;
   },
 };
