@@ -559,4 +559,15 @@ export const OrganizationController = {
 
     res.send({ widget });
   },
+  createDashboard: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { title } = req.body;
+
+    const dashboard = await OrganizationService.createDashboard(
+      organization._id.toString(),
+      title
+    );
+
+    res.send({ dashboard });
+  },
 };

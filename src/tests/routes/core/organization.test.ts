@@ -48,6 +48,7 @@ import { OAuthRequest } from "src/models/OAuthRequest";
 import { FunnelFactory } from "src/tests/factories/FunnelFactory";
 import { Funnel } from "src/models/Funnel";
 import { DashboardFactory } from "src/tests/factories/DashboardFactory";
+import { Dashboard } from "src/models/Dashboard";
 
 const routeUrl = "/organization";
 
@@ -71,6 +72,11 @@ describe("CreateAccountAndOrganization", () => {
 
     const createdOrg = await Organization.findOne({ name: "A", slug: "a" });
     expect(createdOrg).toBeTruthy();
+
+    const createdDashboard = await Dashboard.findOne({
+      organizationId: createdOrg!._id,
+    });
+    expect(createdDashboard).toBeTruthy();
 
     const createdUser = await User.findOne({
       email: "b",
@@ -3115,5 +3121,29 @@ describe("CreateWidget", () => {
       res,
       "You can only create a widget for your own organization."
     );
+  });
+});
+
+describe("CreateDashboard", () => {
+  it("correctly creates a dashboard for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      title: "some dashboard title!!!",
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { dashboard } = res.body;
+    expect(dashboard.organizationId.toString()).toBe(organization.id);
+    expect(dashboard.title).toBe(body.title);
   });
 });

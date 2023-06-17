@@ -164,6 +164,14 @@ router.post(
   OrganizationController.deleteFolderAndEverythingInside
 );
 router.post(
+  "/:id/dashboard",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createDashboard,
+  }),
+  OrganizationController.createDashboard
+);
+router.post(
   "/:id/widget",
   auth.requiredOrgMember,
   validateRequestAgainstSchemas({

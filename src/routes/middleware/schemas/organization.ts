@@ -131,4 +131,7 @@ export const OrganizationSchemas = {
     position: Joi.any(),
     size: Joi.any(),
   }),
+  createDashboard: Joi.object({
+    title: Joi.string().required(),
+  }),
 };

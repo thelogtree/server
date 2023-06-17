@@ -35,6 +35,7 @@ import { MyLogtree } from "src/utils/logger";
 import { Funnel } from "src/models/Funnel";
 import _ from "lodash";
 import { FunnelCompletion } from "src/models/FunnelCompletion";
+import { Dashboard } from "src/models/Dashboard";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -60,6 +61,10 @@ export const OrganizationService = {
       organizationName,
       promoLogLimit
     );
+    await Dashboard.create({
+      organizationId: organization._id,
+      title: "production",
+    });
     const invitation = await OrgInvitation.findOne({
       organizationId: organization._id,
     })
@@ -579,4 +584,6 @@ export const OrganizationService = {
       });
     }
   },
+  createDashboard: (organizationId: string, title: string) =>
+    Dashboard.create({ organizationId, title }),
 };
