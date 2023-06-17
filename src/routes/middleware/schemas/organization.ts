@@ -134,6 +134,9 @@ export const OrganizationSchemas = {
   createDashboard: Joi.object({
     title: Joi.string().required(),
   }),
+  getWidgets: Joi.object({
+    dashboardId: Joi.string().required(),
+  }),
   deleteDashboard: Joi.object({
     dashboardId: Joi.string().custom(objectId).required(),
   }),

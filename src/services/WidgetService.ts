@@ -70,4 +70,6 @@ export const WidgetService = {
       { new: true }
     );
   },
+  getWidgets: async (organizationId: string, dashboardId: string) =>
+    await Widget.find({ organizationId, dashboardId }).lean().exec(),
 };

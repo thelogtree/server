@@ -603,4 +603,15 @@ export const OrganizationController = {
 
     res.send({ widget });
   },
+  getWidgets: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { dashboardId } = req.query;
+
+    const widgets = await WidgetService.getWidgets(
+      organization._id.toString(),
+      dashboardId!.toString()
+    );
+
+    res.send({ widgets });
+  },
 };

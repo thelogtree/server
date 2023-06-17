@@ -3366,3 +3366,46 @@ describe("UpdateWidget", () => {
     );
   });
 });
+
+describe("GetWidgets", () => {
+  it("correctly gets the widgets for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const widget1 = await WidgetFactory.create({
+      organizationId: organization._id,
+      dashboardId: dashboard._id,
+    });
+    const widget2 = await WidgetFactory.create({
+      organizationId: organization._id,
+      dashboardId: dashboard._id,
+    });
+
+    // decoys
+    await WidgetFactory.create({
+      organizationId: organization._id,
+    });
+    await WidgetFactory.create();
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widgets`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widgets } = res.body;
+    expect(widgets.length).toBe(2);
+    expect(widgets[0]._id.toString()).toBe(widget1.id);
+    expect(widgets[1]._id.toString()).toBe(widget2.id);
+  });
+});

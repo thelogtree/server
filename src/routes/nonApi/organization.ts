@@ -113,6 +113,14 @@ router.get(
   }),
   OrganizationController.getIntegrationLogs
 );
+router.get(
+  "/:id/widgets",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getWidgets,
+  }),
+  OrganizationController.getWidgets
+);
 
 router.put(
   "/:id/user-permissions",
