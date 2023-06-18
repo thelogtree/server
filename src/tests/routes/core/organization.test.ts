@@ -3640,3 +3640,32 @@ describe("LoadWidget", () => {
     );
   });
 });
+
+describe("GetDashboards", () => {
+  it("correctly gets the dashboards for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard1 = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const dashboard2 = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    await DashboardFactory.create();
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/dashboards`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { dashboards } = res.body;
+    expect(dashboards.length).toBe(2);
+    expect(dashboards[0]._id.toString()).toBe(dashboard1.id);
+    expect(dashboards[1]._id.toString()).toBe(dashboard2.id);
+  });
+});

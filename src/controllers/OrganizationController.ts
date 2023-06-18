@@ -625,4 +625,13 @@ export const OrganizationController = {
 
     res.send({ data });
   },
+  getDashboards: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+
+    const dashboards = await OrganizationService.getDashboards(
+      organization._id.toString()
+    );
+
+    res.send({ dashboards });
+  },
 };

@@ -604,4 +604,9 @@ export const OrganizationService = {
 
     await Dashboard.deleteOne({ _id: dashboardId });
   },
+  getDashboards: async (organizationId: string) =>
+    await Dashboard.find({ organizationId })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec(),
 };

@@ -122,6 +122,11 @@ router.get(
   OrganizationController.getWidgets
 );
 router.get(
+  "/:id/dashboards",
+  auth.requiredOrgMember,
+  OrganizationController.getDashboards
+);
+router.get(
   "/:id/widget",
   auth.requiredOrgMember,
   validateRequestAgainstSchemas({
