@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { Model, model, Schema } from "mongoose";
 import { DatabaseModelNames } from "src/utils/databaseModelNames";
-import { WidgetDocument, widgetType } from "logtree-types";
+import { WidgetDocument, widgetTimeframe, widgetType } from "logtree-types";
 
 const FolderPathSchema = new Schema(
   {
@@ -45,7 +45,7 @@ const WidgetSchema = new Schema(
     query: { type: String, trim: true },
     position: { type: PositionSchema, required: true },
     size: { type: SizeSchema, required: true },
-    timeframe: { type: String, enum: widgetType, required: false },
+    timeframe: { type: String, enum: widgetTimeframe, required: false },
   },
   { timestamps: true }
 );
