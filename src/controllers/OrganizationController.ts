@@ -543,8 +543,16 @@ export const OrganizationController = {
   },
   createWidget: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];
-    const { dashboardId, title, type, folderPaths, query, position, size } =
-      req.body;
+    const {
+      dashboardId,
+      title,
+      type,
+      folderPaths,
+      query,
+      position,
+      size,
+      timeframe,
+    } = req.body;
 
     const widget = await WidgetService.createWidget(
       organization._id.toString(),
@@ -554,7 +562,8 @@ export const OrganizationController = {
       folderPaths,
       position,
       size,
-      query
+      query,
+      timeframe || undefined
     );
 
     res.send({ widget });

@@ -130,6 +130,7 @@ export const OrganizationSchemas = {
     query: Joi.string().optional().allow(""),
     position: Joi.any(),
     size: Joi.any(),
+    timeframe: Joi.string().allow("").optional(),
   }),
   createDashboard: Joi.object({
     title: Joi.string().required(),

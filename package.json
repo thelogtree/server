@@ -33,7 +33,7 @@
     "jwt-simple": "^0.5.6",
     "lodash": "^4.17.19",
     "logtree-node": "1.0.34",
-    "logtree-types": "1.0.66",
+    "logtree-types": "1.0.67",
     "luxon": "^3.3.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",

@@ -3,6 +3,7 @@ import {
   PositionType,
   SizeType,
   WidgetDocument,
+  widgetTimeframe,
   widgetType,
 } from "logtree-types";
 import { Dashboard } from "src/models/Dashboard";
@@ -16,11 +17,6 @@ import { StatsService } from "./StatsService";
 import { LeanDocument } from "mongoose";
 import { LogService } from "./ApiService/lib/LogService";
 
-type LoadedWidget = {
-  widget: LeanDocument<WidgetDocument>;
-  data: any;
-};
-
 export const WidgetService = {
   createWidget: async (
     organizationId: string,
@@ -30,7 +26,8 @@ export const WidgetService = {
     folderPaths: FolderType[],
     position: PositionType,
     size: SizeType,
-    query?: string
+    query?: string,
+    timeframe?: widgetTimeframe
   ) => {
     const dashboardBelongsToOrg = await Dashboard.exists({
       organizationId,
@@ -50,6 +47,7 @@ export const WidgetService = {
       position,
       size,
       query,
+      timeframe,
     });
   },
   deleteWidget: async (organizationId: string, widgetId: string) => {
@@ -134,8 +132,12 @@ const _loadFoldersGroupedByFullPath = async (widget: WidgetDocument) => {
 const WidgetLoader = {
   loadGraph: async (widget: WidgetDocument) => {
     const ceilingDate = new Date();
-    const floorDate = moment(ceilingDate).subtract(1, "day").toDate();
-    const numBoxes = 24;
+    let floorDate = moment(ceilingDate).subtract(1, "day").toDate();
+    let numBoxes = 24;
+    if (widget.timeframe === widgetTimeframe.ThirtyDays) {
+      floorDate = moment(ceilingDate).subtract(30, "days").toDate();
+      numBoxes = 30;
+    }
 
     const foldersGroupedByFullPath = await _loadFoldersGroupedByFullPath(
       widget

@@ -45,6 +45,7 @@ const WidgetSchema = new Schema(
     query: { type: String, trim: true },
     position: { type: PositionSchema, required: true },
     size: { type: SizeSchema, required: true },
+    timeframe: { type: String, enum: widgetType, required: false },
   },
   { timestamps: true }
 );
