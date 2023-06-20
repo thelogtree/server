@@ -36,6 +36,7 @@ import { Funnel } from "src/models/Funnel";
 import _ from "lodash";
 import { FunnelCompletion } from "src/models/FunnelCompletion";
 import { Dashboard } from "src/models/Dashboard";
+import { Widget } from "src/models/Widget";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -602,6 +603,7 @@ export const OrganizationService = {
       throw new ApiError("You must have at least 1 dashboard at all times.");
     }
 
+    await Widget.deleteMany({ dashboardId });
     await Dashboard.deleteOne({ _id: dashboardId });
   },
   getDashboards: async (organizationId: string) =>

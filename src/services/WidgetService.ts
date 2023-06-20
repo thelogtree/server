@@ -66,9 +66,9 @@ export const WidgetService = {
   updateWidget: async (
     organizationId: string,
     widgetId: string,
-    position: PositionType,
-    size: SizeType,
-    title: string
+    position?: PositionType,
+    size?: SizeType,
+    title?: string
   ) => {
     const widgetBelongsToOrg = await Widget.exists({
       _id: widgetId,

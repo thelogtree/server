@@ -3159,6 +3159,12 @@ describe("DeleteDashboard", () => {
     await DashboardFactory.create({
       organizationId: organization._id,
     });
+    const widget1 = await WidgetFactory.create({ dashboardId: dashboard._id });
+    const widget2 = await WidgetFactory.create({ dashboardId: dashboard._id });
+
+    // decoy
+    const widget3 = await WidgetFactory.create();
+
     const user = await UserFactory.create({ organizationId: organization._id });
 
     const numDashboardsOriginally = await Dashboard.countDocuments({
@@ -3183,6 +3189,13 @@ describe("DeleteDashboard", () => {
       organizationId: organization._id,
     });
     expect(numDashboards).toBe(1);
+
+    const widget1Exists = await Widget.findById(widget1._id);
+    expect(widget1Exists).toBeFalsy();
+    const widget2Exists = await Widget.findById(widget2._id);
+    expect(widget2Exists).toBeFalsy();
+    const widget3Exists = await Widget.findById(widget3._id);
+    expect(widget3Exists).toBeTruthy();
   });
   it("fails to delete a dashboard for an organization because it doesn't belong to this organization", async () => {
     const organization = await OrganizationFactory.create();

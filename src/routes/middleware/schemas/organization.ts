@@ -148,8 +148,8 @@ export const OrganizationSchemas = {
   }),
   updateWidget: Joi.object({
     widgetId: Joi.string().custom(objectId).required(),
-    position: Joi.any().required(),
-    size: Joi.any().required(),
-    title: Joi.string().required(),
+    position: Joi.any(),
+    size: Joi.any(),
+    title: Joi.string(),
   }),
 };
