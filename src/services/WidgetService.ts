@@ -110,6 +110,8 @@ export const WidgetService = {
         return await WidgetLoader.loadLogs(widget);
       case widgetType.PieChartByContent:
         return await WidgetLoader.loadPieChartByContent(widget);
+      case widgetType.HealthMonitor:
+        return await WidgetLoader.loadGraph(widget);
     }
   },
 };
