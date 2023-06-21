@@ -108,8 +108,8 @@ export const WidgetService = {
         return await WidgetLoader.loadGraph(widget);
       case widgetType.Logs:
         return await WidgetLoader.loadLogs(widget);
-      case widgetType.LineCharts:
-        return await WidgetLoader.loadGraph(widget);
+      case widgetType.PieChartByContent:
+        return await WidgetLoader.loadPieChartByContent(widget);
     }
   },
 };
@@ -220,5 +220,56 @@ const WidgetLoader = {
     }
 
     return logs;
+  },
+  loadPieChartByContent: async (widget: WidgetDocument) => {
+    const ceilingDate = new Date();
+    let floorDate = moment(ceilingDate).subtract(1, "day").toDate();
+    let numBoxes = 24;
+    if (widget.timeframe === widgetTimeframe.ThirtyDays) {
+      floorDate = moment(ceilingDate).subtract(30, "days").toDate();
+      numBoxes = 30;
+    }
+
+    const foldersGroupedByFullPath = await _loadFoldersGroupedByFullPath(
+      widget
+    );
+    const firstFolderPathObj = widget.folderPaths[0];
+    const firstFolderPath = firstFolderPathObj.fullPath;
+    const folder = foldersGroupedByFullPath[firstFolderPath];
+
+    if (!folder) {
+      return [];
+    }
+
+    const allLogsInTimeframe = await Log.find(
+      {
+        folderId: folder._id,
+        createdAt: { $gte: floorDate, $lt: ceilingDate },
+      },
+      { content: 1 }
+    )
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+
+    const groupedLogsByContent = _.groupBy(allLogsInTimeframe, "content");
+
+    const graphData = Object.keys(groupedLogsByContent)
+      .map((content) => ({
+        name: content,
+        value: groupedLogsByContent[content].length,
+      }))
+      .sort((a, b) => (a.value > b.value ? -1 : 1));
+    let suffix = allLogsInTimeframe.length === 1 ? "event" : "events";
+    if (firstFolderPathObj.overrideEventName) {
+      suffix = firstFolderPathObj.overrideEventName;
+    }
+
+    return {
+      graphData,
+      numLogsTotal: allLogsInTimeframe.length,
+      ...firstFolderPathObj,
+      suffix,
+    };
   },
 };
