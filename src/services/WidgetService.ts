@@ -108,6 +108,8 @@ export const WidgetService = {
         return await WidgetLoader.loadGraph(widget);
       case widgetType.Logs:
         return await WidgetLoader.loadLogs(widget);
+      case widgetType.LineCharts:
+        return await WidgetLoader.loadGraph(widget);
     }
   },
 };
