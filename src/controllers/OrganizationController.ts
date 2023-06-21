@@ -19,6 +19,7 @@ import { TwilioUtil } from "src/utils/twilio";
 import { LoggerHelpers } from "src/utils/loggerHelpers";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import _ from "lodash";
+import { WidgetService } from "src/services/WidgetService";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -539,5 +540,107 @@ export const OrganizationController = {
     );
 
     res.send({});
+  },
+  createWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const {
+      dashboardId,
+      title,
+      type,
+      folderPaths,
+      query,
+      position,
+      size,
+      timeframe,
+    } = req.body;
+
+    const widget = await WidgetService.createWidget(
+      organization._id.toString(),
+      dashboardId,
+      title,
+      type,
+      folderPaths,
+      position,
+      size,
+      query,
+      timeframe || undefined
+    );
+
+    res.send({ widget });
+  },
+  createDashboard: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { title } = req.body;
+
+    const dashboard = await OrganizationService.createDashboard(
+      organization._id.toString(),
+      title
+    );
+
+    res.send({ dashboard });
+  },
+  deleteDashboard: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { dashboardId } = req.body;
+
+    await OrganizationService.deleteDashboard(
+      organization._id.toString(),
+      dashboardId
+    );
+
+    res.send({});
+  },
+  deleteWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { widgetId } = req.body;
+
+    await WidgetService.deleteWidget(organization._id.toString(), widgetId);
+
+    res.send({});
+  },
+  updateWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { widgetId, position, size, title } = req.body;
+
+    const widget = await WidgetService.updateWidget(
+      organization._id.toString(),
+      widgetId,
+      position,
+      size,
+      title
+    );
+
+    res.send({ widget });
+  },
+  getWidgets: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { dashboardId } = req.query;
+
+    const widgets = await WidgetService.getWidgets(
+      organization._id.toString(),
+      dashboardId!.toString()
+    );
+
+    res.send({ widgets });
+  },
+  loadWidget: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { widgetId } = req.query;
+
+    const data = await WidgetService.loadWidget(
+      organization._id.toString(),
+      widgetId!.toString()
+    );
+
+    res.send({ data });
+  },
+  getDashboards: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+
+    const dashboards = await OrganizationService.getDashboards(
+      organization._id.toString()
+    );
+
+    res.send({ dashboards });
   },
 };

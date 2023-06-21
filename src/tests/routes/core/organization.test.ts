@@ -9,6 +9,7 @@ import {
   OrganizationDocument,
   orgPermissionLevel,
   simplifiedLogTagEnum,
+  widgetType,
 } from "logtree-types";
 import { DateTime } from "luxon";
 import moment from "moment-timezone";
@@ -46,6 +47,10 @@ import axios from "axios";
 import { OAuthRequest } from "src/models/OAuthRequest";
 import { FunnelFactory } from "src/tests/factories/FunnelFactory";
 import { Funnel } from "src/models/Funnel";
+import { DashboardFactory } from "src/tests/factories/DashboardFactory";
+import { Dashboard } from "src/models/Dashboard";
+import { WidgetFactory } from "src/tests/factories/WidgetFactory";
+import { Widget } from "src/models/Widget";
 
 const routeUrl = "/organization";
 
@@ -69,6 +74,11 @@ describe("CreateAccountAndOrganization", () => {
 
     const createdOrg = await Organization.findOne({ name: "A", slug: "a" });
     expect(createdOrg).toBeTruthy();
+
+    const createdDashboard = await Dashboard.findOne({
+      organizationId: createdOrg!._id,
+    });
+    expect(createdDashboard).toBeTruthy();
 
     const createdUser = await User.findOne({
       email: "b",
@@ -2985,5 +2995,690 @@ describe("GetFunnels", () => {
     expect(funnels.length).toBe(2);
     expect(funnels[0]._id.toString()).toBe(funnel2.id);
     expect(funnels[1]._id.toString()).toBe(funnel1.id);
+  });
+});
+
+describe("CreateWidget", () => {
+  it("correctly creates a widget for a dashboard", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+      title: "Test Hi",
+      type: widgetType.Logs,
+      folderPaths: [{ fullPath: "/testing", overrideEventName: null }],
+      query: "some query",
+      position: {
+        x: 3,
+        y: 10,
+      },
+      size: {
+        width: 350,
+        height: 500,
+      },
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widget } = res.body;
+    expect(widget.dashboardId.toString()).toBe(body.dashboardId);
+    expect(widget.organizationId.toString()).toBe(organization.id);
+    expect(widget.title).toBe(body.title);
+    expect(widget.type).toBe(body.type);
+    expect(widget.query).toBe(body.query);
+    expect(widget.position).toEqual(body.position);
+    expect(widget.size).toEqual(body.size);
+    expect(widget.folderPaths).toEqual(
+      expect.arrayContaining(body.folderPaths)
+    );
+  });
+  it("correctly creates a widget for a dashboard (no query)", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+      title: "Test Hi",
+      type: widgetType.Logs,
+      folderPaths: [
+        { fullPath: "/testing", overrideEventName: null },
+        { fullPath: "/testing-more", overrideEventName: "conversions" },
+      ],
+      position: {
+        x: 3,
+        y: 10,
+      },
+      size: {
+        width: 350,
+        height: 500,
+      },
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widget } = res.body;
+    expect(widget.dashboardId.toString()).toBe(body.dashboardId);
+    expect(widget.organizationId.toString()).toBe(organization.id);
+    expect(widget.title).toBe(body.title);
+    expect(widget.type).toBe(body.type);
+    expect(widget.query).toBeUndefined();
+    expect(widget.position).toEqual(body.position);
+    expect(widget.size).toEqual(body.size);
+    expect(widget.folderPaths).toEqual(
+      expect.arrayContaining(body.folderPaths)
+    );
+  });
+  it("fails to create a widget for a dashboard because the dashboard doesn't belong to the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+      title: "Test Hi",
+      type: widgetType.Logs,
+      folderPaths: [
+        { fullPath: "/testing", overrideEventName: null },
+        { fullPath: "/testing-more", overrideEventName: "conversions" },
+      ],
+      position: {
+        x: 3,
+        y: 10,
+      },
+      size: {
+        width: 350,
+        height: 500,
+      },
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "You can only create a widget for your own organization."
+    );
+  });
+});
+
+describe("CreateDashboard", () => {
+  it("correctly creates a dashboard for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      title: "some dashboard title!!!",
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { dashboard } = res.body;
+    expect(dashboard.organizationId.toString()).toBe(organization.id);
+    expect(dashboard.title).toBe(body.title);
+  });
+});
+
+describe("DeleteDashboard", () => {
+  it("correctly deletes a dashboard for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const widget1 = await WidgetFactory.create({ dashboardId: dashboard._id });
+    const widget2 = await WidgetFactory.create({ dashboardId: dashboard._id });
+
+    // decoy
+    const widget3 = await WidgetFactory.create();
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numDashboardsOriginally = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboardsOriginally).toBe(2);
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const numDashboards = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboards).toBe(1);
+
+    const widget1Exists = await Widget.findById(widget1._id);
+    expect(widget1Exists).toBeFalsy();
+    const widget2Exists = await Widget.findById(widget2._id);
+    expect(widget2Exists).toBeFalsy();
+    const widget3Exists = await Widget.findById(widget3._id);
+    expect(widget3Exists).toBeTruthy();
+  });
+  it("fails to delete a dashboard for an organization because it doesn't belong to this organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No dashboard with this ID exists in your organization."
+    );
+
+    const originalDashboard = await Dashboard.findById(dashboard._id);
+    expect(originalDashboard).toBeTruthy();
+  });
+  it("fails to delete a dashboard for an organization because there must always be at least 1 dashboard in the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numDashboardsOriginally = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboardsOriginally).toBe(1);
+
+    const body = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-dashboard`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "You must have at least 1 dashboard at all times."
+    );
+
+    const numDashboards = await Dashboard.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numDashboards).toBe(1);
+  });
+});
+
+describe("DeleteWidget", () => {
+  it("correctly deletes a widget for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const numWidgetsOriginally = await Widget.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numWidgetsOriginally).toBe(1);
+
+    const body = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const numWidgets = await Widget.countDocuments({
+      organizationId: organization._id,
+    });
+    expect(numWidgets).toBe(0);
+  });
+  it("fails to delete a widget for an organization because it doesn't belong to this organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/delete-widget`,
+      "POST",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No widget with this ID exists in your organization."
+    );
+
+    const originalWidget = await Widget.findById(widget._id);
+    expect(originalWidget).toBeTruthy();
+  });
+});
+
+describe("UpdateWidget", () => {
+  it("correctly updates a widget for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+    });
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      widgetId: widget._id.toString(),
+      position: {
+        x: 4,
+        y: 10,
+      },
+      size: {
+        width: 23,
+        height: 49,
+      },
+      title: "yoooo",
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "PUT",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widget: updatedWidget } = res.body;
+    expect(updatedWidget.title).toBe(body.title);
+    expect(updatedWidget.size).toEqual(body.size);
+    expect(updatedWidget.position).toEqual(body.position);
+  });
+  it("fails to update a widget for an organization because the widget doesn't belong to the organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const widget = await WidgetFactory.create();
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const body = {
+      widgetId: widget._id.toString(),
+      position: {
+        x: 4,
+        y: 10,
+      },
+      size: {
+        width: 23,
+        height: 49,
+      },
+      title: "yoooo",
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "PUT",
+      body,
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No widget with this ID exists in your organization."
+    );
+  });
+});
+
+describe("GetWidgets", () => {
+  it("correctly gets the widgets for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const widget1 = await WidgetFactory.create({
+      organizationId: organization._id,
+      dashboardId: dashboard._id,
+    });
+    const widget2 = await WidgetFactory.create({
+      organizationId: organization._id,
+      dashboardId: dashboard._id,
+    });
+
+    // decoys
+    await WidgetFactory.create({
+      organizationId: organization._id,
+    });
+    await WidgetFactory.create();
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      dashboardId: dashboard._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widgets`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { widgets } = res.body;
+    expect(widgets.length).toBe(2);
+    expect(widgets[0]._id.toString()).toBe(widget1.id);
+    expect(widgets[1]._id.toString()).toBe(widget2.id);
+  });
+});
+
+describe("LoadWidget", () => {
+  it("correctly loads a widget and its data (logs)", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      folderId: folder._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(10, "minutes").toDate(),
+    });
+    const log2 = await LogFactory.create({
+      folderId: folder._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(2, "minutes").toDate(),
+    });
+
+    // decoy
+    await LogFactory.create({
+      organizationId: organization._id,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+      type: widgetType.Logs,
+      folderPaths: [{ fullPath: folder.fullPath, overrideEventName: null }],
+    });
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { data } = res.body;
+    expect(data.length).toBe(2);
+    expect(data[0]._id.toString()).toBe(log2.id);
+    expect(data[1]._id.toString()).toBe(log1.id);
+  });
+  it("correctly loads a widget and its data with a query (logs)", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const log1 = await LogFactory.create({
+      folderId: folder._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(10, "minutes").toDate(),
+      content: "abc",
+    });
+    const log2 = await LogFactory.create({
+      folderId: folder._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(2, "minutes").toDate(),
+      content: "yolo",
+    });
+
+    // decoy
+    await LogFactory.create({
+      organizationId: organization._id,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+      type: widgetType.Logs,
+      folderPaths: [{ fullPath: folder.fullPath, overrideEventName: null }],
+      query: "ab",
+    });
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { data } = res.body;
+    expect(data.length).toBe(1);
+    expect(data[0]._id.toString()).toBe(log1.id);
+  });
+  it("correctly loads a widget and its data (histogram)", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(10, "minutes").toDate(),
+    });
+    await LogFactory.create({
+      folderId: folder._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(2, "minutes").toDate(),
+    });
+
+    // decoy
+    await LogFactory.create({
+      organizationId: organization._id,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+      type: widgetType.Histograms,
+      folderPaths: [{ fullPath: folder.fullPath, overrideEventName: null }],
+    });
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { data } = res.body;
+    expect(data[0].numLogsTotal).toBe(2);
+    expect(data[0].graphData.length).toBe(24);
+    expect(data[0].suffix).toBe("events");
+  });
+  it("correctly loads a widget and its data from multiple folderPaths (histogram)", async () => {
+    const organization = await OrganizationFactory.create();
+    const folder1 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    const folder2 = await FolderFactory.create({
+      organizationId: organization._id,
+    });
+    await LogFactory.create({
+      folderId: folder1._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(10, "minutes").toDate(),
+    });
+    await LogFactory.create({
+      folderId: folder2._id,
+      organizationId: organization._id,
+      createdAt: moment().subtract(2, "minutes").toDate(),
+    });
+
+    // decoy
+    await LogFactory.create({
+      organizationId: organization._id,
+      createdAt: moment().subtract(3, "minutes").toDate(),
+    });
+
+    const widget = await WidgetFactory.create({
+      organizationId: organization._id,
+      type: widgetType.Histograms,
+      folderPaths: [
+        { fullPath: folder1.fullPath, overrideEventName: null },
+        { fullPath: folder2.fullPath, overrideEventName: "conversions" },
+      ],
+    });
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { data } = res.body;
+    expect(data[0].numLogsTotal).toBe(1);
+    expect(data[0].graphData.length).toBe(24);
+    expect(data[0].suffix).toBe("event");
+    expect(data[1].numLogsTotal).toBe(1);
+    expect(data[1].graphData.length).toBe(24);
+    expect(data[1].suffix).toBe("conversions");
+  });
+  it("fails to load a widget because it doesn't belong to this organization", async () => {
+    const organization = await OrganizationFactory.create();
+
+    const widget = await WidgetFactory.create({
+      type: widgetType.Logs,
+    });
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const query = {
+      widgetId: widget._id.toString(),
+    };
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/widget`,
+      "GET",
+      {},
+      query,
+      user.firebaseId
+    );
+    TestHelper.expectError(
+      res,
+      "No widget with this ID exists in this organization."
+    );
+  });
+});
+
+describe("GetDashboards", () => {
+  it("correctly gets the dashboards for an organization", async () => {
+    const organization = await OrganizationFactory.create();
+    const dashboard1 = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    const dashboard2 = await DashboardFactory.create({
+      organizationId: organization._id,
+    });
+    await DashboardFactory.create();
+
+    const user = await UserFactory.create({ organizationId: organization._id });
+
+    const res = await TestHelper.sendRequest(
+      routeUrl + `/${user.organizationId.toString()}/dashboards`,
+      "GET",
+      {},
+      {},
+      user.firebaseId
+    );
+    TestHelper.expectSuccess(res);
+
+    const { dashboards } = res.body;
+    expect(dashboards.length).toBe(2);
+    expect(dashboards[0]._id.toString()).toBe(dashboard1.id);
+    expect(dashboards[1]._id.toString()).toBe(dashboard2.id);
   });
 });

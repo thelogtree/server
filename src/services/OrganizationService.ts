@@ -35,6 +35,8 @@ import { MyLogtree } from "src/utils/logger";
 import { Funnel } from "src/models/Funnel";
 import _ from "lodash";
 import { FunnelCompletion } from "src/models/FunnelCompletion";
+import { Dashboard } from "src/models/Dashboard";
+import { Widget } from "src/models/Widget";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -60,6 +62,10 @@ export const OrganizationService = {
       organizationName,
       promoLogLimit
     );
+    await Dashboard.create({
+      organizationId: organization._id,
+      title: "production",
+    });
     const invitation = await OrgInvitation.findOne({
       organizationId: organization._id,
     })
@@ -579,4 +585,30 @@ export const OrganizationService = {
       });
     }
   },
+  createDashboard: (organizationId: string, title: string) =>
+    Dashboard.create({ organizationId, title }),
+  deleteDashboard: async (organizationId: string, dashboardId: string) => {
+    const dashboardExistsUnderOrg = await Dashboard.exists({
+      _id: dashboardId,
+      organizationId,
+    });
+    if (!dashboardExistsUnderOrg) {
+      throw new ApiError(
+        "No dashboard with this ID exists in your organization."
+      );
+    }
+
+    const numDashboards = await Dashboard.countDocuments({ organizationId });
+    if (numDashboards <= 1) {
+      throw new ApiError("You must have at least 1 dashboard at all times.");
+    }
+
+    await Widget.deleteMany({ dashboardId });
+    await Dashboard.deleteOne({ _id: dashboardId });
+  },
+  getDashboards: async (organizationId: string) =>
+    await Dashboard.find({ organizationId })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec(),
 };

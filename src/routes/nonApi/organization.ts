@@ -113,6 +113,27 @@ router.get(
   }),
   OrganizationController.getIntegrationLogs
 );
+router.get(
+  "/:id/widgets",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getWidgets,
+  }),
+  OrganizationController.getWidgets
+);
+router.get(
+  "/:id/dashboards",
+  auth.requiredOrgMember,
+  OrganizationController.getDashboards
+);
+router.get(
+  "/:id/widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.loadWidget,
+  }),
+  OrganizationController.loadWidget
+);
 
 router.put(
   "/:id/user-permissions",
@@ -129,6 +150,14 @@ router.put(
     bodySchema: OrganizationSchemas.updateFolder,
   }),
   OrganizationController.updateFolder
+);
+router.put(
+  "/:id/widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.updateWidget,
+  }),
+  OrganizationController.updateWidget
 );
 router.put(
   "/:id/integration",
@@ -162,6 +191,38 @@ router.post(
     bodySchema: OrganizationSchemas.deleteFolderAndEverythingInside,
   }),
   OrganizationController.deleteFolderAndEverythingInside
+);
+router.post(
+  "/:id/dashboard",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createDashboard,
+  }),
+  OrganizationController.createDashboard
+);
+router.post(
+  "/:id/delete-dashboard",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteDashboard,
+  }),
+  OrganizationController.deleteDashboard
+);
+router.post(
+  "/:id/widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.createWidget,
+  }),
+  OrganizationController.createWidget
+);
+router.post(
+  "/:id/delete-widget",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.deleteWidget,
+  }),
+  OrganizationController.deleteWidget
 );
 router.post(
   "/:id/secret-key",

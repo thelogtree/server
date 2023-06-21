@@ -122,4 +122,35 @@ export const OrganizationSchemas = {
   deleteFunnel: Joi.object({
     funnelId: Joi.string().custom(objectId).required(),
   }),
+  createWidget: Joi.object({
+    dashboardId: Joi.string().custom(objectId).required(),
+    title: Joi.string().required(),
+    type: Joi.string().required(),
+    folderPaths: Joi.array().required(),
+    query: Joi.string().optional().allow(""),
+    position: Joi.any(),
+    size: Joi.any(),
+    timeframe: Joi.string().allow("").optional(),
+  }),
+  createDashboard: Joi.object({
+    title: Joi.string().required(),
+  }),
+  getWidgets: Joi.object({
+    dashboardId: Joi.string().custom(objectId).required(),
+  }),
+  loadWidget: Joi.object({
+    widgetId: Joi.string().custom(objectId).required(),
+  }),
+  deleteDashboard: Joi.object({
+    dashboardId: Joi.string().custom(objectId).required(),
+  }),
+  deleteWidget: Joi.object({
+    widgetId: Joi.string().custom(objectId).required(),
+  }),
+  updateWidget: Joi.object({
+    widgetId: Joi.string().custom(objectId).required(),
+    position: Joi.any(),
+    size: Joi.any(),
+    title: Joi.string(),
+  }),
 };
