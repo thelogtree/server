@@ -112,6 +112,8 @@ export const WidgetService = {
         return await WidgetLoader.loadPieChartByContent(widget);
       case widgetType.HealthMonitor:
         return await WidgetLoader.loadGraph(widget);
+      case widgetType.HistogramComparison:
+        return await WidgetLoader.loadGraph(widget);
     }
   },
 };
