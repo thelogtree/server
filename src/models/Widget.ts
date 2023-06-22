@@ -46,6 +46,7 @@ const WidgetSchema = new Schema(
     position: { type: PositionSchema, required: true },
     size: { type: SizeSchema, required: true },
     timeframe: { type: String, enum: widgetTimeframe, required: false },
+    url: { type: String, trim: true },
   },
   { timestamps: true }
 );

@@ -59,4 +59,7 @@ export const config = {
     url: process.env.REDIS_URL || "",
     isCacheEnabled: !process.env.IS_TEST && (!process.env.IS_DEV || false), // the last value decides whether it is enabled in dev
   },
+  iframely: {
+    apiKey: process.env.IFRAMELY_API_KEY || "",
+  },
 };

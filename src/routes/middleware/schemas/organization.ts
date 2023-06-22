@@ -131,6 +131,7 @@ export const OrganizationSchemas = {
     position: Joi.any(),
     size: Joi.any(),
     timeframe: Joi.string().allow("").optional(),
+    url: Joi.string().optional().allow(""),
   }),
   createDashboard: Joi.object({
     title: Joi.string().required(),

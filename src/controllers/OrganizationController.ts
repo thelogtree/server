@@ -552,6 +552,7 @@ export const OrganizationController = {
       position,
       size,
       timeframe,
+      url,
     } = req.body;
 
     const widget = await WidgetService.createWidget(
@@ -563,7 +564,8 @@ export const OrganizationController = {
       position,
       size,
       query,
-      timeframe || undefined
+      timeframe || undefined,
+      url || undefined
     );
 
     res.send({ widget });

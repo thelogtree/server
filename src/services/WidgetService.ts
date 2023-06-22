@@ -16,6 +16,7 @@ import moment from "moment";
 import { StatsService } from "./StatsService";
 import { LeanDocument } from "mongoose";
 import { LogService } from "./ApiService/lib/LogService";
+import { IFramelyUtil } from "src/utils/iframely";
 
 export const WidgetService = {
   createWidget: async (
@@ -27,7 +28,8 @@ export const WidgetService = {
     position: PositionType,
     size: SizeType,
     query?: string,
-    timeframe?: widgetTimeframe
+    timeframe?: widgetTimeframe,
+    url?: string
   ) => {
     const dashboardBelongsToOrg = await Dashboard.exists({
       organizationId,
@@ -48,6 +50,7 @@ export const WidgetService = {
       size,
       query,
       timeframe,
+      url,
     });
   },
   deleteWidget: async (organizationId: string, widgetId: string) => {
@@ -114,6 +117,10 @@ export const WidgetService = {
         return await WidgetLoader.loadGraph(widget);
       case widgetType.HistogramComparison:
         return await WidgetLoader.loadGraph(widget);
+      case widgetType.EmbeddedLink:
+        return await IFramelyUtil.getSiteInfo(widget.url!);
+      default:
+        return {};
     }
   },
 };
