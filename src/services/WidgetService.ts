@@ -271,11 +271,16 @@ const WidgetLoader = {
         value: groupedLogsByContent[content].length,
       }))
       .sort((a, b) => (a.value > b.value ? -1 : 1));
+
+    // consolidate the less frequent content into one "Other" category
+    const OTHER_CUTOFF = 10;
     const otherData = {
       name: "Other",
-      value: _.sumBy(graphData.slice(10), "value"),
+      value: _.sumBy(graphData.slice(OTHER_CUTOFF), "value"),
     };
-    const cleanedGraphData = graphData.slice(0, 10).concat([otherData]);
+    const cleanedGraphData = graphData
+      .slice(0, OTHER_CUTOFF)
+      .concat([otherData]);
 
     let suffix = allLogsInTimeframe.length === 1 ? "event" : "events";
     if (firstFolderPathObj.overrideEventName) {
