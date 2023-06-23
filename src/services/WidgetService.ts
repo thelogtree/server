@@ -271,13 +271,19 @@ const WidgetLoader = {
         value: groupedLogsByContent[content].length,
       }))
       .sort((a, b) => (a.value > b.value ? -1 : 1));
+    const otherData = {
+      name: "Other",
+      value: _.sumBy(graphData.slice(10), "value"),
+    };
+    const cleanedGraphData = graphData.slice(0, 10).concat([otherData]);
+
     let suffix = allLogsInTimeframe.length === 1 ? "event" : "events";
     if (firstFolderPathObj.overrideEventName) {
       suffix = firstFolderPathObj.overrideEventName;
     }
 
     return {
-      graphData,
+      graphData: cleanedGraphData,
       numLogsTotal: allLogsInTimeframe.length,
       ...firstFolderPathObj,
       suffix,
