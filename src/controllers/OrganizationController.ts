@@ -637,11 +637,21 @@ export const OrganizationController = {
     res.send({ data });
   },
   getDashboards: async (req: Request, res: Response) => {
+    const user: UserDocument = req["user"];
     const organization: OrganizationDocument = req["organization"];
 
     const dashboards = await OrganizationService.getDashboards(
       organization._id.toString()
     );
+
+    void MyLogtree.sendLog({
+      content: `Fetched dashboards (${organization.slug})`,
+      folderPath: "/fetched-dashboards",
+      referenceId: user.email,
+      additionalContext: {
+        dashboards: JSON.stringify(dashboards.map((d) => d.title)),
+      },
+    });
 
     res.send({ dashboards });
   },
