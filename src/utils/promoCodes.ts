@@ -5,4 +5,5 @@ type PromoCodeMap = { [key in string]: number };
 export const AvailablePromoCodes = {
   zfellows: 80000,
   v1: 20000,
+  blog: 15000,
 };
