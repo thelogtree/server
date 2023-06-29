@@ -278,9 +278,9 @@ const WidgetLoader = {
       name: "Other",
       value: _.sumBy(graphData.slice(OTHER_CUTOFF), "value"),
     };
-    const cleanedGraphData = graphData
-      .slice(0, OTHER_CUTOFF)
-      .concat([otherData]);
+    const cleanedGraphData = otherData.value
+      ? graphData.slice(0, OTHER_CUTOFF).concat([otherData])
+      : graphData;
 
     let suffix = allLogsInTimeframe.length === 1 ? "event" : "events";
     if (firstFolderPathObj.overrideEventName) {
@@ -338,9 +338,9 @@ const WidgetLoader = {
       name: "Other",
       value: _.sumBy(graphData.slice(OTHER_CUTOFF), "value"),
     };
-    const cleanedGraphData = graphData
-      .slice(0, OTHER_CUTOFF)
-      .concat([otherData]);
+    const cleanedGraphData = otherData.value
+      ? graphData.slice(0, OTHER_CUTOFF).concat([otherData])
+      : graphData;
 
     let suffix = allLogsInTimeframe.length === 1 ? "event" : "events";
     if (firstFolderPathObj.overrideEventName) {
