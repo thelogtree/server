@@ -134,7 +134,7 @@ export const OrganizationService = {
     await ApiService.createLog(
       organization,
       "/get-started",
-      "This is what a log looks like...head over to the API Dashboard to send your own logs!"
+      "This is what an event looks like...head over to the API Dashboard to send your own events!"
     );
 
     return { organization, firstInvitationUrl };
