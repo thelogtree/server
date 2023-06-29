@@ -113,6 +113,8 @@ export const WidgetService = {
         return await WidgetLoader.loadLogs(widget);
       case widgetType.PieChartByContent:
         return await WidgetLoader.loadPieChartByContent(widget);
+      case widgetType.BarChartByContent:
+        return await WidgetLoader.loadBarChartByContent(widget);
       case widgetType.HealthMonitor:
         return await WidgetLoader.loadGraph(widget);
       case widgetType.HistogramComparison:
@@ -235,10 +237,68 @@ const WidgetLoader = {
   loadPieChartByContent: async (widget: WidgetDocument) => {
     const ceilingDate = new Date();
     let floorDate = moment(ceilingDate).subtract(1, "day").toDate();
-    let numBoxes = 24;
     if (widget.timeframe === widgetTimeframe.ThirtyDays) {
       floorDate = moment(ceilingDate).subtract(30, "days").toDate();
-      numBoxes = 30;
+    }
+
+    const foldersGroupedByFullPath = await _loadFoldersGroupedByFullPath(
+      widget
+    );
+    const firstFolderPathObj = widget.folderPaths[0];
+    const firstFolderPath = firstFolderPathObj.fullPath;
+    const folder = foldersGroupedByFullPath[firstFolderPath];
+
+    if (!folder) {
+      return [];
+    }
+
+    const allLogsInTimeframe = await Log.find(
+      {
+        folderId: folder._id,
+        createdAt: { $gte: floorDate, $lt: ceilingDate },
+      },
+      { content: 1 }
+    )
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+
+    const groupedLogsByContent = _.groupBy(allLogsInTimeframe, "content");
+
+    const graphData = Object.keys(groupedLogsByContent)
+      .map((content) => ({
+        name: content,
+        value: groupedLogsByContent[content].length,
+      }))
+      .sort((a, b) => (a.value > b.value ? -1 : 1));
+
+    // consolidate the less frequent content into one "Other" category
+    const OTHER_CUTOFF = 10;
+    const otherData = {
+      name: "Other",
+      value: _.sumBy(graphData.slice(OTHER_CUTOFF), "value"),
+    };
+    const cleanedGraphData = graphData
+      .slice(0, OTHER_CUTOFF)
+      .concat([otherData]);
+
+    let suffix = allLogsInTimeframe.length === 1 ? "event" : "events";
+    if (firstFolderPathObj.overrideEventName) {
+      suffix = firstFolderPathObj.overrideEventName;
+    }
+
+    return {
+      graphData: cleanedGraphData,
+      numLogsTotal: allLogsInTimeframe.length,
+      ...firstFolderPathObj,
+      suffix,
+    };
+  },
+  loadBarChartByContent: async (widget: WidgetDocument) => {
+    const ceilingDate = new Date();
+    let floorDate = moment(ceilingDate).subtract(1, "day").toDate();
+    if (widget.timeframe === widgetTimeframe.ThirtyDays) {
+      floorDate = moment(ceilingDate).subtract(30, "days").toDate();
     }
 
     const foldersGroupedByFullPath = await _loadFoldersGroupedByFullPath(
