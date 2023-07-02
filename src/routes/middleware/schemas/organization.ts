@@ -25,6 +25,9 @@ export const OrganizationSchemas = {
     invitationId: Joi.string().custom(objectId).required(),
     orgSlug: Joi.string().required(),
   }),
+  getCsvString: Joi.object({
+    folderId: Joi.string().custom(objectId).required(),
+  }),
   searchForLogs: Joi.object({
     folderId: Joi.string().custom(objectId),
     isFavorites: Joi.boolean(),

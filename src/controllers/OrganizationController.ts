@@ -655,4 +655,15 @@ export const OrganizationController = {
 
     res.send({ dashboards });
   },
+  getCsvString: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { folderId } = req.body;
+
+    const csvString = await OrganizationService.getCsvString(
+      organization._id.toString(),
+      folderId
+    );
+
+    res.send({ csvString });
+  },
 };

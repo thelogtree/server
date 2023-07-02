@@ -134,6 +134,14 @@ router.get(
   }),
   OrganizationController.loadWidget
 );
+router.get(
+  "/:id/csv-string",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    querySchema: OrganizationSchemas.getCsvString,
+  }),
+  OrganizationController.getCsvString
+);
 
 router.put(
   "/:id/user-permissions",

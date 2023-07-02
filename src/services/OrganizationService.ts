@@ -611,4 +611,13 @@ export const OrganizationService = {
       .sort({ createdAt: 1 })
       .lean()
       .exec(),
+  getCsvString: async (organizationId: string, folderId: string) => {
+    const folderExists = await Folder.exists({ organizationId, _id: folderId });
+
+    if (!folderExists) {
+      throw new ApiError("No folder with this ID in this organization exists.");
+    }
+
+    const allLog
+  },
 };
