@@ -524,6 +524,11 @@ export const StatsService = {
       "too",
       "of",
       "-",
+      ".",
+      ",",
+      "!",
+      "?",
+      ";",
     ];
     logs.forEach((log) => {
       const keywords = log.content.split(" ");
