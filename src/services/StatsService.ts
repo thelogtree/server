@@ -9,6 +9,7 @@ import { getFloorAndCeilingDatesForDataBox } from "src/utils/helpers";
 import { RedisUtil } from "src/utils/redis";
 import { MyLogtree } from "src/utils/logger";
 import { LeanDocument } from "mongoose";
+import { IGNORE_WORDS } from "./lib";
 
 // we represent these in total minutes
 export enum timeIntervalEnum {
@@ -338,10 +339,11 @@ export const StatsService = {
       allLogsInFolder,
       isByReferenceId ? "referenceId" : "content"
     );
+
     let separateByKeywords = Boolean(
       !isByReferenceId &&
-        Object.keys(groupedLogs).length >= 25 &&
-        _.mean(Object.values(groupedLogs).map((vals) => vals.length)) <= 3
+        Object.keys(groupedLogs).length >= 10 &&
+        _.mean(Object.values(groupedLogs).map((vals) => vals.length)) <= 2
     );
 
     // see if there are too many unique values
@@ -350,16 +352,13 @@ export const StatsService = {
       groupedLogs = StatsService.groupByKeywords(allLogsInFolder);
     }
 
-    const numReferenceIdsTotal = _.uniqBy(
-      allLogsInFolder,
-      "referenceId"
-    ).length;
+    const numLogsTotal = allLogsInFolder.length;
 
     // put their sums in a map
     let sumArr: any[] = [];
     Object.keys(groupedLogs).forEach((logArrKey) => {
       const logArr = groupedLogs[logArrKey];
-      const contentKey = logArrKey;
+      const contentKey = logArrKey === "undefined" ? null : logArrKey;
 
       let numReferenceIdsAffected = 1;
       if (!isByReferenceId) {
@@ -368,8 +367,7 @@ export const StatsService = {
 
       if (
         contentKey &&
-        (!separateByKeywords ||
-          numReferenceIdsAffected !== numReferenceIdsTotal)
+        (!separateByKeywords || logArr.length !== numLogsTotal)
       ) {
         sumArr.push({
           contentKey,
@@ -514,28 +512,12 @@ export const StatsService = {
   },
   groupByKeywords: (logs: LeanDocument<LogDocument>[]) => {
     let keywordsMap = {};
-    const IGNORE_WORDS = [
-      " ",
-      "the",
-      "at",
-      "from",
-      "a",
-      "to",
-      "too",
-      "of",
-      "-",
-      ".",
-      ",",
-      "!",
-      "?",
-      ";",
-    ];
     logs.forEach((log) => {
       const keywords = log.content.split(" ");
       keywords.forEach((keyword) => {
         const cleanedKeyword = keyword.split(`\n`);
         cleanedKeyword.forEach((cleanedK) => {
-          if (!IGNORE_WORDS.includes(cleanedK)) {
+          if (!IGNORE_WORDS.includes(cleanedK.toLowerCase())) {
             if (keywordsMap[cleanedK]) {
               keywordsMap[cleanedK].push(log);
             } else {
