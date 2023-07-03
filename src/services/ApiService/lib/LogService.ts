@@ -227,6 +227,11 @@ export const LogService = {
     await Log.deleteOne({ _id: logId });
   },
   getSupportLogs: async (organization: OrganizationDocument, query: string) => {
+    if (!query.includes("@") || !query.includes(".") || query.includes(" ")) {
+      // hasn't finished putting a valid email in yet
+      return [];
+    }
+
     const [logs, integrationLogs] = await Promise.all([
       Log.find(
         {
