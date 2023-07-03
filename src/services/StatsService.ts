@@ -365,10 +365,7 @@ export const StatsService = {
         numReferenceIdsAffected = _.uniqBy(logArr, "referenceId").length;
       }
 
-      if (
-        contentKey &&
-        (!separateByKeywords || logArr.length !== numLogsTotal)
-      ) {
+      if (contentKey && (!separateByKeywords || logArr.length < numLogsTotal)) {
         sumArr.push({
           contentKey,
           count: logArr.length,
@@ -414,12 +411,10 @@ export const StatsService = {
       };
     }
 
-    const MAX_HISTOGRAMS_RETURNED = 12;
+    const MAX_HISTOGRAMS_RETURNED = 20;
     const histograms = sumsOrderedArr
       .slice(0, MAX_HISTOGRAMS_RETURNED)
       .map((obj) => {
-        // this part is super slow, fix!!!
-
         const { contentKey, numReferenceIdsAffected, separateByKeywords } = obj;
         let logsWithThisContentKey = groupedLogs[contentKey];
         let histogramData: DataBox[] = [];

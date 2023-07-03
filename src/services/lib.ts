@@ -40,4 +40,5 @@ export const IGNORE_WORDS = [
   "it",
   "be",
   "will",
+  "*",
 ];
