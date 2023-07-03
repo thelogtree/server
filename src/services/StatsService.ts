@@ -334,28 +334,48 @@ export const StatsService = {
         folderId
       );
 
-    const groupedLogs = _.groupBy(
+    let groupedLogs = _.groupBy(
       allLogsInFolder,
       isByReferenceId ? "referenceId" : "content"
     );
+    let separateByKeywords = Boolean(
+      !isByReferenceId &&
+        Object.keys(groupedLogs).length >= 25 &&
+        _.mean(Object.values(groupedLogs).map((vals) => vals.length)) <= 3
+    );
+
+    // see if there are too many unique values
+    if (separateByKeywords) {
+      // separate by keywords instead
+      groupedLogs = StatsService.groupByKeywords(allLogsInFolder);
+    }
+
+    const numReferenceIdsTotal = _.uniqBy(
+      allLogsInFolder,
+      "referenceId"
+    ).length;
 
     // put their sums in a map
     let sumArr: any[] = [];
-    Object.values(groupedLogs).forEach((logArr) => {
-      const contentKey = isByReferenceId
-        ? logArr[0].referenceId
-        : logArr[0].content;
+    Object.keys(groupedLogs).forEach((logArrKey) => {
+      const logArr = groupedLogs[logArrKey];
+      const contentKey = logArrKey;
 
       let numReferenceIdsAffected = 1;
       if (!isByReferenceId) {
         numReferenceIdsAffected = _.uniqBy(logArr, "referenceId").length;
       }
 
-      if (contentKey) {
+      if (
+        contentKey &&
+        (!separateByKeywords ||
+          numReferenceIdsAffected !== numReferenceIdsTotal)
+      ) {
         sumArr.push({
           contentKey,
           count: logArr.length,
           numReferenceIdsAffected,
+          separateByKeywords,
         });
       }
     });
@@ -402,7 +422,7 @@ export const StatsService = {
       .map((obj) => {
         // this part is super slow, fix!!!
 
-        const { contentKey, numReferenceIdsAffected } = obj;
+        const { contentKey, numReferenceIdsAffected, separateByKeywords } = obj;
         let logsWithThisContentKey = groupedLogs[contentKey];
         let histogramData: DataBox[] = [];
         let movingStartIndex = 0;
@@ -446,6 +466,7 @@ export const StatsService = {
           contentKey,
           histogramData,
           numReferenceIdsAffected,
+          separateByKeywords,
         };
       });
     return {
@@ -490,5 +511,36 @@ export const StatsService = {
     }
 
     return data;
+  },
+  groupByKeywords: (logs: LeanDocument<LogDocument>[]) => {
+    let keywordsMap = {};
+    const IGNORE_WORDS = [
+      " ",
+      "the",
+      "at",
+      "from",
+      "a",
+      "to",
+      "too",
+      "of",
+      "-",
+    ];
+    logs.forEach((log) => {
+      const keywords = log.content.split(" ");
+      keywords.forEach((keyword) => {
+        const cleanedKeyword = keyword.split(`\n`);
+        cleanedKeyword.forEach((cleanedK) => {
+          if (!IGNORE_WORDS.includes(cleanedK)) {
+            if (keywordsMap[cleanedK]) {
+              keywordsMap[cleanedK].push(log);
+            } else {
+              keywordsMap[cleanedK] = [log];
+            }
+          }
+        });
+      });
+    });
+
+    return keywordsMap;
   },
 };
