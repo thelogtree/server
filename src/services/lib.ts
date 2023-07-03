@@ -44,4 +44,5 @@ export const IGNORE_WORDS = [
   "this",
   "our",
   "your",
+  "as",
 ];
