@@ -241,6 +241,18 @@ export const IntercomService: IntegrationServiceType &
       { headers }
     );
     void MyLogtree.sendLog({
+      content: customerSupportMessage,
+      folderPath: `/intercom-prompts`,
+      additionalContext: {
+        integrationId: integration._id,
+        organizationId: integration.organizationId,
+        adminId,
+        linkToLogtreeJourney,
+        fullIntercomNote: body,
+        customerSupportMessage,
+      },
+    });
+    void MyLogtree.sendLog({
       content: `User's Intercom message: ${customerSupportMessage}\n\nSent Intercom note: ${body}`,
       folderPath: "/support-bot-responses-sent",
       additionalContext: {
