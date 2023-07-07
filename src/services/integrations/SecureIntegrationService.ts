@@ -27,6 +27,7 @@ import {
   GetIntegrationLogsFxnType,
 } from "./index";
 
+
 export type PlaintextKey = {
   type: keyTypeEnum;
   plaintextValue: string;
@@ -190,7 +191,6 @@ export const SecureIntegrationService = {
       isComplete: false,
       organizationId,
     })
-
       .lean()
       .exec();
     if (!openOAuthRequest) {
