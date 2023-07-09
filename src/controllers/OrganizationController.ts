@@ -170,7 +170,7 @@ export const OrganizationController = {
       password
     );
 
-    SegmentUtil.track(SegmentEventsEnum.InviteAccepted, user._id.toString(), {
+    SegmentUtil.track(SegmentEventsEnum.InviteAccepted, user.firebaseId, {
       invitationId,
       email,
       organizationId,
@@ -457,7 +457,7 @@ export const OrganizationController = {
     const query = (req.query.query as string).trim();
     const logs = await LogService.getSupportLogs(organization, query as string);
 
-    SegmentUtil.track(SegmentEventsEnum.Searched, user._id.toString(), {
+    SegmentUtil.track(SegmentEventsEnum.Searched, user.firebaseId, {
       numLogs: logs.length,
       query,
       organization: organization.slug,
