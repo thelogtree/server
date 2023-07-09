@@ -62,4 +62,7 @@ export const config = {
   iframely: {
     apiKey: process.env.IFRAMELY_API_KEY || "",
   },
+  segment: {
+    writeKey: process.env.SEGMENT_WRITE_KEY || "dummy",
+  },
 };

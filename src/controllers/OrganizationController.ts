@@ -16,10 +16,10 @@ import { MyLogtree } from "src/utils/logger";
 import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
 import { TwilioUtil } from "src/utils/twilio";
-import { LoggerHelpers } from "src/utils/loggerHelpers";
 import { SecureIntegrationService } from "src/services/integrations/SecureIntegrationService";
 import _ from "lodash";
 import { WidgetService } from "src/services/WidgetService";
+import { SegmentEventsEnum, SegmentUtil } from "src/utils/segment";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -99,14 +99,6 @@ export const OrganizationController = {
       ),
     ]);
 
-    LoggerHelpers.recordCheckingChannel(
-      req,
-      user,
-      organization,
-      isFavoritesBool,
-      folderId as string | undefined
-    );
-
     res.send({ logs, numLogsInTotal });
   },
   searchForLogs: async (req: Request, res: Response) => {
@@ -121,15 +113,6 @@ export const OrganizationController = {
       isFavoritesBool ? user : undefined
     );
 
-    LoggerHelpers.recordSearch(
-      req,
-      organization,
-      user,
-      isFavoritesBool,
-      query,
-      folderId
-    );
-
     res.send({ logs });
   },
   createFunnel: async (req: Request, res: Response) => {
@@ -141,14 +124,6 @@ export const OrganizationController = {
       organization._id,
       folderPathsInOrder,
       forwardToChannelPath
-    );
-
-    LoggerHelpers.recordCreatedFunnel(
-      req,
-      user,
-      organization,
-      forwardToChannelPath,
-      JSON.stringify(folderPathsInOrder)
     );
 
     res.send({ funnel });
@@ -195,7 +170,11 @@ export const OrganizationController = {
       password
     );
 
-    LoggerHelpers.recordNewUserCreated(req, organizationId, email);
+    SegmentUtil.track(SegmentEventsEnum.InviteAccepted, user._id.toString(), {
+      invitationId,
+      email,
+      organizationId,
+    });
 
     res.send(user);
   },
@@ -212,8 +191,6 @@ export const OrganizationController = {
     const organization: OrganizationDocument = req["organization"];
     const user: UserDocument = req["user"];
     const { folderId } = req.body;
-
-    LoggerHelpers.recordDeletedFolder(req, user, folderId, organization);
 
     await OrganizationService.deleteFolderAndEverythingInside(
       organization._id.toString(),
@@ -371,8 +348,6 @@ export const OrganizationController = {
       notificationType
     );
 
-    LoggerHelpers.recordNewRule(req, user, folderId, organization);
-
     res.send({ rule });
   },
   deleteRule: async (req: Request, res: Response) => {
@@ -482,15 +457,11 @@ export const OrganizationController = {
     const query = (req.query.query as string).trim();
     const logs = await LogService.getSupportLogs(organization, query as string);
 
-    LoggerHelpers.recordSearch(
-      req,
-      organization,
-      user,
-      false,
-      query as string,
-      undefined,
-      true
-    );
+    SegmentUtil.track(SegmentEventsEnum.Searched, user._id.toString(), {
+      numLogs: logs.length,
+      query,
+      organization: organization.slug,
+    });
 
     res.send({ logs });
   },

@@ -2281,7 +2281,7 @@ describe("GetSupportLogs", () => {
     jest.clearAllMocks();
   });
   it("correctly gets the support logs", async () => {
-    const query = "ggg";
+    const query = "ggg@.";
 
     const integrationLogsSpy = jest
       .spyOn(SecureIntegrationService, "getLogsFromIntegrations")
