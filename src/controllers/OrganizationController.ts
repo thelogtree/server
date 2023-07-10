@@ -461,6 +461,7 @@ export const OrganizationController = {
       numLogs: logs.length,
       query,
       organization: organization.slug,
+      user_email: user.email,
     });
 
     res.send({ logs });
