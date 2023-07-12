@@ -7,6 +7,7 @@ export enum SegmentEventsEnum {
   Searched = "Searched",
   InviteAccepted = "Invite Accepted",
   NewOrganizationCreated = "New Organization Created",
+  InteractionWithIntercomCanvas = "Interaction With Intercom Canvas",
 }
 
 export const SegmentUtil = {

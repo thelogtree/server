@@ -134,7 +134,6 @@ router.get(
   }),
   OrganizationController.loadWidget
 );
-router.post("/:id/intercom-canvas", OrganizationController.getIntercomCanvas);
 
 router.put(
   "/:id/user-permissions",
@@ -169,6 +168,11 @@ router.put(
   OrganizationController.updateIntegration
 );
 
+router.post("/intercom-canvas", OrganizationController.getIntercomCanvas);
+router.post(
+  "/intercom-canvas-interaction",
+  OrganizationController.recordIntercomCanvasInteraction
+);
 router.post(
   "/new",
   rateLimiterP1,

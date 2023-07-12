@@ -21,6 +21,7 @@ import _ from "lodash";
 import { WidgetService } from "src/services/WidgetService";
 import { SegmentEventsEnum, SegmentUtil } from "src/utils/segment";
 import { IntercomService } from "src/services/integrations";
+import { User } from "src/models/User";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -645,5 +646,29 @@ export const OrganizationController = {
     );
 
     res.send(canvas);
+  },
+  recordIntercomCanvasInteraction: async (req: Request, res: Response) => {
+    const signature = req.headers["x-body-signature"];
+    if (!isWebhookRequestFromIntercom(signature?.toString() || "", req.body)) {
+      throw new AuthError(
+        "Could not verify that this request is from Intercom."
+      );
+    }
+
+    const email = req.body.admin.email;
+    const contactEmail = req.body.contact.email;
+    const user = await User.findOne({ email }).lean();
+    if (user) {
+      SegmentUtil.track(
+        SegmentEventsEnum.InteractionWithIntercomCanvas,
+        user.firebaseId,
+        {
+          user_email: email,
+          customer_email: contactEmail,
+        }
+      );
+    }
+
+    res.send({});
   },
 };
