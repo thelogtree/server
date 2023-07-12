@@ -381,6 +381,23 @@ export const IntercomService: IntegrationServiceType &
         content: {
           components: [
             {
+              type: "button",
+              id: "inbox-url-action",
+              label: "View full timeline",
+              style: "primary",
+              action: {
+                type: "url",
+                url: `${BASE_URL}/org/${organization.slug}/journey?query=${email}`,
+              },
+            },
+            {
+              type: "divider",
+            },
+            {
+              type: "spacer",
+              size: "s",
+            },
+            {
               type: "data-table",
               items: logs.map((log) => ({
                 type: "field-value",
