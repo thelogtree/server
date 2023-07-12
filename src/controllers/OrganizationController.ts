@@ -11,7 +11,7 @@ import { LogService } from "src/services/ApiService/lib/LogService";
 import { OrganizationService } from "src/services/OrganizationService";
 import { StatsService, timeIntervalEnum } from "src/services/StatsService";
 import { ApiError, AuthError } from "src/utils/errors";
-import { queryBool } from "src/utils/helpers";
+import { isWebhookRequestFromIntercom, queryBool } from "src/utils/helpers";
 import { MyLogtree } from "src/utils/logger";
 import moment from "moment-timezone";
 import { RuleService } from "src/services/RuleService";
@@ -20,6 +20,7 @@ import { SecureIntegrationService } from "src/services/integrations/SecureIntegr
 import _ from "lodash";
 import { WidgetService } from "src/services/WidgetService";
 import { SegmentEventsEnum, SegmentUtil } from "src/utils/segment";
+import { IntercomService } from "src/services/integrations";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -626,5 +627,23 @@ export const OrganizationController = {
     );
 
     res.send({ dashboards });
+  },
+  getIntercomCanvas: async (req: Request, res: Response) => {
+    const signature = req.headers["x-body-signature"];
+    if (!isWebhookRequestFromIntercom(signature?.toString() || "", req.body)) {
+      throw new AuthError(
+        "Could not verify that this request is from Intercom."
+      );
+    }
+
+    const { workspace_id, contact } = req.body;
+    const { email } = contact;
+
+    const canvas = await IntercomService.getEventTimelineForIntercom(
+      workspace_id,
+      email
+    );
+
+    res.send(canvas);
   },
 };

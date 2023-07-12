@@ -134,6 +134,7 @@ router.get(
   }),
   OrganizationController.loadWidget
 );
+router.post("/:id/intercom-canvas", OrganizationController.getIntercomCanvas);
 
 router.put(
   "/:id/user-permissions",

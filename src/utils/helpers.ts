@@ -1,10 +1,12 @@
 import { AxiosError } from "axios";
 import bcrypt from "bcrypt";
 import _ from "lodash";
+import crypto from "crypto";
 
 import admin from "../../firebaseConfig";
 import { OrganizationDocument } from "logtree-types";
 import { DateTime } from "luxon";
+import { config } from "./config";
 
 // Converts boolean in query string to boolean value
 export const queryBool = (str: string): boolean =>
@@ -81,4 +83,20 @@ export const getFloorAndCeilingDatesForDataBox = (
   const ceilingDate = new Date(floorDate.getTime() + boxDuration);
 
   return { floorDate, ceilingDate };
+};
+
+export const isWebhookRequestFromIntercom = (
+  signature: string,
+  payload: any
+) => {
+  if (!signature) {
+    return false;
+  }
+
+  const hmac = crypto.createHmac("sha256", config.intercom.appClientSecret!);
+  const computedSignature = hmac
+    .update(typeof payload === "string" ? payload : JSON.stringify(payload))
+    .digest("hex");
+
+  return computedSignature === signature;
 };

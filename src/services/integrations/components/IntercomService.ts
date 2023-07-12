@@ -12,6 +12,7 @@ import moment from "moment";
 import { LeanDocument } from "mongoose";
 import { Integration } from "src/models/Integration";
 import {
+  LogService,
   MAX_NUM_CHARS_ALLOWED_IN_LOG,
   SimplifiedLog,
 } from "src/services/ApiService/lib/LogService";
@@ -24,6 +25,7 @@ import {
 } from "src/utils/helpers";
 import { MyLogtree } from "src/utils/logger";
 import { SecureIntegrationService } from "src/services/integrations/index";
+import { Organization } from "src/models/Organization";
 
 const BASE_URL = "https://api.intercom.io";
 
@@ -40,6 +42,10 @@ type ExtraIntercomServiceTypes = {
   getLogsForSupportBot: (
     integration: IntegrationDocument
   ) => Promise<SimplifiedLog[]>;
+  getEventTimelineForIntercom: (
+    workspaceId: string,
+    email: string
+  ) => Promise<any>;
 };
 
 export const IntercomService: IntegrationServiceType &
@@ -352,5 +358,39 @@ export const IntercomService: IntegrationServiceType &
     return allMessagesSorted.filter((message) =>
       moment(message.createdAt).isAfter(floorDate)
     );
+  },
+  getEventTimelineForIntercom: async (workspaceId: string, email: string) => {
+    const integration = await Integration.findOne({
+      "additionalProperties.appId": workspaceId,
+    }).lean();
+    if (!integration) {
+      throw new ApiError("No Intercom integration was found.");
+    }
+
+    const organization = await Organization.findById(
+      integration.organizationId
+    );
+    if (!organization) {
+      throw new ApiError("No organization with this integration was found.");
+    }
+
+    const logs = await LogService.getSupportLogs(organization, email);
+
+    return {
+      canvas: {
+        content: {
+          components: [
+            {
+              type: "data-table",
+              items: logs.map((log) => ({
+                type: "field-value",
+                field: log.sourceTitle,
+                value: log.content,
+              })),
+            },
+          ],
+        },
+      },
+    };
   },
 };
