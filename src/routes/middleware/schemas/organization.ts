@@ -21,6 +21,10 @@ export const OrganizationSchemas = {
   getSupportLogs: Joi.object({
     query: Joi.string().required(),
   }),
+  quickGpt: Joi.object({
+    type: Joi.string().required(),
+    email: Joi.string().required(),
+  }),
   getInvitationInfo: Joi.object({
     invitationId: Joi.string().custom(objectId).required(),
     orgSlug: Joi.string().required(),

@@ -1,5 +1,6 @@
 import {
   IntegrationDocument,
+  integrationTypeEnum,
   OrganizationDocument,
   orgPermissionLevel,
   UserDocument,
@@ -28,7 +29,10 @@ import firebase from "../../firebaseConfig";
 import { ApiService } from "./ApiService/ApiService";
 import { FolderService } from "./ApiService/lib/FolderService";
 import { UsageService } from "./ApiService/lib/UsageService";
-import { SecureIntegrationService } from "src/services/integrations/index";
+import {
+  SecureIntegrationService,
+  SentryService,
+} from "src/services/integrations/index";
 import { SendgridUtil } from "src/utils/sendgrid";
 import { AvailablePromoCodes } from "src/utils/promoCodes";
 import { MyLogtree } from "src/utils/logger";
@@ -37,6 +41,9 @@ import _ from "lodash";
 import { FunnelCompletion } from "src/models/FunnelCompletion";
 import { Dashboard } from "src/models/Dashboard";
 import { Widget } from "src/models/Widget";
+import { LogService } from "./ApiService/lib/LogService";
+import { CustomerSupportAssistantBotService } from "./CustomerSupportAssistantBotService";
+import { OpenAIUtil } from "src/utils/openai";
 
 export const TRIAL_LOG_LIMIT = 10000;
 
@@ -611,4 +618,23 @@ export const OrganizationService = {
       .sort({ createdAt: 1 })
       .lean()
       .exec(),
+  diagnoseProblem: async (
+    organization: OrganizationDocument,
+    email: string
+  ) => {
+    if (!email) {
+      return "";
+    }
+    const logs = await SecureIntegrationService.getLogsFromIntegrations(
+      organization,
+      email,
+      [integrationTypeEnum.Sentry, integrationTypeEnum.Intercom]
+    );
+    const logContextAsString = OpenAIUtil.transformLogContextIntoString(
+      logs.slice(0, 100)
+    );
+    const response = await OpenAIUtil.diagnoseProblem(logContextAsString);
+
+    return response || "";
+  },
 };

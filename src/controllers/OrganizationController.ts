@@ -22,6 +22,7 @@ import { WidgetService } from "src/services/WidgetService";
 import { SegmentEventsEnum, SegmentUtil } from "src/utils/segment";
 import { IntercomService } from "src/services/integrations";
 import { User } from "src/models/User";
+import { quickGptEnum } from "logtree-types/misc";
 
 export const OrganizationController = {
   createAccountAndOrganization: async (req: Request, res: Response) => {
@@ -628,6 +629,22 @@ export const OrganizationController = {
     );
 
     res.send({ dashboards });
+  },
+  quickGpt: async (req: Request, res: Response) => {
+    const organization: OrganizationDocument = req["organization"];
+    const { email } = req.body;
+    const type: quickGptEnum = req.body.type;
+
+    let response = "";
+    switch (type) {
+      case quickGptEnum.Diagnose:
+        response = await OrganizationService.diagnoseProblem(
+          organization,
+          email
+        );
+    }
+
+    res.send({ response });
   },
   getIntercomCanvas: async (req: Request, res: Response) => {
     const signature = req.headers["x-body-signature"];

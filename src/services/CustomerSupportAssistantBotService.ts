@@ -102,9 +102,7 @@ export const CustomerSupportAssistantBotService = {
             }
 
             const logContextAsString =
-              CustomerSupportAssistantBotService.transformLogContextIntoString(
-                contextLogs
-              );
+              OpenAIUtil.transformLogContextIntoString(contextLogs);
 
             const instructions =
               CustomerSupportAssistantBotService.getSupportLogStrAndInstructions(
@@ -192,21 +190,6 @@ export const CustomerSupportAssistantBotService = {
     const upperBound = Math.min(allLogs.length, lowerBound + 28);
 
     return allLogs.slice(lowerBound, upperBound);
-  },
-  transformLogContextIntoString: (logContext: SimplifiedLog[]) => {
-    let str = "------";
-
-    logContext.forEach((log) => {
-      if (str.length > 6) {
-        str += "\n------\n";
-      }
-      str += `Log from ${log.sourceTitle} (${
-        log.tag || "logging"
-      } service) recorded at ${log.createdAt}:\n`;
-      str += `${log.content.replace(/(\r\n|\n|\r)/gm, "")}`;
-    });
-
-    return str;
   },
   getSupportLogStrAndInstructions: (supportLog: SimplifiedLog) => {
     const instructions = `Your job is to assist a customer support agent. You will be given a user's message to the agent. You will also be given a list of events representing the user's activity directly prior to the message. The events are in chronological order, so the most recent event is listed first, and the oldest event is listed last. You must analyze the events and give the customer support agent an explanation on why you think the user is experiencing the problem. The events may not refer to the problem directly, so sometimes you will need to make inferences. Never make suggestions to the agent about what to say to the user. It is important to be very concise and only include the most relevant information. If none of the events are related to the user's message, you can say that the user's Logtree logs are unrelated to the user's message. Here is the user's message to the agent, sent at ${supportLog.createdAt}:\n${supportLog.content}\n\nHere are the user's events directly prior to this message:`;

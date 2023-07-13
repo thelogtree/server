@@ -359,4 +359,13 @@ router.post(
   }),
   OrganizationController.exchangeIntegrationOAuthToken
 );
+router.post(
+  "/:id/quick-gpt",
+  auth.requiredOrgMember,
+  validateRequestAgainstSchemas({
+    bodySchema: OrganizationSchemas.quickGpt,
+  }),
+  OrganizationController.quickGpt
+);
+
 export default router;

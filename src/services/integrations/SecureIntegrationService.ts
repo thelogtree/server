@@ -27,7 +27,6 @@ import {
   GetIntegrationLogsFxnType,
 } from "./index";
 
-
 export type PlaintextKey = {
   type: keyTypeEnum;
   plaintextValue: string;
@@ -134,11 +133,17 @@ export const SecureIntegrationService = {
     IntegrationGetLogsMap[integration.type],
   getLogsFromIntegrations: async (
     organization: OrganizationDocument,
-    query: string
+    query: string,
+    overridePossibleTypes?: integrationTypeEnum[]
   ): Promise<SimplifiedLog[]> => {
-    const integrations = await Integration.find({
+    let integrations = await Integration.find({
       organizationId: organization._id,
     }).exec();
+    if (overridePossibleTypes) {
+      integrations = integrations.filter((i) =>
+        overridePossibleTypes.includes(i.type)
+      );
+    }
 
     const logResults = await Promise.all(
       integrations.map(async (integration) => {

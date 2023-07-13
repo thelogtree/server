@@ -1,6 +1,7 @@
 import { Configuration, OpenAIApi } from "openai";
 import { config } from "./config";
 import { MyLogtree } from "./logger";
+import { SimplifiedLog } from "src/services/ApiService/lib/LogService";
 
 const configuration = new Configuration({
   apiKey: config.openai.apiKey,
@@ -60,5 +61,53 @@ export const OpenAIUtil = {
     });
 
     return !isUnrelatedDecision;
+  },
+  askQuestionAboutUserActivity: async (
+    question: string,
+    logsString: string
+  ) => {
+    const completion = await MyOpenAI.createChatCompletion({
+      model: "gpt-3.5-turbo-16k",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert data analyst for a company and you must try your best to answer a question about a specific user. Here is the question: "${question}"\n\nUse the events below to help answer the question. These events represent the user's activity in the app in chronological order from newest to oldest.\n${logsString}`,
+        },
+      ],
+      temperature: 0.6,
+      max_tokens: 500,
+    });
+
+    return completion.data.choices[0].message?.content;
+  },
+  diagnoseProblem: async (logsString: string) => {
+    const completion = await MyOpenAI.createChatCompletion({
+      model: "gpt-3.5-turbo-16k",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert support engineer and a user messaged in about a problem they are experiencing. Your job is to look through the user's recent errors, using their messages to customer support as context, and summarize what the problem is. Your summary must be easily understandable and brief. Here are the user's errors and support messages in chronological order from newest to oldest.\n${logsString}`,
+        },
+      ],
+      temperature: 0.6,
+      max_tokens: 500,
+    });
+
+    return completion.data.choices[0].message?.content;
+  },
+  transformLogContextIntoString: (logContext: SimplifiedLog[]) => {
+    let str = "------";
+
+    logContext.forEach((log) => {
+      if (str.length > 6) {
+        str += "\n------\n";
+      }
+      str += `Log from ${log.sourceTitle} (${
+        log.tag || "logging"
+      } service) recorded at ${log.createdAt}:\n`;
+      str += `${log.content.replace(/(\r\n|\n|\r)/gm, "")}`;
+    });
+
+    return str;
   },
 };
