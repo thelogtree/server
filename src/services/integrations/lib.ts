@@ -14,6 +14,7 @@ import {
   CustomerioService,
   MongodbService,
 } from "./index";
+import { NewRelicService } from "./components/NewRelicService";
 
 // ADDING A NEW INTEGRATION //
 // Note: Do not deploy anything until the end.
@@ -41,6 +42,7 @@ export const integrationsAvailableToConnectTo: integrationTypeEnum[] = [
   integrationTypeEnum.CustomerIO,
   integrationTypeEnum.Stripe,
   integrationTypeEnum.MongoDB,
+  integrationTypeEnum.NewRelic,
 ];
 
 // functions for getting logs for an integration
@@ -54,6 +56,7 @@ export const IntegrationGetLogsMap: {
   customer_io: CustomerioService.getLogs,
   stripe: StripeService.getLogs,
   mongodb: MongodbService.getLogs,
+  new_relic: NewRelicService.getLogs,
 };
 
 // functions for getting the functions to run when finishing connecting an integration
@@ -68,6 +71,7 @@ export const IntegrationFinishSetupFunctionsToRunMap: {
   customer_io: undefined,
   stripe: undefined,
   mongodb: undefined,
+  new_relic: undefined,
 };
 
 // functions for connecting the integration if the integration is using OAuth
@@ -81,6 +85,7 @@ export const IntegrationExchangeOAuthTokenAndConnectMap: {
   customer_io: undefined,
   stripe: undefined,
   mongodb: undefined,
+  new_relic: undefined,
 };
 
 // functions for getting the OAuth redirect link (if the integration connects via OAuth)
@@ -94,6 +99,7 @@ export const IntegrationGetOAuthLinkMap: {
   customer_io: undefined,
   stripe: undefined,
   mongodb: undefined,
+  new_relic: undefined,
 };
 
 // functions for removing an OAuth connection for an integration
@@ -107,4 +113,5 @@ export const IntegrationRemoveOAuthMap: {
   customer_io: undefined,
   stripe: undefined,
   mongodb: undefined,
+  new_relic: undefined,
 };

@@ -25,6 +25,7 @@ import {
   ExchangeOAuthTokenAndConnectFxnType,
   FinishSetupFxnType,
   GetIntegrationLogsFxnType,
+  MongodbService,
 } from "./index";
 
 export type PlaintextKey = {
@@ -239,6 +240,27 @@ export const SecureIntegrationService = {
     if (removeOAuthFxn) {
       // was an oauth connection, need to delete it via the integration's API if possible
       await removeOAuthFxn(integration);
+    }
+  },
+  getUserIdFromEmail: async (organizationId: string, email: string) => {
+    const integrationsThatCanGrabUserId = await Integration.find({
+      organizationId,
+      type: { $in: [integrationTypeEnum.MongoDB] },
+    })
+      .limit(1)
+      .lean()
+      .exec();
+    if (!integrationsThatCanGrabUserId.length) {
+      return "";
+    }
+
+    const integration = integrationsThatCanGrabUserId[0];
+
+    switch (integration.type) {
+      case integrationTypeEnum.MongoDB:
+        return MongodbService.getUserIdFromEmail(integration, email);
+      default:
+        return "";
     }
   },
 };

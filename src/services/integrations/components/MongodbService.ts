@@ -67,7 +67,7 @@ export const MongodbService: IntegrationServiceType & ExtraMongodbServiceTypes =
         { headers }
       );
 
-      const id = res.data[idKeyField];
+      const id = res.data.document[idKeyField];
 
       return id;
     },
