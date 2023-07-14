@@ -62,13 +62,13 @@ export const NewRelicService: IntegrationServiceType = {
     const logs = res.data.data.actor.account.nrql.results;
 
     const events = logs.map((log, i) => {
-      const content = `${log.method} ${log.url}${
-        log.status ? ` (${log.status})` : ""
-      }`.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG);
+      const content = log.url
+        ? `${log.method} ${log.url}${log.status ? ` (${log.status})` : ""}`
+        : log.message;
       const additionalContext = log;
       return {
         _id: `newrelic_${i}`,
-        content,
+        content: content.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
         createdAt: new Date(log.timestamp),
         tag: simplifiedLogTagEnum.Tracking,
         sourceTitle: `New Relic`,
