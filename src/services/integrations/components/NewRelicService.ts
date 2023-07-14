@@ -16,7 +16,7 @@ import { getFloorLogRetentionDateForOrganization } from "src/utils/helpers";
 import { SecureIntegrationService } from "../SecureIntegrationService";
 import { IntegrationServiceType } from "../types";
 
-const BASE_URL = "https://api.newrelic.com/v2";
+const BASE_URL = "https://api.newrelic.com/graphql";
 
 export const NewRelicService: IntegrationServiceType = {
   getHeaders: (integration: IntegrationDocument) => {
@@ -28,7 +28,7 @@ export const NewRelicService: IntegrationServiceType = {
     }
 
     return {
-      "X-Api-Key": key.plaintextValue,
+      "API-Key": key.plaintextValue,
     };
   },
   getLogs: async (
@@ -48,25 +48,18 @@ export const NewRelicService: IntegrationServiceType = {
       return [];
     }
 
-    const res = await axios.get(
-      `${BASE_URL}/applications/${integration.additionalProperties.get(
-        "appId"
-      )}/metrics/data.json`,
-      {
-        headers,
-        params: {
-          query: `SELECT * FROM Log WHERE ${integration.additionalProperties.get(
-            "userIdField"
-          )} = '${userId}'`,
-          from: floorDate.toISOString(),
-          to: new Date().toISOString(),
-          sort: "timestamp desc",
-          limit: 300,
-        },
-      }
-    );
+    const res = await axios.get(BASE_URL, {
+      headers,
+      params: {
+        query: `{ actor { account(id: ${integration.additionalProperties.get(
+          "accountId"
+        )}) { nrql(query: "SELECT * FROM Log WHERE ${integration.additionalProperties.get(
+          "userIdField"
+        )} = '${userId}' SINCE '${floorDate.toISOString()}' UNTIL '${new Date().toISOString()}' ORDER BY timestamp DESC LIMIT 300\") { results } } } }`,
+      },
+    });
 
-    const { logs } = res.data;
+    const logs = res.data.data.actor.account.nrql.results;
 
     const events = logs.map((log, i) => {
       const content = `${log.method} ${log.url}${
