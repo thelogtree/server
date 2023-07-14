@@ -4,6 +4,7 @@ export * from "src/services/integrations/components/MixpanelService";
 export * from "src/services/integrations/components/SendgridService";
 export * from "src/services/integrations/components/SentryService";
 export * from "src/services/integrations/components/StripeService";
+export * from "src/services/integrations/components/MongodbService";
 export * from "src/services/integrations/types";
 export * from "src/services/integrations/lib";
 export * from "src/services/integrations/SecureIntegrationService";
