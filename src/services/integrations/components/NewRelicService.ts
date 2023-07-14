@@ -63,7 +63,9 @@ export const NewRelicService: IntegrationServiceType = {
 
     const events = logs.map((log, i) => {
       const content = log.url
-        ? `${log.method} ${log.url}${log.status ? ` (${log.status})` : ""}`
+        ? `${log.method ? `${log.method} ` : ""}${log.url}${
+            log.status ? ` (${log.status})` : ""
+          }`
         : log.message;
       const additionalContext = log;
       return {
