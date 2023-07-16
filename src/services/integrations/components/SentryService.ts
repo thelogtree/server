@@ -102,7 +102,7 @@ export const SentryService: IntegrationServiceType = {
               ...eventsArray
                 .filter((event) => event.user?.email === query)
                 .map((event) => {
-                  const content = `${
+                  const content = `(${issue.project.slug})\n${
                     event.culprit ? `${event.culprit}\n` : ""
                   }${event.title}${
                     issue.metadata.value ? `\n\n${issue.metadata.value}` : ""
@@ -117,7 +117,7 @@ export const SentryService: IntegrationServiceType = {
                         ? simplifiedLogTagEnum.Error
                         : undefined,
                     externalLink: issue["permalink"],
-                    sourceTitle: `Sentry (${issue.project.slug})`,
+                    sourceType: integrationTypeEnum.Sentry,
                   };
                 })
             );
@@ -161,7 +161,7 @@ export const SentryService: IntegrationServiceType = {
               event["event.type"] === "error"
                 ? simplifiedLogTagEnum.Error
                 : undefined,
-            sourceTitle: `Sentry`,
+            sourceType: integrationTypeEnum.Sentry,
             referenceId: event.user?.email,
           };
         })

@@ -1,5 +1,6 @@
 import {
   IntegrationDocument,
+  integrationTypeEnum,
   keyTypeEnum,
   OrganizationDocument,
   simplifiedLogTagEnum,
@@ -119,7 +120,7 @@ export const MixpanelService: IntegrationServiceType = {
           ),
           createdAt: new Date(eventObj.properties.time * 1000),
           tag: simplifiedLogTagEnum.Tracking,
-          sourceTitle: "Mixpanel",
+          sourceType: integrationTypeEnum.Mixpanel,
         } as SimplifiedLog;
       });
   },

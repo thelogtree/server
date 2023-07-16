@@ -4,6 +4,7 @@ import { FolderService } from "./FolderService";
 import {
   OrganizationDocument,
   UserDocument,
+  integrationTypeEnum,
   simplifiedLogTagEnum,
 } from "logtree-types";
 import { ApiError, AuthError } from "src/utils/errors";
@@ -22,7 +23,7 @@ export type SimplifiedLog = {
   referenceId?: string;
   externalLink?: string;
   tag?: simplifiedLogTagEnum;
-  sourceTitle?: string;
+  sourceType?: integrationTypeEnum;
   additionalContext?: Map<any, any>;
 };
 

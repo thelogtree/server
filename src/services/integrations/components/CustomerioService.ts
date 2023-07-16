@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   IntegrationDocument,
+  integrationTypeEnum,
   keyTypeEnum,
   OrganizationDocument,
   simplifiedLogTagEnum,
@@ -94,7 +95,7 @@ export const CustomerioService: IntegrationServiceType = {
               "workspaceId"
             )}/people/${message.customer_identifiers.cio_id}/activity`,
             tag: simplifiedLogTagEnum.Marketing,
-            sourceTitle: "Customer.io",
+            sourceType: integrationTypeEnum.CustomerIO,
           } as SimplifiedLog);
         }
       });

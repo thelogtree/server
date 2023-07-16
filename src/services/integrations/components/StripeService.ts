@@ -2,6 +2,7 @@ import axios from "axios";
 import _ from "lodash";
 import {
   IntegrationDocument,
+  integrationTypeEnum,
   keyTypeEnum,
   OrganizationDocument,
   simplifiedLogTagEnum,
@@ -78,7 +79,7 @@ export const StripeService: IntegrationServiceType = {
           createdAt: new Date(payment.created * 1000),
           referenceId: query,
           tag: simplifiedLogTagEnum.Sales,
-          sourceTitle: "Stripe",
+          sourceType: integrationTypeEnum.Stripe,
           externalLink: `https://dashboard.stripe.com/customers/${payment.customer}`,
         });
       });
@@ -107,7 +108,7 @@ export const StripeService: IntegrationServiceType = {
           createdAt: new Date(payment.created * 1000),
           referenceId: payment.billing_details.email,
           tag: simplifiedLogTagEnum.Sales,
-          sourceTitle: "Stripe",
+          sourceType: integrationTypeEnum.Stripe,
           externalLink: `https://dashboard.stripe.com/customers/${payment.customer}`,
         });
       });

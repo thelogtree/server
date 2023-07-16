@@ -132,7 +132,7 @@ export const IntercomService: IntegrationServiceType &
           "appId"
         )}/inbox/shared/all/conversation/${conversationPart.conversationId}`,
         tag: simplifiedLogTagEnum.Support,
-        sourceTitle: "Intercom",
+        sourceType: integrationTypeEnum.Intercom,
         referenceId: conversationPart.author?.email,
       }))
       .concat(
@@ -150,7 +150,7 @@ export const IntercomService: IntegrationServiceType &
             "appId"
           )}/inbox/shared/all/conversation/${conversation.id}`,
           tag: simplifiedLogTagEnum.Support,
-          sourceTitle: "Intercom",
+          sourceType: integrationTypeEnum.Intercom,
           referenceId: conversation.source.author?.email,
         }))
       );
@@ -328,7 +328,7 @@ export const IntercomService: IntegrationServiceType &
           "appId"
         )}/inbox/shared/all/conversation/${conversationPart.conversationId}`,
         tag: simplifiedLogTagEnum.Support,
-        sourceTitle: "Intercom",
+        sourceType: integrationTypeEnum.Intercom,
         referenceId: conversationPart.author?.email,
       }))
       .concat(
@@ -346,7 +346,7 @@ export const IntercomService: IntegrationServiceType &
             "appId"
           )}/inbox/shared/all/conversation/${conversation.id}`,
           tag: simplifiedLogTagEnum.Support,
-          sourceTitle: "Intercom",
+          sourceType: integrationTypeEnum.Intercom,
           referenceId: conversation.source.author?.email,
         }))
       );
@@ -401,7 +401,7 @@ export const IntercomService: IntegrationServiceType &
               type: "data-table",
               items: logs.map((log) => ({
                 type: "field-value",
-                field: log.sourceTitle,
+                field: log.sourceType,
                 value: log.content,
               })),
             },

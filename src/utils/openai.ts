@@ -102,7 +102,7 @@ export const OpenAIUtil = {
       if (str.length > 6) {
         str += "\n------\n";
       }
-      str += `Log from ${log.sourceTitle} (${
+      str += `Log from ${log.sourceType} (${
         log.tag || "logging"
       } service) recorded at ${log.createdAt}:\n`;
       str += `${log.content.replace(/(\r\n|\n|\r)/gm, "")}`;

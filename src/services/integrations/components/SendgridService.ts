@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   IntegrationDocument,
+  integrationTypeEnum,
   keyTypeEnum,
   OrganizationDocument,
   simplifiedLogTagEnum,
@@ -148,7 +149,7 @@ export const SendgridService: IntegrationServiceType = {
                 ),
               createdAt: new Date(event.processed),
               tag: simplifiedLogTagEnum.Marketing,
-              sourceTitle: "Sendgrid",
+              sourceType: integrationTypeEnum.Sendgrid,
             });
           }
         });

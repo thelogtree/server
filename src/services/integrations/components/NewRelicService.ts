@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   IntegrationDocument,
+  integrationTypeEnum,
   keyTypeEnum,
   OrganizationDocument,
   simplifiedLogTagEnum,
@@ -73,7 +74,7 @@ export const NewRelicService: IntegrationServiceType = {
         content: content.slice(0, MAX_NUM_CHARS_ALLOWED_IN_LOG),
         createdAt: new Date(log.timestamp),
         tag: simplifiedLogTagEnum.Tracking,
-        sourceTitle: `New Relic`,
+        sourceType: integrationTypeEnum.NewRelic,
         referenceId: query,
         additionalContext,
       };
