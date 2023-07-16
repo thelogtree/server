@@ -250,7 +250,7 @@ export const LogService = {
         }
       )
         .sort({ createdAt: -1 })
-        .limit(300)
+        .limit(400)
         .lean()
         .exec() as Promise<SimplifiedLog[]>,
       SecureIntegrationService.getLogsFromIntegrations(organization, query),
@@ -261,7 +261,7 @@ export const LogService = {
       moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
     );
 
-    return sortedLogs.slice(0, 300);
+    return sortedLogs.slice(0, 400);
   },
   getIntegrationLogs: async (
     organization: OrganizationDocument,
@@ -284,6 +284,6 @@ export const LogService = {
       moment(a["createdAt"]).isAfter(moment(b["createdAt"])) ? -1 : 1
     );
 
-    return sortedLogs.slice(0, 300);
+    return sortedLogs.slice(0, 400);
   },
 };
