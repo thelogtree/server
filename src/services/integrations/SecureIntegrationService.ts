@@ -263,4 +263,25 @@ export const SecureIntegrationService = {
         return "";
     }
   },
+  getUserModel: async (organizationId: string, email: string) => {
+    const integrationsThatCanGrabUserId = await Integration.find({
+      organizationId,
+      type: { $in: [integrationTypeEnum.MongoDB] },
+    })
+      .limit(1)
+      .lean()
+      .exec();
+    if (!integrationsThatCanGrabUserId.length) {
+      return null;
+    }
+
+    const integration = integrationsThatCanGrabUserId[0];
+
+    switch (integration.type) {
+      case integrationTypeEnum.MongoDB:
+        return MongodbService.getUserModel(integration, email);
+      default:
+        return null;
+    }
+  },
 };

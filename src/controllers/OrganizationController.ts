@@ -458,7 +458,16 @@ export const OrganizationController = {
     const organization: OrganizationDocument = req["organization"];
     const user = req["user"];
     const query = (req.query.query as string).trim();
-    const logs = await LogService.getSupportLogs(organization, query as string);
+    if (!query.includes("@") || !query.includes(".") || query.includes(" ")) {
+      // hasn't finished putting a valid email in yet
+      res.send({ logs: [], user: null });
+      return;
+    }
+
+    const [logs, fetchedUser] = await Promise.all([
+      LogService.getSupportLogs(organization, query as string),
+      SecureIntegrationService.getUserModel(organization._id.toString(), query),
+    ]);
 
     SegmentUtil.track(SegmentEventsEnum.Searched, user.firebaseId, {
       numLogs: logs.length,
@@ -467,7 +476,7 @@ export const OrganizationController = {
       user_email: user.email,
     });
 
-    res.send({ logs });
+    res.send({ logs, user: fetchedUser });
   },
   getIntegrationLogs: async (req: Request, res: Response) => {
     const organization: OrganizationDocument = req["organization"];

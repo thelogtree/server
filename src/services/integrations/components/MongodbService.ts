@@ -15,6 +15,10 @@ type ExtraMongodbServiceTypes = {
     integration: IntegrationDocument,
     email: string
   ) => Promise<any>;
+  getUserModel: (
+    integration: IntegrationDocument,
+    email: string
+  ) => Promise<any>;
 };
 
 export const MongodbService: IntegrationServiceType & ExtraMongodbServiceTypes =
@@ -70,5 +74,27 @@ export const MongodbService: IntegrationServiceType & ExtraMongodbServiceTypes =
       const id = res.data.document[idKeyField];
 
       return id;
+    },
+    getUserModel: async (integration: IntegrationDocument, email: string) => {
+      const { baseUrl, database, cluster, collection, emailKeyField } =
+        integration.additionalProperties as any;
+
+      const fullUrl = `${baseUrl}/action/findOne`;
+      const headers = MongodbService.getHeaders(integration);
+
+      const res = await axios.post(
+        fullUrl,
+        {
+          dataSource: cluster,
+          database,
+          collection,
+          filter: {
+            [`${emailKeyField}`]: email,
+          },
+        },
+        { headers }
+      );
+
+      return res.data.document;
     },
   };
