@@ -1,25 +1,36 @@
 # Server
 
+Note: You may need to make some tweaks to the codebase to get it up and running / eliminate errors.
+
 ## Setup
 
 1. clone the repo
 2. `cd server && yarn`
-3. Get a `.env` file from another engineer and place it into the root of the repo.
-4. Install Docker desktop app.
-5. In your terminal, execute:
-   `docker run -d --name logtree_redis -p 127.0.0.1:6379:6379 redis`
-6. Go into Docker and make sure the local Redis instance is running. If it isn't yet, click the play/start button to start running it.
-7. `npm run dev` starts the server in debug mode
-8. `npm run test` runs all tests using jest
+3. Make a `.env` file and place it into the root of the repo. Add your own keys:
+```
+# we use mongodb for the database. create an atlas database and put the URI in here.
+MONGO_URI=""
 
-## Running Backfills
+# firebase keys
+PROJECT_ID=""
+PRIVATE_KEY_ID=""
+PRIVATE_KEY=""
+CLIENT_EMAIL=""
+CLIENT_ID=""
+CLIENT_CERT_URL=""
 
-1. Write your script and copy the overall setup from `src/backfills/08_14_2022_example.ts`.
-2. Test your backfill on individual documents (if we have staging setup, use staging for this step. If we don't, use prod carefully in this step.) before having it change all documents in prod. If we have a staging database setup, change the mongo uri for the backfill and connect to that staging database and do a full test run. Once confident it will work, you can run on prod.
-3. To actually run a backfill, go to your terminal inside the /server folder root and run this command: `npx ts-node src/backfills/YOUR_FILE_NAME.ts`
+# this should be a random string
+ENCRYPT_DECRYPT_KEY=""
 
-## Best Practices
+SEGMENT_WRITE_KEY="include_if_you_want_to_track_company_usage"
+```
+4. `npm run dev` starts the server in debug mode
+5. `npm run test` runs all tests using jest
 
-- Route -> Validator (middleware) -> Controller (middleware) -> Service (called by controller)
-- When throwing an error, do `throw new ApiError` (or use/create another error class from `src/utils/errors.ts`) instead of `throw new Error`. This is necessary so that `TestHelper.expectError` works properly.
-- Don't call multiple endpoints in a single unit test. If you need to create a user for example to use for your test, use the `UserFactory` or create another factory equivalent.
+## Deployment
+
+It should be relatively easy to figure out how to deploy this NodeJS app on Render or Heroku.
+
+## License
+
+Logtree by Andy Lebowitz is licensed under Attribution-NonCommercial 4.0 International. [See details here.](https://creativecommons.org/licenses/by-nc/4.0/?ref=chooser-v1)
