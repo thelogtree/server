@@ -1,6 +1,6 @@
 # Server
 
-Note: You may need to make some tweaks to the codebase to get it up and running / eliminate errors.
+Note: You may need to make some tweaks to the codebase to get it up and running / eliminate errors. Also, the codebase is relatively messy right now. There is a lot of code still in the repo from a prior feature. Please ignore irrelevant code.
 
 ## Setup
 
